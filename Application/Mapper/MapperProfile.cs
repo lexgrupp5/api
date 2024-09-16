@@ -1,8 +1,8 @@
 using AutoMapper;
 
-namespace Service;
+namespace Application;
 
 public class MapperProfile : Profile
 {
-    
+
 }
