@@ -1,19 +1,30 @@
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext : DbContext
 {
-    DbSet<User> Users { get; set; }
+    public AppDbContext (DbContextOptions<AppDbContext> options) 
+        : base(options){}
+    
+        public DbSet<User> Users => Set<User> ();
 
-    DbSet<Role> Roles { get; set; }
+        public DbSet<Role> Roles => Set<Role>();
 
-    DbSet<Course> Courses { get; set; }
+        public DbSet<Course> Courses => Set<Course>();
 
-    DbSet<Module> Modules { get; set; }
+        public DbSet<Module> Modules => Set<Module>();
 
-    DbSet<Document> Documents { get; set; }
+        public DbSet<Document> Documents => Set<Document>();
 
-    DbSet<Activity> Activities { get; set; }
+        public DbSet<Activity> Activities => Set<Activity>();
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.EnableSensitiveDataLogging(true);
+    }
+
 }
+

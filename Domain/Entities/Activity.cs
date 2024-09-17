@@ -12,9 +12,11 @@ public class Activity
     
     public DateTime EndDate { get; set; }
 
-    public ActivityType ActivityTypeId { get; set; }
+    public int ActivityTypeId { get; set; }
     
+    //Navigation
     public Module Module { get; set; }
     
+    public ActivityType ActivityType { get; set; }
     ICollection<Document> Documents { get; set; }
 }

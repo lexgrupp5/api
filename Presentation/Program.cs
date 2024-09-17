@@ -1,18 +1,27 @@
+using System.Reflection.Metadata;
+using Application;
 using Infrastructure.Persistence.Repositories;
-
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
+using Presentation;
+using Presentation.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+//// Add services to the container.
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=app.db", b => b.MigrationsAssembly("Infrastructure")));
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseSqlServer(configuration.GetConnectionString("MovieCardContext") ?? throw new InvalidOperationException("Connection string 'MovieCardContext' not found.")));
+builder.Services.ConfigureSql(builder.Configuration);
+builder.Services.AddControllers(configure => configure.ReturnHttpNotAcceptable = true)
+                //.AddNewtonsoftJson()
+                .AddApplicationPart(typeof(AssemblyRef).Assembly);
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(MapperProfile));
+builder.Services.ConfigureOpenApi();
+builder.Services.ConfigureServices();
+builder.Services.ConfigureRepositories();
 
 var app = builder.Build();
 
@@ -21,6 +30,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    await app.SeedDataAsync();
 }
 
 app.UseAuthorization();

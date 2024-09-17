@@ -11,7 +11,10 @@ public class Course
     public string Description { get; set; }
     
     public DateTime StartDate { get; set; }
+
+    public DateTime EndDate { get; set; }
     
+    //Navigation
     public ICollection<User> Users { get; set; }
     
     public ICollection<Module> Modules { get; set; }
