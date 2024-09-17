@@ -21,7 +21,7 @@ namespace Infrastructure.Data
         {
             //if (await context.Courses.AnyAsync())
             //{
-            //    Console.WriteLine("Existing data found. Ending seeding.");
+            //    Console.WriteLine("Existing data found. Aborting database seeding.");
             //    return;
             //}
 
@@ -29,17 +29,8 @@ namespace Infrastructure.Data
             await context.AddRangeAsync(activityTypes);
             await context.SaveChangesAsync();
 
-            var activities = GenerateActivities(5, activityTypes);
-            await context.AddRangeAsync(activities);
-            await context.SaveChangesAsync();
-
-            var modules = GenerateModules(6, activities);
-            await context.AddRangeAsync(modules);
-            await context.SaveChangesAsync();
-
-            var courses = GenerateCourses(10, modules);
+            var courses = GenerateCourses(5, activityTypes);
             await context.AddRangeAsync(courses);
-
             await context.SaveChangesAsync();
         }
 
@@ -53,7 +44,7 @@ namespace Infrastructure.Data
                 activityType.Description = faker.Lorem.Sentence();
             });
 
-            //Creates a list of ActivityType-objects based on the list "activityTypes".
+            //Creates a list of ActivityType-objects based on the list "activityTypes". 
             var types = activityTypes.Select(activityName =>
             {
                 var activity = activityDescriptions.Generate();
@@ -64,59 +55,87 @@ namespace Infrastructure.Data
             return types;
         }
 
-        private static List<Activity> GenerateActivities(int v, List<ActivityType> activityTypes)
+        private static List<Activity> GenerateActivities(int ammountOfActivities, List<ActivityType> types, DateTime startingDate)
         {
-            var startingDate = faker.Date.Future();
+            var actitivies = new List<Activity>();
+            DateTime lastEndDate = startingDate;
 
-            var activities = new Faker<Activity>("en").Rules((faker, activity) =>
+            for (int i = 0; i < ammountOfActivities; i++)
             {
-                activity.Description = faker.Lorem.Sentences(faker.Random.Int(1, 3));
-                activity.ActivityTypeId = faker.PickRandom(activityTypes).Id;
-                activity.StartDate = startingDate.AddDays(1);
-                activity.EndDate = faker.Date.Between(activity.StartDate, activity.StartDate.AddDays(faker.Random.Int(1, 10)));
-                startingDate = activity.EndDate;
-            });
+                var startDate = lastEndDate.AddDays(1);
+                var endDate = startDate.AddDays(faker.Random.Int(1,10));
 
-            return activities.Generate(v);
+                var activity = new Activity
+                {
+                    Description = faker.Lorem.Sentence(),
+                    ActivityType = faker.PickRandom(types),
+                    StartDate = startDate,
+                    EndDate = endDate,
+                };
+
+                actitivies.Add(activity);
+                lastEndDate = endDate;
+            }
+            return actitivies;
         }
 
-        private static List<Module> GenerateModules(int v, List<Activity> activities)
+        private static List<Module> GenerateModules(int ammountOfModules, List<ActivityType> activityTypes)
         {
-            //Generate activities to be added to the module
-            var moduleNames = new List<string> { "Beginner", "Intermediary", "Novice", "Roundup"};
+            var moduleNames = new List<string> { "Module A", "Module B", "Module C", "Module D"};
+            DateTime lastDate = faker.Date.Future();
 
-            var modules = new Faker<Module>("en").Rules((faker, module) =>
+            var modules = new List<Module>();
+
+            for (int i = 0; i < ammountOfModules; i++)
             {
-                module.Name = faker.PickRandom(moduleNames);
-                module.Description = faker.Lorem.Sentences(faker.Random.Int(1, 3));
-                module.Activities = activities;
-                module.StartDate = activities.First().StartDate;
-                module.EndDate = activities.Last().EndDate;
-            });
+                var activities = GenerateActivities(faker.Random.Int(2,5), activityTypes, lastDate);
 
-            return modules.Generate(v);
+                var module = new Module
+                {
+                    Name = faker.PickRandom(moduleNames),
+                    Description = faker.Lorem.Sentences(faker.Random.Int(1, 3)),
+                    Activities = activities,
+                    StartDate = activities.Min(a => a.StartDate),
+                    EndDate = activities.Max(a => a.EndDate)
+                };
+
+                modules.Add(module);
+                lastDate = activities.Max(a => a.EndDate);
+            }
+
+            return modules;
+
         }
 
-        private static IEnumerable<Course> GenerateCourses(int v, List<Module> modules)
+        private static IEnumerable<Course> GenerateCourses(int ammountOfCourses, List<ActivityType> activityTypes)
         {
             var subjects = new List<string> { "Programming", "Mathematics", "History", "Physics", "Biology", "Art", "Psychology", "Economics", "Java", ".NET Programming", "Frontend", "Fullstack" };
             var levels = new List<string> { "Introduction to", "Advanced", "Fundamentals of", "Principles of", "Applied" };
             var suffixes = new List<string> { "101", "for Beginners", "in Practice", "and Society", "Theory" };
 
-            var courses = new Faker<Course>("en").Rules((faker, course) =>
+            var courses = new List<Course>();
+
+            for (int i = 0; i < ammountOfCourses; i++)
             {
+                var modules = GenerateModules(faker.Random.Int(2,6), activityTypes);
+
                 var subject = faker.PickRandom(subjects);
                 var level = faker.PickRandom(levels);
                 var suffix = faker.PickRandom(suffixes);
                 var courseName = $"{level} {subject} {suffix}";
-                course.Name = courseName;
-                course.Description = faker.Lorem.Sentences(faker.Random.Int(1, 3));
-                course.Modules = modules;
-                course.StartDate = modules.First().StartDate;
-                course.EndDate = modules.Last().EndDate;
-            });
 
-            return courses.Generate(v);
+                var course = new Course
+                {
+                    Name = courseName,
+                    Description = faker.Lorem.Sentences(faker.Random.Int(1,3)),
+                    Modules = modules,
+                    StartDate = modules.Min(m => m.StartDate),
+                    EndDate = modules.Max(m => m.EndDate)
+                };
+
+                courses.Add(course);
+            }
+            return courses;
         }
     }
 }

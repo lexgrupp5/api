@@ -12,8 +12,6 @@ public class Activity
     
     public DateTime EndDate { get; set; }
 
-    public int ActivityTypeId { get; set; }
-    
     //Navigation
     public Module Module { get; set; }
     

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240917113324_Kom igen nu")]
-    partial class Komigennu
+    [Migration("20240917123739_initialize")]
+    partial class initialize
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,7 +33,7 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActivityTypeId")
+                    b.Property<int?>("ActivityTypeId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
@@ -50,9 +50,30 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ActivityTypeId");
+
                     b.HasIndex("ModuleId");
 
                     b.ToTable("Activities");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ActivityType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ActivityType");
                 });
 
             modelBuilder.Entity("Domain.Entities.Course", b =>
@@ -179,7 +200,7 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CourseId")
+                    b.Property<int>("CourseId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -188,7 +209,7 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Password")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("RoleId")
+                    b.Property<int>("RoleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -202,9 +223,15 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Activity", b =>
                 {
+                    b.HasOne("Domain.Entities.ActivityType", "ActivityType")
+                        .WithMany()
+                        .HasForeignKey("ActivityTypeId");
+
                     b.HasOne("Domain.Entities.Module", "Module")
                         .WithMany("Activities")
                         .HasForeignKey("ModuleId");
+
+                    b.Navigation("ActivityType");
 
                     b.Navigation("Module");
                 });
@@ -249,11 +276,15 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.Entities.Course", "Course")
                         .WithMany("Users")
-                        .HasForeignKey("CourseId");
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Domain.Entities.Role", "Role")
                         .WithMany("Users")
-                        .HasForeignKey("RoleId");
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Course");
 

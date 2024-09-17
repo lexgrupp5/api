@@ -10,6 +10,10 @@ public sealed class User
 
     public string Password { get; set; }
 
+    public int RoleId { get; set; }
+    public int CourseId { get; set; }
+
+    //Navigation
     public Role Role { get; set; }
 
     public Course Course { get; set; }

@@ -8,5 +8,6 @@ public class Role
     
     public string Name { get; set; }
 
+    //Navigation
     public ICollection<User> Users { get; set; }    
 }
