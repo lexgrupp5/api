@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Identity;
+
 namespace Domain.Entities;
 
 #nullable disable
 
-public sealed class User
+public class User : IdentityUser
 {
-    public int Id { get; set; }
+    /* public int Id { get; set; } */
 
     public string Name { get; set; }
 
