@@ -1,9 +1,6 @@
-using System.Reflection.Metadata;
 using Application;
+using Infrastructure.Interfaces;
 using Infrastructure.Persistence.Repositories;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-
 using Presentation;
 using Presentation.Extensions;
 
@@ -17,7 +14,11 @@ builder.Services.ConfigureSql(builder.Configuration);
 builder.Services.AddControllers(configure => configure.ReturnHttpNotAcceptable = true)
                 //.AddNewtonsoftJson()
                 .AddApplicationPart(typeof(AssemblyRef).Assembly);
-
+builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.ConfigureOpenApi();
 builder.Services.ConfigureServices();
