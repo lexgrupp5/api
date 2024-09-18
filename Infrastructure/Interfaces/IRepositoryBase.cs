@@ -2,7 +2,7 @@ namespace Infrastructure.Interfaces;
 
 public interface IRepositoryBase<T> where T : class
 {
-    Task<IEnumerable<T>> GetAllAsync();
+    public IQueryable<T> GetAll();
 
     Task<T?> GetByIdAsync(Guid id);
     Task CreateAsync(T entity);

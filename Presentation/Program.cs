@@ -11,15 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 //builder.Services.AddDbContext<AppDbContext>(options =>
 //    options.UseSqlServer(configuration.GetConnectionString("MovieCardContext") ?? throw new InvalidOperationException("Connection string 'MovieCardContext' not found.")));
 builder.Services.ConfigureSql(builder.Configuration);
+
 builder.Services.AddControllers(configure => configure.ReturnHttpNotAcceptable = true)
                 //.AddNewtonsoftJson()
                 .AddApplicationPart(typeof(AssemblyRef).Assembly);
-builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
-builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
-builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+
 builder.Services.AddAutoMapper(typeof(MapperProfile));
+
 builder.Services.ConfigureOpenApi();
 builder.Services.ConfigureServices();
 builder.Services.ConfigureRepositories();

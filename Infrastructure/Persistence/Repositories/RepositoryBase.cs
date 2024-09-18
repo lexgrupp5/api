@@ -8,21 +8,21 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
     where T : class
 {
     protected AppDbContext _context;
-    protected readonly DbSet<T> _dbSet;
+    protected DbSet<T> DbSet { get; }
 
     protected RepositoryBase(AppDbContext context)
     {
         _context = context;
-        _dbSet = _context.Set<T>();
+        DbSet = context.Set<T>();
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+    public IQueryable<T> GetAll() => DbSet;
 
-    public async Task<T?> GetByIdAsync(Guid id) => await _dbSet.FindAsync(id);
+    public async Task<T?> GetByIdAsync(Guid id) => await DbSet.FindAsync(id);
 
-    public async Task CreateAsync(T entity) => await _dbSet.AddAsync(entity);
+    public async Task CreateAsync(T entity) => await DbSet.AddAsync(entity);
 
-    public void UpdateAsync(T entity) => _dbSet.Update(entity);
+    public void UpdateAsync(T entity) => DbSet.Update(entity);
 
-    public void DeleteAsync(T entity) => _dbSet.Remove(entity);
+    public void DeleteAsync(T entity) => DbSet.Remove(entity);
 }

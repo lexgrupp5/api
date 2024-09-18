@@ -1,8 +1,15 @@
+using Application.Interfaces;
+
 namespace Service;
 
-public class ServiceCoordinator(Lazy<IExampleService> exampleService) : IServiceCoordinator
+public class ServiceCoordinator : IServiceCoordinator
 {
-    private readonly Lazy<IExampleService> _exampleService = exampleService;
+    private readonly Lazy<ICourseService> _courseService;
+    
+    public ICourseService CourseService => _courseService.Value;
 
-    public IExampleService Examples => _exampleService.Value;   
+    public ServiceCoordinator(Lazy<ICourseService> courseService)
+    {
+        _courseService = courseService;
+    }
 }
