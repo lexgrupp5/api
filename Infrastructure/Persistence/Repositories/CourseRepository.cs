@@ -31,6 +31,13 @@ public class CourseRepository : RepositoryBase<Course>, ICourseRepository
            
     }
 
+    public async Task<CourseDto?> GetCourseByIdAsync(int id)
+    {
+        var result = await GetByConditionAsync(m => m.Id.Equals(id)).Include(m => m.Modules).FirstOrDefaultAsync();
+        if (result == null) { return null; }
+        return _mapper.Map<CourseDto>(result);
+    }
+
     public async Task<bool> CheckCourseExistsAsync(Course course)
     {
         return await _context.Courses.AnyAsync(c => c.Name == course.Name);

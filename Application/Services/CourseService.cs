@@ -30,6 +30,12 @@ namespace Application.Services
             return await _dataCoordinator.Courses.GetCoursesAsync();
         }
         //GET single course (id)
+        public async Task<CourseDto?> GetCourseDtoByIdAsync(int id)
+        {
+            return await _dataCoordinator.Courses.GetCourseByIdAsync(id);
+
+        }
+
         //POST new course
         //PATCH existing course
     }
