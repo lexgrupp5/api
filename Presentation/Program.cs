@@ -1,5 +1,4 @@
-using Application;
-using Infrastructure.Interfaces;
+using Application.Mapper;
 using Infrastructure.Persistence.Repositories;
 using Presentation;
 using Presentation.Extensions;
@@ -13,8 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureSql(builder.Configuration);
 
 builder.Services.AddControllers(configure => configure.ReturnHttpNotAcceptable = true)
-                //.AddNewtonsoftJson()
-                .AddApplicationPart(typeof(AssemblyRef).Assembly);
+    //.AddNewtonsoftJson()
+    .AddApplicationPart(typeof(AssemblyRef).Assembly);
 
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
@@ -23,17 +22,17 @@ builder.Services.AddAutoMapper(typeof(MapperProfile));
 
 // Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
-{
-    // Password settings
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 8;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequiredUniqueChars = 1;
-})
-.AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
+    {
+        // Password settings
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequiredUniqueChars = 1;
+    })
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.ConfigureOpenApi();
 builder.Services.ConfigureServices();

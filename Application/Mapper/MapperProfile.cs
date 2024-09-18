@@ -3,7 +3,7 @@ using AutoMapper;
 using Domain.DTOs;
 using Domain.Entities;
 
-namespace Application;
+namespace Application.Mapper;
 
 public class MapperProfile : Profile
 {
@@ -17,6 +17,8 @@ public class MapperProfile : Profile
                 src.StartDate,
                 src.EndDate
                 //src.Modules.Select(m => m.Name).ToList()
-                ));
+            ));
+        CreateMap<Module, ModuleDto>();
+        CreateMap<Activity, ActivityDto>();
     }
 }

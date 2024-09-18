@@ -1,10 +1,10 @@
-using Infrastructure.Interfaces;
-
-namespace Data;
+namespace Infrastructure.Interfaces;
 
 public interface IDataCoordinator
 {
     ICourseRepository Courses { get; }
+
+    IModuleRepository Modules { get; }
 
     Task CompleteAsync();
 }
