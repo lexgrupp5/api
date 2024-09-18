@@ -7,5 +7,7 @@ public interface IDataCoordinator
 
     IModuleRepository Modules { get; }
 
+    IModuleRepository Modules { get; }
+
     Task CompleteAsync();
 }
