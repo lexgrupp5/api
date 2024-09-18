@@ -7,4 +7,6 @@ public interface IModuleRepository : IRepositoryBase<Module>
 {
     Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id);
     Task<bool> CheckModuleExistsAsync(Module module);
+
+    Task<ModuleDto?> GetModuleByIdAsync(int id);
 }

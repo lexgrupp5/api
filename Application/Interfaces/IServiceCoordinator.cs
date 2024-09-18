@@ -1,8 +1,8 @@
 using Domain.Entities;
-using Microsoft.AspNetCore.Identity;
-using Application.Interfaces;
 
-namespace Service;
+using Microsoft.AspNetCore.Identity;
+
+namespace Application.Interfaces;
 
 public interface IServiceCoordinator
 {
