@@ -2,6 +2,7 @@
 using Infrastructure.Persistence.Repositories;
 using Service;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace Presentation.Extensions
 {
@@ -29,6 +30,22 @@ namespace Presentation.Extensions
         public static void ConfigureRepositories(this IServiceCollection services)
         {
             //REPOSITORIES GO HERE
+        }
+
+        public static void CreateRoles(this IApplicationBuilder app)
+        {
+            using var scope = app.ApplicationServices.CreateScope();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            var roles = new[] {"Student", "Teacher", "Admin"};
+
+            foreach (var role in roles)
+            {
+                if (!roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
+                {
+                    roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter();
+                }
+            }
         }
     }
 }
