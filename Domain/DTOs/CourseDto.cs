@@ -8,5 +8,5 @@ using Domain.Entities;
 
 namespace Domain.DTOs
 {
-    public record CourseDto(int Id, string Name, string Description, string StartDate, string EndDate/*, ICollection<string> modules*/);
+    public record CourseDto(int Id, string Name, string Description, DateTime StartDate, DateTime EndDate/*, ICollection<string> modules*/);
 }

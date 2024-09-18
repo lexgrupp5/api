@@ -19,11 +19,11 @@ namespace Infrastructure.Data
 
         public static async Task InitializeAsync(AppDbContext context)
         {
-            if (await context.Courses.AnyAsync())
-            {
-                Console.WriteLine("Existing data found. Aborting database seeding.");
-                return;
-            }
+            //if (await context.Courses.AnyAsync())
+            //{
+            //    Console.WriteLine("Existing data found. Aborting database seeding.");
+            //    return;
+            //}
 
             var activityTypes = GenerateActivityTypes();
             await context.AddRangeAsync(activityTypes);

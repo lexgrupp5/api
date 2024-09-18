@@ -14,8 +14,8 @@ public class MapperProfile : Profile
                 src.Id,
                 src.Name,
                 src.Description,
-                src.StartDate.ToString("yyyy-MM-dd"),
-                src.EndDate.ToString("yyyy-MM-dd")
+                src.StartDate,
+                src.EndDate
                 //src.Modules.Select(m => m.Name).ToList()
                 ));
     }

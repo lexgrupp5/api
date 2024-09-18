@@ -8,7 +8,7 @@ using Domain.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//// Add services to the container.
+// Add services to the container.
 
 builder.Services.ConfigureSql(builder.Configuration);
 
@@ -18,10 +18,8 @@ builder.Services.AddControllers(configure => configure.ReturnHttpNotAcceptable =
 
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
-builder.Services.ConfigureOpenApi();
-builder.Services.ConfigureServices();
-builder.Services.ConfigureRepositories();
 
+//builder.Services.AddTransient(s => new Lazy<UserManager<User>>(() => s.GetRequiredService<UserManager<User>>()));
 
 // Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -36,6 +34,10 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
+
+builder.Services.ConfigureOpenApi();
+builder.Services.ConfigureServices();
+builder.Services.ConfigureRepositories();
 
 var app = builder.Build();
 

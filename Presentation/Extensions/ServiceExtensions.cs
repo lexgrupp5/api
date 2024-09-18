@@ -6,16 +6,12 @@ using Microsoft.AspNetCore.Identity;
 using Infrastructure.Interfaces;
 using Application.Interfaces;
 using Application.Services;
+using Domain.Entities;
 
 namespace Presentation.Extensions
 {
     public static class ServiceExtensions
     {
-        //public static void ConfigureSql(this IServiceCollection services, IConfiguration configuration)
-        //{
-        //    services.AddDbContext<AppDbContext>(options => 
-        //        options.UseSqlServer(configuration.GetConnectionString("AppDbContext") ?? throw new InvalidOperationException("Connection string 'AppDbContext' not found.")));
-        //}
         public static void ConfigureSql(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<AppDbContext>(options =>
@@ -27,6 +23,7 @@ namespace Presentation.Extensions
         public static void ConfigureServices(this IServiceCollection services)
         {
             //SERVICES GO HERE
+            services.AddScoped<UserManager<User>, UserManager<User>>();
             services.AddScoped<IServiceCoordinator, ServiceCoordinator>();
             services.AddScoped<ICourseService, CourseService>();
 
