@@ -7,6 +7,7 @@ using Infrastructure.Interfaces;
 using Application.Interfaces;
 using Application.Services;
 using Domain.Entities;
+using System.Runtime.CompilerServices;
 
 namespace Presentation.Extensions
 {
@@ -26,8 +27,10 @@ namespace Presentation.Extensions
             services.AddScoped<UserManager<User>, UserManager<User>>();
             services.AddScoped<IServiceCoordinator, ServiceCoordinator>();
             services.AddScoped<ICourseService, CourseService>();
+            services.AddScoped<IModuleService, ModuleService>();
 
             services.AddScoped(provider => new Lazy<ICourseService>(() => provider.GetRequiredService<ICourseService>()));
+            services.AddScoped(provider => new Lazy<IModuleService>(() => provider.GetRequiredService<IModuleService>()));
         }
 
         public static void ConfigureRepositories(this IServiceCollection services)
@@ -52,7 +55,7 @@ namespace Presentation.Extensions
             using var scope = app.ApplicationServices.CreateScope();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            var roles = new[] {"Student", "Teacher", "Admin"};
+            var roles = new[] { "Student", "Teacher", "Admin" };
 
             foreach (var role in roles)
             {

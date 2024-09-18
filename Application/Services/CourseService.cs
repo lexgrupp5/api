@@ -33,7 +33,6 @@ namespace Application.Services
         public async Task<CourseDto?> GetCourseDtoByIdAsync(int id)
         {
             return await _dataCoordinator.Courses.GetCourseByIdAsync(id);
-
         }
 
         //POST new course
