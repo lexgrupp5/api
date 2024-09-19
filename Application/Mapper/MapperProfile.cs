@@ -21,5 +21,7 @@ public class MapperProfile : Profile
             .ReverseMap();
         CreateMap<Module, ModuleDto>();
         CreateMap<Activity, ActivityDto>();
+        CreateMap<User, UserDto>();
+        CreateMap<Role, RoleDto>();
     }
 }

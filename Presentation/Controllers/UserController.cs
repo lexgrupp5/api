@@ -1,7 +1,8 @@
-using Application.Interfaces;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+using Service;
 
 namespace Presentation.Controllers;
 
@@ -21,5 +22,16 @@ public class UserController(IServiceCoordinator serviceCoordinator) : Controller
         }
 
         return Ok(module);
+    }   
+    [HttpGet(Name = "GetAllStudents")]
+    public async Task<ActionResult<UserDto>> GetAllStudents()
+    {
+        var users = await serviceCoordinator.UserService.GetAllStudentsAsync();
+        if (users == null)
+        {
+            return NotFound("No users found in the database.");
+        }
+
+        return Ok(users);
     }
 }

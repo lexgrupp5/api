@@ -32,6 +32,28 @@ namespace Infrastructure.Data
             var courses = GenerateCourses(5, activityTypes);
             await context.AddRangeAsync(courses);
             await context.SaveChangesAsync();
+
+            var students = GenerateStudents(5);
+            await context.AddRangeAsync(students);
+            await context.SaveChangesAsync();
+        }
+        //generates students with names and courseId, rest is NULL.
+        private static List<User> GenerateStudents(int amountOfStudents)
+        {
+            var students = new List<User>();
+            var role = new Role { Name = "Student" };
+
+            var faker = new Faker("sv");
+            for (int i = 0; i < amountOfStudents; i++)
+            {
+                var userName = faker.Person.FullName;
+                var courseId = faker.Random.Int(1, 5);
+
+                var user = new User { Name = userName, Role = role, CourseId = courseId };
+                students.Add(user);
+            }
+
+            return students;
         }
 
         private static List<ActivityType> GenerateActivityTypes()

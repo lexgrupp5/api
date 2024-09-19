@@ -28,9 +28,11 @@ namespace Presentation.Extensions
             services.AddScoped<IServiceCoordinator, ServiceCoordinator>();
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<IModuleService, ModuleService>();
+            services.AddScoped<IUserService, UserService>();
 
             services.AddScoped(provider => new Lazy<ICourseService>(() => provider.GetRequiredService<ICourseService>()));
             services.AddScoped(provider => new Lazy<IModuleService>(() => provider.GetRequiredService<IModuleService>()));
+            services.AddScoped(provider => new Lazy<IUserService>(() => provider.GetRequiredService<IUserService>()));
         }
 
         public static void ConfigureRepositories(this IServiceCollection services)
@@ -42,12 +44,15 @@ namespace Presentation.Extensions
             services.AddScoped<IModuleRepository, ModuleRepository>();
             services.AddScoped<IDocumentRepository, DocumentRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            
 
             services.AddScoped(provider => new Lazy<IActivityRepository>(() => provider.GetRequiredService<IActivityRepository>()));
             services.AddScoped(provider => new Lazy<IUserRepository>(() => provider.GetRequiredService<IUserRepository>()));
             services.AddScoped(provider => new Lazy<IModuleRepository>(() => provider.GetRequiredService<IModuleRepository>()));
             services.AddScoped(provider => new Lazy<IDocumentRepository>(() => provider.GetService<IDocumentRepository>()));
             services.AddScoped(provider => new Lazy<ICourseRepository>(() => provider.GetService<ICourseRepository>()));
+            services.AddScoped(provider => new Lazy<IUserRepository>(() => provider.GetService<IUserRepository>()));
         }
 
 
