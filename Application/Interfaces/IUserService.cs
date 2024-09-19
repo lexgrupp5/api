@@ -1,9 +1,9 @@
 ﻿using Domain.DTOs;
 
-namespace Application.Interfaces;
-
-public interface IUserService
+namespace Application.Interfaces
 {
-    Task<IEnumerable<UserDto>> GetAllStudentsAsync();
-
+    public interface IUserService
+    {
+        Task<IEnumerable<UserDto?>> GetUsersOfCourseByIdAsync(int courseId);
+    }
 }

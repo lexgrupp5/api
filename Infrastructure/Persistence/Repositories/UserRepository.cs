@@ -1,36 +1,27 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-
-using Domain.DTOs;
-using Domain.Entities;
-
+﻿using Domain.Entities;
 using Infrastructure.Interfaces;
-
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
 
 public class UserRepository : RepositoryBase<User>, IUserRepository
 {
-    private readonly IMapper _mapper;
-    public UserRepository(AppDbContext context, IMapper mapper) : base(context)
+    public UserRepository(AppDbContext context) : base(context)
     {
         _context = context;
-        _mapper = mapper;
+    }
+
+    public async Task <IEnumerable<User>?> GetUsersFromCourseByIdAsync(int courseId)
+    {
+        var course = await _context.Courses.Where(c => c.Id == courseId).FirstOrDefaultAsync();
+        if (course == null) { return null; }
+        var students = await _context.Users.Where(u => u.CourseId == courseId).ToListAsync();
+        return students;
+        
     }
 
     public async Task<bool> CheckUsernameExistsAsync(User user)
     {
         return await _context.Users.AnyAsync(u => u.Name == user.Name);
-    }
-
-    public async Task<IEnumerable<UserDto>> GetAllStudentsAsync()
-    {
-        var queryResults = await GetAll()
-            .Where(u => u.Role.Name == "Student")
-            .ProjectTo<UserDto>(_mapper.ConfigurationProvider, new[] { nameof(UserDto.Name) })
-            .ToListAsync();
-
-        return queryResults;
     }
 }

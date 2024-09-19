@@ -1,3 +1,4 @@
-﻿namespace Domain.DTOs;
-
-public record UserDto(string Name, string Password);
+﻿namespace Domain.DTOs
+{
+    public record UserDto(string Name, string Username, string Email);
+}

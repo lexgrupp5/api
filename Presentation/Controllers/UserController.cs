@@ -1,35 +1,30 @@
 using Domain.DTOs;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using Service;
+using Application.Interfaces;
 
 namespace Presentation.Controllers;
 
 [Route("api/User")]
 [ApiController]
 [Produces("application/json")]
-[Authorize(Roles = "Teacher")]
-public class UserController(IServiceCoordinator serviceCoordinator) : ControllerBase
+//[Authorize(Roles = "Teacher")]
+public class UserController: ControllerBase
 {
-    [HttpGet("{id}", Name = "GetModule")]
-    public async Task<ActionResult<ModuleDto>> GetModule(int id)
-    {
-        var module = await serviceCoordinator.ModuleService.GetModuleByIdWithActivitiesAsync(id);
-        if (module == null)
-        {
-            return NotFound($"Module with the ID {id} was not found in the database.");
-        }
+    private readonly IServiceCoordinator _serviceCoordinator;
 
-        return Ok(module);
-    }   
-    [HttpGet(Name = "GetAllStudents")]
-    public async Task<ActionResult<UserDto>> GetAllStudents()
+    public UserController(IServiceCoordinator serviceCoordinator)
     {
-        var users = await serviceCoordinator.UserService.GetAllStudentsAsync();
+        _serviceCoordinator = serviceCoordinator;
+    }
+
+    //GET: Course participants by Course ID
+    [HttpGet("course/{id}")]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersOfCourse(int id)
+    {
+        var users = await _serviceCoordinator.UserService.GetUsersOfCourseByIdAsync(id);
         if (users == null)
         {
-            return NotFound("No users found in the database.");
+            return NotFound($"Users of course with ID {id} were not found in the database.");
         }
 
         return Ok(users);

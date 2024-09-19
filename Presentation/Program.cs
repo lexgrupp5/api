@@ -1,9 +1,11 @@
-using Application.Mapper;
 using Infrastructure.Persistence.Repositories;
 using Presentation;
 using Presentation.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Domain.Entities;
+using Application.Mapper;
+using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,22 +23,25 @@ builder.Services.AddAutoMapper(typeof(MapperProfile));
 //builder.Services.AddTransient(s => new Lazy<UserManager<User>>(() => s.GetRequiredService<UserManager<User>>()));
 
 // Identity
-builder.Services.AddIdentity<User, IdentityRole>(options =>
-    {
-        // Password settings
-        options.Password.RequireDigit = true;
-        options.Password.RequiredLength = 8;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequiredUniqueChars = 1;
-    })
+builder.Services.AddDataProtection();
+builder.Services.AddIdentityCore<User>(options =>
+{
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequiredUniqueChars = 1;
+})
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
 builder.Services.ConfigureOpenApi();
 builder.Services.ConfigureServices();
 builder.Services.ConfigureRepositories();
+builder.Services.ConfigureOptions(builder.Configuration);
 
 var app = builder.Build();
 
@@ -45,7 +50,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.CreateRoles();
     await app.SeedDataAsync();
 }
 

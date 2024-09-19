@@ -1,29 +1,33 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Bogus;
-using Bogus.DataSets;
+﻿using Bogus;
 using Domain.Entities;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.Runtime.CompilerServices;
+using Microsoft.Identity.Client;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Data
 {
-    public class SeedData
+    public static class SeedData
     {
         private static Faker faker = new Faker("sv");
+        private static UserManager<User> _userManager = null!;
+        private static RoleManager<IdentityRole> _roleManager = null!;
+        private const string studentRole = "STUDENT";
+        private const string teacherRole = "TEACHER";
 
-        public static async Task InitializeAsync(AppDbContext context)
+        public static async Task InitializeAsync(AppDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
-            //if (await context.Courses.AnyAsync())
-            //{
-            //    Console.WriteLine("Existing data found. Aborting database seeding.");
-            //    return;
-            //}
+            if (await context.Courses.AnyAsync())
+            {
+                Console.WriteLine("Existing data found. Aborting database seeding.");
+                return;
+            }
+
+            _userManager = userManager;
+            _roleManager = roleManager;
 
             var activityTypes = GenerateActivityTypes();
             await context.AddRangeAsync(activityTypes);
@@ -33,27 +37,56 @@ namespace Infrastructure.Data
             await context.AddRangeAsync(courses);
             await context.SaveChangesAsync();
 
-            var students = GenerateStudents(5);
-            await context.AddRangeAsync(students);
-            await context.SaveChangesAsync();
-        }
-        //generates students with names and courseId, rest is NULL.
-        private static List<User> GenerateStudents(int amountOfStudents)
-        {
-            var students = new List<User>();
-            var role = new Role { Name = "Student" };
-
-            var faker = new Faker("sv");
-            for (int i = 0; i < amountOfStudents; i++)
+            try
             {
-                var userName = faker.Person.FullName;
-                var courseId = faker.Random.Int(1, 5);
+                await CreateRolesAsync([studentRole, teacherRole]);
+                await context.SaveChangesAsync();
 
-                var user = new User { Name = userName, Role = role, CourseId = courseId };
-                students.Add(user);
+                await GenerateUsersAsync(50, courses);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
             }
 
-            return students;
+        }
+
+        private static async Task CreateRolesAsync(string[] roleNames)
+        {
+            foreach (var roleName in roleNames)
+            {
+                if (await _roleManager.RoleExistsAsync(roleName)) continue;
+                var role = new IdentityRole(roleName);
+                var result = await _roleManager.CreateAsync(role);
+
+                if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
+            }
+        }
+
+        private static async Task GenerateUsersAsync(int numberOfUsers, IEnumerable<Course> courses)
+        {
+            string[] roles = ["STUDENT", "TEACHER"];
+            var users = new Faker<User>("sv").Rules((faker, user) =>
+            {
+                user.Name = faker.Name.FullName();
+                user.Email = user.Name.Replace(" ", "") + "@email.se";
+                user.UserName = faker.Internet.UserName();
+                user.Course = faker.PickRandom(courses);
+            });
+
+            var newUsers = users.Generate(numberOfUsers);
+
+            foreach (var user in newUsers)
+            {
+                var result = await _userManager.CreateAsync(user, "Qwerty1234");
+                if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
+
+                await _userManager.AddToRoleAsync(user, faker.PickRandom(roles));
+
+            }
+
         }
 
         private static List<ActivityType> GenerateActivityTypes()

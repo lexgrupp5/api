@@ -14,11 +14,9 @@ public class DataCoordinator : IDataCoordinator, IDisposable
     public ICourseRepository Courses => _courseRepository.Value;
     public IModuleRepository Modules => _moduleRepository.Value;
     public IActivityRepository Activities => _activityRepository.Value;
-    
     public IUserRepository Users => _userRepository.Value;
 
-    public DataCoordinator(AppDbContext appDbContext, Lazy<ICourseRepository> courseRepository, Lazy<IModuleRepository> moduleRepository, Lazy<IActivityRepository> activityRepository,
-        Lazy<IUserRepository> userRepository)
+    public DataCoordinator(AppDbContext appDbContext, Lazy<ICourseRepository> courseRepository, Lazy<IModuleRepository> moduleRepository, Lazy<IActivityRepository> activityRepository, Lazy<IUserRepository> userRepository)
     {
         _appDbContext = appDbContext;
         _courseRepository = courseRepository;
