@@ -1,21 +1,22 @@
 using Domain.Entities;
 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class AppDbContext : IdentityDbContext
+public class AppDbContext : IdentityDbContext<User, IdentityRole, string>
 {
     public AppDbContext (DbContextOptions<AppDbContext> options) 
         : base(options){}
-    
-        public DbSet<User> Users => Set<User> ();
 
-        //public DbSet<Role> Roles => Set<Role>();
+    //public DbSet<User> Users => Set<User>();
 
-        public DbSet<Course> Courses => Set<Course>();
+    //public DbSet<Role> Roles => Set<Role>();
+
+    public DbSet<Course> Courses => Set<Course>();
 
         public DbSet<Module> Modules => Set<Module>();
 
@@ -28,6 +29,15 @@ public class AppDbContext : IdentityDbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.EnableSensitiveDataLogging(true);
+    }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<User>()
+            .HasDiscriminator<string>("Discriminator")
+            .HasValue<User>("User");
     }
 }
 

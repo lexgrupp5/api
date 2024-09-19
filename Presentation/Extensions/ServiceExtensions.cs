@@ -1,4 +1,4 @@
-﻿using Data;
+using Data;
 using Infrastructure.Persistence.Repositories;
 using Service;
 using Microsoft.EntityFrameworkCore;
@@ -48,28 +48,6 @@ namespace Presentation.Extensions
             services.AddScoped(provider => new Lazy<IModuleRepository>(() => provider.GetRequiredService<IModuleRepository>()));
             services.AddScoped(provider => new Lazy<IDocumentRepository>(() => provider.GetService<IDocumentRepository>()));
             services.AddScoped(provider => new Lazy<ICourseRepository>(() => provider.GetService<ICourseRepository>()));
-        }
-
-
-        public static async void CreateRoles(this IApplicationBuilder app)
-        {
-            using var scope = app.ApplicationServices.CreateScope();
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-            //var roles = UserRoles.All;
-            var roles = new[] { "Student", "Teacher", "Admin" };
-
-            foreach (var role in roles)
-            {
-                if (!await roleManager.RoleExistsAsync(role))
-                {
-                    var result = await roleManager.CreateAsync(new IdentityRole(role));
-                    if (!result.Succeeded)
-                    {
-                        throw new Exception("Role creation failed");
-                    }
-                }
-            }
         }
     }
 }
