@@ -7,6 +7,8 @@ using Application.Interfaces;
 using Application.Services;
 using Domain.Entities;
 using Application.Coordinator;
+using Domain.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Presentation.Extensions
 {
@@ -26,6 +28,7 @@ namespace Presentation.Extensions
             services.AddScoped<IServiceCoordinator, ServiceCoordinator>();
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<IIdentityService, IdentityService>();
+            services.AddSingleton<IJwtService, JwtService>();
             services.AddScoped<IModuleService, ModuleService>();
             services.AddScoped<UserManager<User>, UserManager<User>>();
 
@@ -47,8 +50,14 @@ namespace Presentation.Extensions
             services.AddScoped(provider => new Lazy<IActivityRepository>(() => provider.GetRequiredService<IActivityRepository>()));
             services.AddScoped(provider => new Lazy<IUserRepository>(() => provider.GetRequiredService<IUserRepository>()));
             services.AddScoped(provider => new Lazy<IModuleRepository>(() => provider.GetRequiredService<IModuleRepository>()));
-            services.AddScoped(provider => new Lazy<IDocumentRepository>(() => provider.GetService<IDocumentRepository>()));
-            services.AddScoped(provider => new Lazy<ICourseRepository>(() => provider.GetService<ICourseRepository>()));
+            services.AddScoped(provider => new Lazy<IDocumentRepository>(() => provider.GetRequiredService<IDocumentRepository>()));
+            services.AddScoped(provider => new Lazy<ICourseRepository>(() => provider.GetRequiredService<ICourseRepository>()));
+        }
+
+        public static void ConfigureOptions(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            services.AddSingleton(service => service.GetRequiredService<IOptions<JwtOptions>>().Value);
         }
     }
 }
