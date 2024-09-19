@@ -17,7 +17,8 @@ public class MapperProfile : Profile
                 src.StartDate,
                 src.EndDate
                 //src.Modules.Select(m => m.Name).ToList()
-            ));
+            ))
+            .ReverseMap();
         CreateMap<Module, ModuleDto>();
         CreateMap<Activity, ActivityDto>();
     }
