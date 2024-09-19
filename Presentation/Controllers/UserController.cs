@@ -14,7 +14,7 @@ public class UserController(IServiceCoordinator serviceCoordinator) : Controller
     [HttpGet("{id}", Name = "GetModule")]
     public async Task<ActionResult<ModuleDto>> GetModule(int id)
     {
-        var module = await serviceCoordinator.ModuleService.GetModuleAsync(id);
+        var module = await serviceCoordinator.ModuleService.GetModuleByIdWithActivitiesAsync(id);
         if (module == null)
         {
             return NotFound($"Module with the ID {id} was not found in the database.");

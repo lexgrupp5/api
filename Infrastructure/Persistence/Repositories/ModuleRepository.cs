@@ -1,4 +1,3 @@
-using Domain.DTOs;
 using Domain.Entities;
 
 using Infrastructure.Interfaces;
@@ -18,7 +17,14 @@ public class ModuleRepository : RepositoryBase<Module>, IModuleRepository
     {
         var course = await _context.Courses.Where(c => c.Id.Equals(id)).Include(c => c.Modules).FirstOrDefaultAsync();
         if (course == null) { return null; }
+
         return course.Modules.ToList();
+    }
+
+    public async Task<Module?> GetModuleByIdWithActivitiesAsync(int id)
+    {
+        var result = await GetByConditionAsync(m => m.Id.Equals(id)).Include(m => m.Activities).FirstOrDefaultAsync();
+        return result;
     }
 
     public async Task<bool> CheckModuleExistsAsync(Module module)

@@ -1,5 +1,4 @@
-﻿using Domain.DTOs;
-using Domain.Entities;
+﻿using Domain.Entities;
 
 namespace Infrastructure.Interfaces;
 
@@ -8,5 +7,5 @@ public interface IModuleRepository : IRepositoryBase<Module>
     Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id);
     Task<bool> CheckModuleExistsAsync(Module module);
 
-    Task<ModuleDto?> GetModuleByIdAsync(int id);
+    Task<Module?> GetModuleByIdWithActivitiesAsync(int id);
 }
