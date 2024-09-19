@@ -29,10 +29,7 @@ namespace Application.Services
 
         public async Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id)
         {
-            //var courseDto = _dataCoordinator.Courses.GetCourseByIdAsync(id);
-            //var course = _mapper.Map<Course>(courseDto);
-            //var modules = _dataCoordinator.Modules.GetModulesOfCourseAsync(course);
-
+    
             var modules = await _dataCoordinator.Modules.GetModulesOfCourseAsync(id);
             var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
             return moduleDtos;
