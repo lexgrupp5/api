@@ -50,21 +50,6 @@ namespace Presentation.Extensions
             services.AddScoped(provider => new Lazy<ICourseRepository>(() => provider.GetService<ICourseRepository>()));
         }
 
-        //public static void CreateRoles(this IApplicationBuilder app)
-        //{
-        //    using var scope = app.ApplicationServices.CreateScope();
-        //    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-        //    var roles = new[] { "Student", "Teacher", "Admin" };
-
-        //    foreach (var role in roles)
-        //    {
-        //        if (!roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
-        //        {
-        //            roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter();
-        //        }
-        //    }
-        //}
 
         public static async void CreateRoles(this IApplicationBuilder app)
         {
