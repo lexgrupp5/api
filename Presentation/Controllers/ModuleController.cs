@@ -1,35 +1,33 @@
-﻿using Domain.DTOs;
+using Domain.DTOs;
 using Service;
 using Microsoft.AspNetCore.Mvc;
 
+namespace Presentation.Controllers;
 
-namespace Presentation.Controllers
+[Route("api/modules")]
+[ApiController]
+[Produces("application/json")]
+public class ModuleController : ControllerBase
 {
-    [Route("api/modules")]
-    [ApiController]
-    [Produces("application/json")]
+    private readonly IServiceCoordinator _serviceCoordinator;
 
-    public class ModuleController : ControllerBase
+    public ModuleController(IServiceCoordinator serviceCoordinator)
     {
-        private readonly IServiceCoordinator _serviceCoordinator;
+        _serviceCoordinator = serviceCoordinator;
+    }
 
-        public ModuleController(IServiceCoordinator serviceCoordinator)
+    //GET: Modules by Course ID
+    [HttpGet("course/{id}")]
+    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id)
+    {
+        var modules = await _serviceCoordinator.ModuleService.GetModulesOfCourseIdAsync(id);
+        if (modules == null)
         {
-            _serviceCoordinator = serviceCoordinator;
+            return NotFound("No modules found. Either course ID was bad or course contains no modules.");
         }
 
-        //GET: Modules by Course ID
-        [HttpGet("course/{id}")]
-        public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id)
-        {
-            var modules = await _serviceCoordinator.ModuleService.GetModulesOfCourseIdAsync(id);
-            if (modules == null)
-            {
-                return NotFound("No modules found. Either course ID was bad or course contains no modules.");
-            }
-
-            return Ok(modules);
-        }
+        return Ok(modules);
+    }
 
         //GET: Activities of a module by Module ID
         [HttpGet("activities/{id}")]
