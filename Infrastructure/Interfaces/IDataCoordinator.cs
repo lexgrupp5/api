@@ -1,4 +1,6 @@
-namespace Infrastructure.Interfaces;
+using Infrastucture.Interfaces;
+
+namespace Data;
 
 public interface IDataCoordinator
 {
