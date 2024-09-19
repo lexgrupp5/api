@@ -3,7 +3,7 @@ using AutoMapper;
 using Domain.DTOs;
 using Domain.Entities;
 
-namespace Application;
+namespace Application.Mapper;
 
 public class MapperProfile : Profile
 {
@@ -31,5 +31,7 @@ public class MapperProfile : Profile
                 src.EndDate
                 ))
             .ReverseMap();
+            
+        CreateMap<Activity, ActivityDto>().ReverseMap();
     }
 }

@@ -1,4 +1,4 @@
-﻿using Data;
+using Data;
 using Infrastructure.Persistence.Repositories;
 using Service;
 using Microsoft.EntityFrameworkCore;

@@ -1,5 +1,4 @@
-using Application;
-using Infrastructure.Interfaces;
+using Application.Mapper;
 using Infrastructure.Persistence.Repositories;
 using Presentation;
 using Presentation.Extensions;
@@ -15,8 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureSql(builder.Configuration);
 
 builder.Services.AddControllers(configure => configure.ReturnHttpNotAcceptable = true)
-                //.AddNewtonsoftJson()
-                .AddApplicationPart(typeof(AssemblyRef).Assembly);
+    //.AddNewtonsoftJson()
+    .AddApplicationPart(typeof(AssemblyRef).Assembly);
 
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
