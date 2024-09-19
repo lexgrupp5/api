@@ -1,4 +1,4 @@
-using Infrastructure.Interfaces;
+using Infrastucture.Interfaces;
 
 namespace Data;
 

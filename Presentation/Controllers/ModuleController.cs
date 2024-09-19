@@ -1,7 +1,8 @@
-﻿using Domain.DTOs;
+﻿using Application.Interfaces;
+
+using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
-using Service;
 
 namespace Presentation.Controllers
 {

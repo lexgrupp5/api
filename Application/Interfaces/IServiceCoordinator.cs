@@ -1,6 +1,6 @@
 using Domain.Entities;
-using Microsoft.AspNetCore.Identity;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace Service;
 
