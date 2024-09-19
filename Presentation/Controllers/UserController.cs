@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Service;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +8,7 @@ namespace Presentation.Controllers;
 [Route("api/User")]
 [ApiController]
 [Produces("application/json")]
-[Authorize(Roles = "Teacher")]
+//[Authorize(Roles = "Teacher")]
 public class UserController(IServiceCoordinator serviceCoordinator) : ControllerBase
 {
     [HttpGet("{id}", Name = "GetModule")]

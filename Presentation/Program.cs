@@ -1,9 +1,9 @@
-using Application.Mapper;
 using Infrastructure.Persistence.Repositories;
 using Presentation;
 using Presentation.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Domain.Entities;
+using Application.Mapper;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 

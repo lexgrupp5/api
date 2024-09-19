@@ -28,11 +28,11 @@ namespace Infrastructure.Data
 
         public static async Task InitializeAsync(AppDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
-            //if (await context.Courses.AnyAsync())
-            //{
-            //    Console.WriteLine("Existing data found. Aborting database seeding.");
-            //    return;
-            //}
+            if (await context.Courses.AnyAsync())
+            {
+                Console.WriteLine("Existing data found. Aborting database seeding.");
+                return;
+            }
 
             _userManager = userManager;
             _roleManager = roleManager;

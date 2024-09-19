@@ -1,11 +1,10 @@
-using Application.Interfaces;
-
+using Service;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
-[Route("api/{controller}")]
+[Route("api/modules")]
 [ApiController]
 [Produces("application/json")]
 public class ModuleController : ControllerBase

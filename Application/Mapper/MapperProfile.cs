@@ -23,13 +23,13 @@ public class MapperProfile : Profile
 
         //Module -> ModuleDTO
         CreateMap<Module, ModuleDto>()
-            .ConstructUsing(src => new ModuleDto(
-                src.Id,
-                src.Name,
-                src.Description,
-                src.StartDate,
-                src.EndDate
-                ))
+            //.ConstructUsing(src => new ModuleDto(
+            //    src.Id,
+            //    src.Name,
+            //    src.Description,
+            //    src.StartDate,
+            //    src.EndDate
+            //    ))
             .ReverseMap();
             
         CreateMap<Activity, ActivityDto>().ReverseMap();
