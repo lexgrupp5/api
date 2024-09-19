@@ -1,16 +1,7 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Bogus;
-using Bogus.DataSets;
+﻿using Bogus;
 using Domain.Entities;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Runtime.CompilerServices;
 using Microsoft.Identity.Client;
 using Microsoft.Extensions.Configuration;

@@ -35,6 +35,7 @@ namespace Presentation.Extensions
             services.AddScoped(provider => new Lazy<ICourseService>(() => provider.GetRequiredService<ICourseService>()));
             services.AddScoped(provider => new Lazy<IIdentityService>(() => provider.GetRequiredService<IIdentityService>()));
             services.AddScoped(provider => new Lazy<IModuleService>(() => provider.GetRequiredService<IModuleService>()));
+            services.AddScoped(provider => new Lazy<IUserService>(() => provider.GetRequiredService<IUserService>()));
         }
 
         public static void ConfigureRepositories(this IServiceCollection services)

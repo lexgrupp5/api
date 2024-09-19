@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-
 using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Infrastructure.Persistence.Repositories;
 
