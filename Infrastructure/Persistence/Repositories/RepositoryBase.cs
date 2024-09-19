@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 using Infrastructure.Interfaces;
 
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +20,7 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
 
     public IQueryable<T> GetAll() => DbSet;
 
-    public async Task<T?> GetByIdAsync(Guid id) => await DbSet.FindAsync(id);
+    public IQueryable<T> GetByConditionAsync(Expression<Func<T, bool>> expression) => DbSet.Where(expression);
 
     public async Task CreateAsync(T entity) => await DbSet.AddAsync(entity);
 

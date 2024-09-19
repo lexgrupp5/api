@@ -2,6 +2,7 @@ using Domain.Configuration;
 using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Application.Models;
+using Application.Interfaces;
 
 namespace Application.Services;
 
@@ -29,7 +30,7 @@ public class IdentityService(
             Email = newUser.Email
         };
 
-        return await _userManager.CreateAsync(user, user.Password);
+        return await _userManager.CreateAsync(user, newUser.Password);
     }
 
 
@@ -56,5 +57,3 @@ public class IdentityService(
         return _jwtService.GenerateToken(user);
     }
 }
-
-public interface IIdentityService { }

@@ -1,29 +1,40 @@
-﻿using Domain.DTOs;
-
+using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
-
 using Service;
 
-namespace Presentation.Controllers
+namespace Presentation.Controllers;
+
+[Route("api/courses")]
+[ApiController]
+[Produces("application/json")]
+
+public class CourseController : ControllerBase
 {
-    [Route("api/courses")]
-    [ApiController]
-    [Produces("application/json")]
+    private readonly IServiceCoordinator _serviceCoordinator;
 
-    public class CourseController : ControllerBase
+    public CourseController(IServiceCoordinator serviceCoordinator)
     {
-        private readonly IServiceCoordinator _serviceCoordinator;
+        _serviceCoordinator = serviceCoordinator;
+    }
 
-        public CourseController(IServiceCoordinator serviceCoordinator)
+    //GET: All courses
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
+    {
+        var courses = await _serviceCoordinator.CourseService.GetCoursesAsync();
+        return Ok(courses);
+    }
+
+    //GET: Course by ID
+    [HttpGet("{id}", Name = "GetCourse")]
+    public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
+    {
+        var dto = await _serviceCoordinator.CourseService.GetCourseDtoByIdAsync(id);
+        if (dto == null)
         {
-            _serviceCoordinator = serviceCoordinator;
+            return NotFound($"Course with the ID {id} was not found in the database.");
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
-        {
-            var courses = await _serviceCoordinator.CourseService.GetCoursesAsync();
-            return Ok(courses);
-        }
+        return Ok(dto);
     }
 }

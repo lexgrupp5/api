@@ -7,6 +7,10 @@ namespace Application.Interfaces;
 public interface IServiceCoordinator
 {
     ICourseService Course { get; }
-    UserManager<User> User { get; }
+
     IIdentityService Identity { get; }
+
+    IModuleService ModuleService { get; }
+
+    UserManager<User> User { get; }
 }

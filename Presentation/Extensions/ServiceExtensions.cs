@@ -1,21 +1,17 @@
-﻿using Data;
+using Data;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Infrastructure.Interfaces;
 using Application.Interfaces;
 using Application.Services;
+using Domain.Entities;
 using Application.Coordinator;
 
 namespace Presentation.Extensions
 {
     public static class ServiceExtensions
     {
-        //public static void ConfigureSql(this IServiceCollection services, IConfiguration configuration)
-        //{
-        //    services.AddDbContext<AppDbContext>(options => 
-        //        options.UseSqlServer(configuration.GetConnectionString("AppDbContext") ?? throw new InvalidOperationException("Connection string 'AppDbContext' not found.")));
-        //}
         public static void ConfigureSql(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<AppDbContext>(options =>
@@ -29,8 +25,13 @@ namespace Presentation.Extensions
             //SERVICES GO HERE
             services.AddScoped<IServiceCoordinator, ServiceCoordinator>();
             services.AddScoped<ICourseService, CourseService>();
+            services.AddScoped<IIdentityService, IdentityService>();
+            services.AddScoped<IModuleService, ModuleService>();
+            services.AddScoped<UserManager<User>, UserManager<User>>();
 
             services.AddScoped(provider => new Lazy<ICourseService>(() => provider.GetRequiredService<ICourseService>()));
+            services.AddScoped(provider => new Lazy<IIdentityService>(() => provider.GetRequiredService<IIdentityService>()));
+            services.AddScoped(provider => new Lazy<IModuleService>(() => provider.GetRequiredService<IModuleService>()));
         }
 
         public static void ConfigureRepositories(this IServiceCollection services)
@@ -48,22 +49,6 @@ namespace Presentation.Extensions
             services.AddScoped(provider => new Lazy<IModuleRepository>(() => provider.GetRequiredService<IModuleRepository>()));
             services.AddScoped(provider => new Lazy<IDocumentRepository>(() => provider.GetService<IDocumentRepository>()));
             services.AddScoped(provider => new Lazy<ICourseRepository>(() => provider.GetService<ICourseRepository>()));
-        }
-
-        public static void CreateRoles(this IApplicationBuilder app)
-        {
-            using var scope = app.ApplicationServices.CreateScope();
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-            var roles = new[] {"Student", "Teacher", "Admin"};
-
-            foreach (var role in roles)
-            {
-                if (!roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
-                {
-                    roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter();
-                }
-            }
         }
     }
 }

@@ -1,11 +1,25 @@
-
-using Microsoft.AspNetCore.Identity;
+using Service;
+using Domain.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using Service;
+namespace Presentation.Controllers;
 
-public class UserController(IServiceCoordinator serviceCordinator) : ControllerBase
+[Route("api/User")]
+[ApiController]
+[Produces("application/json")]
+//[Authorize(Roles = "Teacher")]
+public class UserController(IServiceCoordinator serviceCoordinator) : ControllerBase
 {
-    private readonly IServiceCoordinator _sc = serviceCordinator;
+    [HttpGet("{id}", Name = "GetModule")]
+    public async Task<ActionResult<ModuleDto>> GetModule(int id)
+    {
+        var module = await serviceCoordinator.ModuleService.GetModuleByIdWithActivitiesAsync(id);
+        if (module == null)
+        {
+            return NotFound($"Module with the ID {id} was not found in the database.");
+        }
 
+        return Ok(module);
+    }
 }
