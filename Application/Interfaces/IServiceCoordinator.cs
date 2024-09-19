@@ -1,14 +1,12 @@
+using Application.Services;
 using Domain.Entities;
-
 using Microsoft.AspNetCore.Identity;
 
-using Application.Interfaces;
-
-namespace Service;
+namespace Application.Interfaces;
 
 public interface IServiceCoordinator
 {
-    ICourseService CourseService { get; }
-    
+    ICourseService Course { get; }
     UserManager<User> User { get; }
+    IIdentityService Identity { get; }
 }

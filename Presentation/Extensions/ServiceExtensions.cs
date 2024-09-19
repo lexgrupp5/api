@@ -1,11 +1,11 @@
 ﻿using Data;
 using Infrastructure.Persistence.Repositories;
-using Service;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Infrastructure.Interfaces;
 using Application.Interfaces;
 using Application.Services;
+using Application.Coordinator;
 
 namespace Presentation.Extensions
 {
