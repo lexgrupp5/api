@@ -1,6 +1,7 @@
 using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using Service;
+using Application.Coordinator;
+using Application.Interfaces;
 
 
 namespace Presentation.Controllers;
@@ -22,7 +23,7 @@ public class CourseController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
     {
-        var courses = await _serviceCoordinator.CourseService.GetCoursesAsync();
+        var courses = await _serviceCoordinator.Course.GetCoursesAsync();
         return Ok(courses);
     }
 
@@ -30,7 +31,7 @@ public class CourseController : ControllerBase
     [HttpGet("{id}", Name = "GetCourse")]
     public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
     {
-        var dto = await _serviceCoordinator.CourseService.GetCourseDtoByIdAsync(id);
+        var dto = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
         if (dto == null)
         {
             return NotFound($"Course with the ID {id} was not found in the database.");

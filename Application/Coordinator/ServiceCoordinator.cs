@@ -1,26 +1,28 @@
 using Application.Interfaces;
+using Application.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
-namespace Service;
+namespace Application.Coordinator;
 
-public class ServiceCoordinator : IServiceCoordinator
+public class ServiceCoordinator(
+    Lazy<ICourseService> courseService,
+    Lazy<IIdentityService> identityService,
+    Lazy<IModuleService> moduleService,
+    UserManager<User> userManager
+) : IServiceCoordinator
 {
-    private readonly Lazy<ICourseService> _courseService;
-    private readonly Lazy<IModuleService> _moduleService;
-    private readonly Lazy<IUserService> _userService;
-    private readonly UserManager<User> _userManager;
+    private readonly Lazy<ICourseService> _courseService = courseService;
 
-    public ICourseService CourseService => _courseService.Value;
+    private readonly Lazy<IIdentityService> _identityService = identityService;
+
+    private readonly Lazy<IModuleService> _moduleService = moduleService;
+
+    public ICourseService Course => _courseService.Value;
+    
+    public IIdentityService Identity => _identityService.Value;
+
     public IModuleService ModuleService => _moduleService.Value;
-    public IUserService UserService => _userService.Value;
-    public UserManager<User> User => _userManager;
 
-    public ServiceCoordinator(Lazy<ICourseService> courseService,Lazy<IModuleService> moduleService ,UserManager<User> userManager, Lazy<IUserService> userService)
-    {
-        _courseService = courseService;
-        _moduleService = moduleService;
-        _userService = userService;
-        _userManager = userManager;
-    }
+    public UserManager<User> User { get; } = userManager;
 }
