@@ -1,5 +1,4 @@
 using AutoMapper;
-
 using Domain.DTOs;
 using Domain.Entities;
 

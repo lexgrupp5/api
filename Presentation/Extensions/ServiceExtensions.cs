@@ -7,7 +7,6 @@ using Infrastructure.Interfaces;
 using Application.Interfaces;
 using Application.Services;
 using Domain.Entities;
-using System.Runtime.CompilerServices;
 
 namespace Presentation.Extensions
 {
@@ -28,9 +27,11 @@ namespace Presentation.Extensions
             services.AddScoped<IServiceCoordinator, ServiceCoordinator>();
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<IModuleService, ModuleService>();
+            services.AddScoped<IUserService, UserService>();
 
             services.AddScoped(provider => new Lazy<ICourseService>(() => provider.GetRequiredService<ICourseService>()));
             services.AddScoped(provider => new Lazy<IModuleService>(() => provider.GetRequiredService<IModuleService>()));
+            services.AddScoped(provider => new Lazy<IUserService>(() => provider.GetRequiredService<IUserService>()));
         }
 
         public static void ConfigureRepositories(this IServiceCollection services)
@@ -48,28 +49,6 @@ namespace Presentation.Extensions
             services.AddScoped(provider => new Lazy<IModuleRepository>(() => provider.GetRequiredService<IModuleRepository>()));
             services.AddScoped(provider => new Lazy<IDocumentRepository>(() => provider.GetService<IDocumentRepository>()));
             services.AddScoped(provider => new Lazy<ICourseRepository>(() => provider.GetService<ICourseRepository>()));
-        }
-
-
-        public static async void CreateRoles(this IApplicationBuilder app)
-        {
-            using var scope = app.ApplicationServices.CreateScope();
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-            //var roles = UserRoles.All;
-            var roles = new[] { "Student", "Teacher", "Admin" };
-
-            foreach (var role in roles)
-            {
-                if (!await roleManager.RoleExistsAsync(role))
-                {
-                    var result = await roleManager.CreateAsync(new IdentityRole(role));
-                    if (!result.Succeeded)
-                    {
-                        throw new Exception("Role creation failed");
-                    }
-                }
-            }
         }
     }
 }

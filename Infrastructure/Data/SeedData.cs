@@ -1,15 +1,7 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Bogus;
-using Bogus.DataSets;
+﻿using Bogus;
 using Domain.Entities;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Infrastructure.Data
 {
@@ -19,11 +11,11 @@ namespace Infrastructure.Data
 
         public static async Task InitializeAsync(AppDbContext context)
         {
-            //if (await context.Courses.AnyAsync())
-            //{
-            //    Console.WriteLine("Existing data found. Aborting database seeding.");
-            //    return;
-            //}
+            if (await context.Courses.AnyAsync())
+            {
+                Console.WriteLine("Existing data found. Aborting database seeding.");
+                return;
+            }
 
             var activityTypes = GenerateActivityTypes();
             await context.AddRangeAsync(activityTypes);

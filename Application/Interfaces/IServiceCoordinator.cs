@@ -8,5 +8,6 @@ public interface IServiceCoordinator
 {
     ICourseService CourseService { get; }
     IModuleService ModuleService { get; }
+    IUserService UserService { get; }
     UserManager<User> User { get; }
 }
