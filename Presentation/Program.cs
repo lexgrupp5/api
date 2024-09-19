@@ -41,6 +41,7 @@ builder.Services.AddIdentityCore<User>(options =>
 builder.Services.ConfigureOpenApi();
 builder.Services.ConfigureServices();
 builder.Services.ConfigureRepositories();
+builder.Services.ConfigureOptions(builder.Configuration);
 
 var app = builder.Build();
 

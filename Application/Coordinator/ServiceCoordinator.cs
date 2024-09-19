@@ -9,7 +9,7 @@ public class ServiceCoordinator(
     Lazy<ICourseService> courseService,
     Lazy<IIdentityService> identityService,
     Lazy<IModuleService> moduleService,
-    Lazy<UserManager<User>> userManager
+    UserManager<User> userManager
 ) : IServiceCoordinator
 {
     private readonly Lazy<ICourseService> _courseService = courseService;
@@ -18,13 +18,11 @@ public class ServiceCoordinator(
 
     private readonly Lazy<IModuleService> _moduleService = moduleService;
 
-    private readonly Lazy<UserManager<User>> _userManager = userManager;
-
     public ICourseService Course => _courseService.Value;
     
     public IIdentityService Identity => _identityService.Value;
 
     public IModuleService ModuleService => _moduleService.Value;
 
-    public UserManager<User> User => _userManager.Value;
+    public UserManager<User> User { get; } = userManager;
 }
