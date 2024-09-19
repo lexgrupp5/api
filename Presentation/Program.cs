@@ -5,6 +5,8 @@ using Presentation;
 using Presentation.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Domain.Entities;
+using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +24,8 @@ builder.Services.AddAutoMapper(typeof(MapperProfile));
 //builder.Services.AddTransient(s => new Lazy<UserManager<User>>(() => s.GetRequiredService<UserManager<User>>()));
 
 // Identity
-builder.Services.AddIdentity<User, IdentityRole>(options =>
+builder.Services.AddDataProtection();
+builder.Services.AddIdentityCore<User>(options =>
 {
     // Password settings
     options.Password.RequireDigit = true;
@@ -32,8 +35,9 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
     options.Password.RequireLowercase = true;
     options.Password.RequiredUniqueChars = 1;
 })
-.AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.ConfigureOpenApi();
 builder.Services.ConfigureServices();
@@ -46,7 +50,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.CreateRoles();
     await app.SeedDataAsync();
 }
 

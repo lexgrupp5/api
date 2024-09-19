@@ -13,8 +13,8 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         _context = context;
     }
 
-    public async Task<bool> CheckUsernameExistsAsync(User user)
-    {
-        return await _context.Users.AnyAsync(u => u.Name == user.Name);
-    }
+    //public async Task<bool> CheckUsernameExistsAsync(User user)
+    //{
+    //    return await _context.Users.AnyAsync(u => u.Name == user.Name);
+    //}
 }
