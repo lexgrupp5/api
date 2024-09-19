@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.Identity.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Data
 {

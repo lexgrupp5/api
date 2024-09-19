@@ -1,5 +1,4 @@
 using Domain.DTOs;
-using Service;
 using Microsoft.AspNetCore.Mvc;
 using Application.Interfaces;
 
@@ -30,18 +29,18 @@ public class ModuleController : ControllerBase
         return Ok(modules);
     }
 
-        //GET: Activities of a module by Module ID
-        [HttpGet("activities/{id}")]
-        public async Task<ActionResult<ModuleDto>> GetModule(int id)
+    //GET: Activities of a module by Module ID
+    [HttpGet("activities/{id}")]
+    public async Task<ActionResult<ModuleDto>> GetModule(int id)
+    {
+        var module = await _serviceCoordinator.ModuleService.GetModuleByIdWithActivitiesAsync(id);
+        if (module == null)
         {
-            var module = await _serviceCoordinator.ModuleService.GetModuleByIdWithActivitiesAsync(id);
-            if (module == null)
-            {
-                return NotFound($"Module with the ID {id} was not found in the database.");
-            }
-
-            return Ok(module);
+            return NotFound($"Module with the ID {id} was not found in the database.");
         }
 
+        return Ok(module);
     }
+
 }
+
