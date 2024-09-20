@@ -77,15 +77,32 @@ namespace Infrastructure.Data
             });
 
             var newUsers = users.Generate(numberOfUsers);
+            var numberOfCourses = courses.Count();
 
-            foreach (var user in newUsers)
+            for (int i = 0; i < numberOfCourses; i++)
             {
-                var result = await _userManager.CreateAsync(user, "Qwerty1234");
+                var result = await _userManager.CreateAsync(newUsers[i], "Qwerty1234");
                 if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
 
-                await _userManager.AddToRoleAsync(user, faker.PickRandom(roles));
-
+                await _userManager.AddToRoleAsync(newUsers[i], teacherRole);
             }
+
+            for (int i = numberOfCourses; i < numberOfUsers; i++)
+            {
+                var result = await _userManager.CreateAsync(newUsers[i], "Qwerty1234");
+                if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
+
+                await _userManager.AddToRoleAsync(newUsers[i], studentRole);
+            }
+
+            //foreach (var user in newUsers)
+            //{
+            //    var result = await _userManager.CreateAsync(user, "Qwerty1234");
+            //    if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
+
+            //    await _userManager.AddToRoleAsync(user, faker.PickRandom(roles));
+
+            //}
 
         }
 
