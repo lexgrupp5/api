@@ -1,4 +1,5 @@
 ﻿using Bogus;
+using Domain.Constants;
 using Domain.Entities;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +16,8 @@ namespace Infrastructure.Data
         private static Faker faker = new Faker("sv");
         private static UserManager<User> _userManager = null!;
         private static RoleManager<IdentityRole> _roleManager = null!;
-        private const string studentRole = "STUDENT";
-        private const string teacherRole = "TEACHER";
+        private const string studentRole = UserRoles.Student;
+        private const string teacherRole = UserRoles.Teacher;
 
         public static async Task InitializeAsync(AppDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
