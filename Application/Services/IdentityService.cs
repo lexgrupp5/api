@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Application.Models;
 using Application.Interfaces;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace Application.Services;
 
 public class IdentityService(
@@ -55,5 +57,11 @@ public class IdentityService(
     private string CreateToken(User user)
     {
         return _jwtService.GenerateToken(user);
+    }
+    public async Task<IEnumerable<IdentityUser>> GetStudentsAsync()
+    {
+        var roles = await _roleManager.Roles.ToListAsync();
+        var students = await _userManager.GetUsersInRoleAsync(roles[2].Name);
+        return students;
     }
 }

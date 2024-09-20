@@ -12,5 +12,4 @@ public interface IServiceCoordinator
 
     IModuleService ModuleService { get; }
     IUserService UserService { get; }
-    UserManager<User> User { get; }
 }

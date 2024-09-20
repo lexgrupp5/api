@@ -8,4 +8,6 @@ public interface IIdentityService
     Task<IdentityResult> CreateUserAsync(UserCreateModel newUser);
 
     Task<string> AuthenticateAsync(UserAuthenticateModel userDto);
+
+    Task<IEnumerable<IdentityUser>> GetStudentsAsync();
 }

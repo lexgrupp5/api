@@ -8,5 +8,4 @@ public interface IUserRepository : IRepositoryBase<User>
     Task<IEnumerable<User>?> GetUsersFromCourseByIdAsync(int courseId);
     Task<bool> CheckUsernameExistsAsync(User user);
     
-    Task<IEnumerable<UserDto>> GetAllStudentsAsync();
 }
