@@ -94,16 +94,6 @@ namespace Infrastructure.Data
 
                 await _userManager.AddToRoleAsync(newUsers[i], studentRole);
             }
-
-            //foreach (var user in newUsers)
-            //{
-            //    var result = await _userManager.CreateAsync(user, "Qwerty1234");
-            //    if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
-
-            //    await _userManager.AddToRoleAsync(user, faker.PickRandom(roles));
-
-            //}
-
         }
 
         private static List<ActivityType> GenerateActivityTypes()
