@@ -30,6 +30,7 @@ namespace Presentation.Extensions
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddSingleton<IJwtService, JwtService>();
             services.AddScoped<IModuleService, ModuleService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<UserManager<User>, UserManager<User>>();
 
             services.AddScoped(provider => new Lazy<ICourseService>(() => provider.GetRequiredService<ICourseService>()));
