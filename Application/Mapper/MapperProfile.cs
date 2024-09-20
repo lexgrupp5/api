@@ -32,5 +32,6 @@ public class MapperProfile : Profile
             .ReverseMap();
             
         CreateMap<Activity, ActivityDto>().ReverseMap();
+        CreateMap<User, UserDto>() .ReverseMap();
     }
 }
