@@ -67,32 +67,43 @@ namespace Infrastructure.Data
 
         private static async Task GenerateUsersAsync(int numberOfUsers, IEnumerable<Course> courses)
         {
-            string[] roles = ["STUDENT", "TEACHER"];
-            var users = new Faker<User>("sv").Rules((faker, user) =>
+            int courseId = 1;
+            var numberOfCourses = courses.Count();
+
+            var generateTeachers = new Faker<User>("sv").Rules((faker, teacher) =>
             {
-                user.Name = faker.Name.FullName();
-                user.Email = user.Name.Replace(" ", "") + "@email.se";
-                user.UserName = faker.Internet.UserName();
-                user.Course = faker.PickRandom(courses);
+                teacher.Name = faker.Name.FullName();
+                teacher.Email = teacher.Name.Replace(" ", "") + "@email.se";
+                teacher.UserName = faker.Internet.UserName();
+                teacher.Course = courses.Where(c => c.Id == courseId).FirstOrDefault();
+                courseId++;
             });
 
-            var newUsers = users.Generate(numberOfUsers);
-            var numberOfCourses = courses.Count();
+            var teachers = generateTeachers.Generate(numberOfCourses);
+
+            var generateStudents = new Faker<User>("sv").Rules((faker, student) =>
+            {
+                student.Name = faker.Name.FullName();
+                student.Email = student.Name.Replace(" ", "") + "@email.se";
+                student.UserName = faker.Internet.UserName();
+                student.Course = faker.PickRandom(courses);
+            });
+
+            var students = generateStudents.Generate(numberOfUsers-numberOfCourses);
 
             for (int i = 0; i < numberOfCourses; i++)
             {
-                var result = await _userManager.CreateAsync(newUsers[i], "Qwerty1234");
+                var result = await _userManager.CreateAsync(teachers[i], "Qwerty1234");
                 if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
-
-                await _userManager.AddToRoleAsync(newUsers[i], teacherRole);
+                await _userManager.AddToRoleAsync(teachers[i], teacherRole);
             }
 
-            for (int i = numberOfCourses; i < numberOfUsers; i++)
+            for (int i = 0; i < numberOfUsers-numberOfCourses; i++)
             {
-                var result = await _userManager.CreateAsync(newUsers[i], "Qwerty1234");
+                var result = await _userManager.CreateAsync(students[i], "Qwerty1234");
                 if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
 
-                await _userManager.AddToRoleAsync(newUsers[i], studentRole);
+                await _userManager.AddToRoleAsync(students[i], studentRole);
             }
         }
 
