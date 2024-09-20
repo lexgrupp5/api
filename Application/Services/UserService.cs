@@ -2,10 +2,11 @@
 using AutoMapper;
 using Data;
 using Domain.DTOs;
+using Domain.Entities;
 
 namespace Application.Services
 {
-    public class UserService : IUserService
+    public class UserService : ServiceBase<User>, IUserService
     {
         //UoW
         private readonly IDataCoordinator _dataCoordinator;
