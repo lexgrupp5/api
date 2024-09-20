@@ -1,6 +1,10 @@
+using Application.Models;
+
 using AutoMapper;
 using Domain.DTOs;
 using Domain.Entities;
+
+using Microsoft.AspNetCore.Identity;
 
 namespace Application.Mapper;
 
@@ -30,8 +34,9 @@ public class MapperProfile : Profile
             //    src.EndDate
             //    ))
             .ReverseMap();
-            
+
+        CreateMap<UserCreateModel, UserForCreationDto>().ReverseMap();
         CreateMap<Activity, ActivityDto>().ReverseMap();
-        CreateMap<User, UserDto>() .ReverseMap();
+        CreateMap<User, UserDto>().ReverseMap();
     }
 }
