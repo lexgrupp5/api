@@ -1,6 +1,8 @@
 using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Application.Interfaces;
+using Azure;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Presentation.Controllers;
 
@@ -28,5 +30,20 @@ public class UserController: ControllerBase
         }
 
         return Ok(users);
+    }
+
+    //PATCH: Existing User by User ID
+    [HttpPatch("{username}")]
+    public async Task<ActionResult> PatchUserById(string username, [FromBody]JsonPatchDocument<UserForUpdateDto> patchDocument)
+    {
+        if (patchDocument == null)
+        {
+            return BadRequest("Patch document is null");
+        }
+        var userToBeUpdated = await _serviceCoordinator.UserService.GetUserByUsername(username);
+        if (userToBeUpdated == null) { BadRequest( $"A user with the username {username} could not be found in the database."); }
+
+        await _serviceCoordinator.UserService.PatchUser(userToBeUpdated!, patchDocument);
+        return NoContent();
     }
 }

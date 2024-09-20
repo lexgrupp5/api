@@ -25,6 +25,7 @@ namespace Presentation.Extensions
         public static void ConfigureServices(this IServiceCollection services)
         {
             //SERVICES GO HERE
+            services.AddControllers().AddNewtonsoftJson();
             services.AddScoped<IServiceCoordinator, ServiceCoordinator>();
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<IIdentityService, IdentityService>();

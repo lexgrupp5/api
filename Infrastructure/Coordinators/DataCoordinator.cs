@@ -3,7 +3,7 @@ using Infrastructure.Persistence.Repositories;
 
 namespace Data;
 
-public class DataCoordinator : IDataCoordinator, IDisposable
+public class DataCoordinator : IDataCoordinator/*, IDisposable*/
 {
     private readonly AppDbContext _appDbContext;
     private readonly Lazy<ICourseRepository> _courseRepository;
@@ -25,10 +25,10 @@ public class DataCoordinator : IDataCoordinator, IDisposable
         _userRepository = userRepository;
     }
 
-    public void Dispose()
-    {
-        _appDbContext.Dispose();
-    }
+    //public void Dispose()
+    //{
+    //    _appDbContext.Dispose();
+    //}
 
     public async Task CompleteAsync()
     {

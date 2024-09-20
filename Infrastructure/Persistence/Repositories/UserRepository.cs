@@ -20,6 +20,15 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         
     }
 
+    public async Task<User?> GetUserByUsername(string username)
+    {
+        //var user = await GetByConditionAsync(u => u.Name.Replace(" ", "").ToUpper() ==  username.ToUpper()).FirstAsync();
+        var user = await _context.Users.Where(u => u.Name.Replace(" ","").ToUpper() == username.ToUpper()).FirstOrDefaultAsync();
+        Console.WriteLine("Taking up space");
+        if (user == null) { return null; }
+        return user;
+    }
+
     public async Task<bool> CheckUsernameExistsAsync(User user)
     {
         return await _context.Users.AnyAsync(u => u.Name == user.Name);
