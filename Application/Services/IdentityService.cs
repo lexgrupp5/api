@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Application.Models;
 using Application.Interfaces;
 
+using Domain.DTOs;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
@@ -58,10 +60,16 @@ public class IdentityService(
     {
         return _jwtService.GenerateToken(user);
     }
-    public async Task<IEnumerable<IdentityUser>> GetStudentsAsync()
+
+    public async Task<IEnumerable<UserDto>> GetStudentsAsync()
     {
-        var roles = await _roleManager.Roles.ToListAsync();
-        var students = await _userManager.GetUsersInRoleAsync(roles[2].Name);
-        return students;
+        var roleStudent = _roleManager.Roles.Where(x => x.Name == "Student");
+        var students = await _userManager.GetUsersInRoleAsync(roleStudent.First().Name ?? "");
+
+        return students.Select(user => new UserDto(
+            Name: user.Name ?? string.Empty,
+            Username: user.UserName ?? string.Empty,
+            Email: user.Email ?? string.Empty
+        )).ToList();
     }
 }

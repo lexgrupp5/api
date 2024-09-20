@@ -1,4 +1,7 @@
 using Application.Models;
+
+using Domain.DTOs;
+
 using Microsoft.AspNetCore.Identity;
 
 namespace Application.Interfaces;
@@ -9,5 +12,5 @@ public interface IIdentityService
 
     Task<string> AuthenticateAsync(UserAuthenticateModel userDto);
 
-    Task<IEnumerable<IdentityUser>> GetStudentsAsync();
+    Task<IEnumerable<UserDto>> GetStudentsAsync();
 }
