@@ -33,7 +33,7 @@ public class UserController: ControllerBase
     }
     
     [HttpGet(Name = "GetAllStudents")]
-    public async Task<ActionResult<IEnumerable<IdentityUser>>> GetAllStudents()
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
     {
         var users = await _serviceCoordinator.Identity.GetStudentsAsync();
         if (users == null)
