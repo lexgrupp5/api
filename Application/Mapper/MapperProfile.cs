@@ -37,6 +37,7 @@ public class MapperProfile : Profile
 
         CreateMap<UserCreateModel, UserForCreationDto>().ReverseMap();
         CreateMap<Activity, ActivityDto>().ReverseMap();
-        CreateMap<User, UserDto>().ReverseMap();
+        CreateMap<User, UserForUpdateDto>().ReverseMap();
+        CreateMap<User, UserDto>() .ReverseMap();
     }
 }
