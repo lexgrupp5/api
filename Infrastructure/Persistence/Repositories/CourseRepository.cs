@@ -2,6 +2,8 @@
 using AutoMapper.QueryableExtensions;
 using Domain.DTOs;
 using Domain.Entities;
+using Domain.Validations;
+
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,17 +33,18 @@ public class CourseRepository : RepositoryBase<Course>, ICourseRepository
 
     public async Task<IEnumerable<CourseDto?>> GetCoursesAsync(SearchFilterDTO searchFilterDTO)
     {
-        if (searchFilterDTO.SearchText == string.Empty &&
-            searchFilterDTO.EndDate < searchFilterDTO.StartDate)
-        {
-            return await GetCoursesAsync();
-        }
+        var emptySearchText = searchFilterDTO.SearchText == string.Empty;
 
         var query = GetByConditionAsync(course =>
-            (course.Name.Contains(searchFilterDTO.SearchText) ||
-            course.Description.Contains(searchFilterDTO.SearchText)) && 
             course.StartDate >= searchFilterDTO.StartDate &&
             course.EndDate <= searchFilterDTO.EndDate);
+
+        if (!emptySearchText)
+        {
+            query = query.Where(course =>
+                course.Name.Contains(searchFilterDTO.SearchText) ||
+                course.Description.Contains(searchFilterDTO.SearchText));
+        }
 
         return await query
             .ProjectTo<CourseDto>(_mapper.ConfigurationProvider)
