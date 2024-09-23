@@ -42,14 +42,17 @@ builder.Services.ConfigureOpenApi();
 builder.Services.ConfigureServices();
 builder.Services.ConfigureRepositories();
 builder.Services.ConfigureOptions(builder.Configuration);
+builder.AddCORS();
 
 var app = builder.Build();
+
 
 app.UseMiddleware<ApiExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDevCORS();
     app.UseSwagger();
     app.UseSwaggerUI();
     await app.SeedDataAsync();
