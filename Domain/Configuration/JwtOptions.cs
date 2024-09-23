@@ -2,6 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Configuration;
 
+#nullable disable
+
 public record JwtOptions
 {
     [Required]

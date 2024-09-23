@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
-namespace Domain;
+namespace Domain.Exceptions;
 
-public class NotFoundException : ApiException
-{
-    
-}
+public class NotFoundException(string detail, string title = "Not Found")
+    : ApiException(detail, title, StatusCodes.Status404NotFound) { }

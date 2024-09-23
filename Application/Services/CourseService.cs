@@ -2,10 +2,11 @@
 using Data;
 using AutoMapper;
 using Domain.DTOs;
+using Domain.Entities;
 
 namespace Application.Services
 {
-    public class CourseService : ICourseService
+    public class CourseService : ServiceBase<Course>, ICourseService
     {
         //UoW
         private readonly IDataCoordinator _dataCoordinator;
