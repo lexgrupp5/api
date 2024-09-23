@@ -1,7 +1,4 @@
 using Application.Interfaces;
-using Application.Services;
-using Domain.Entities;
-using Microsoft.AspNetCore.Identity;
 
 namespace Application.Coordinator;
 
@@ -9,8 +6,7 @@ public class ServiceCoordinator(
     Lazy<ICourseService> courseService,
     Lazy<IIdentityService> identityService,
     Lazy<IUserService> userService,
-    Lazy<IModuleService> moduleService,
-    UserManager<User> userManager
+    Lazy<IModuleService> moduleService
 ) : IServiceCoordinator
 {
     private readonly Lazy<ICourseService> _courseService = courseService;
@@ -28,5 +24,4 @@ public class ServiceCoordinator(
     public IUserService UserService => _userService.Value;
     public IModuleService ModuleService => _moduleService.Value;
 
-    public UserManager<User> User { get; } = userManager;
 }

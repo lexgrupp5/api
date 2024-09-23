@@ -4,6 +4,8 @@ using Application.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Domain.Entities;
 
+using Microsoft.AspNetCore.Identity;
+
 namespace Presentation.Controllers;
 
 [Route("api/User")]
@@ -27,6 +29,18 @@ public class UserController: ControllerBase
         if (users == null)
         {
             return NotFound($"Users of course with ID {id} were not found in the database.");
+        }
+
+        return Ok(users);
+    }
+    
+    [HttpGet(Name = "GetAllStudents")]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
+    {
+        var users = await _serviceCoordinator.Identity.GetStudentsAsync();
+        if (users == null)
+        {
+            return NotFound("No students found in the database.");
         }
 
         return Ok(users);
