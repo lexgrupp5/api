@@ -21,9 +21,13 @@ public class CourseController : ControllerBase
 
     //GET: All courses
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
+    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(
+        [FromQuery] SearchFilterDTO searchFilterDTO)
     {
-        var courses = await _serviceCoordinator.Course.GetCoursesAsync();
+        var courses = Request.Query.Count != 0
+            ? await _serviceCoordinator.Course.GetCoursesAsync(searchFilterDTO)
+            : await _serviceCoordinator.Course.GetCoursesAsync();
+        
         return Ok(courses);
     }
 

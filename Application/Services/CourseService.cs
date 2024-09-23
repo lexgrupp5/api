@@ -24,6 +24,13 @@ namespace Application.Services
         {
             return await _dataCoordinator.Courses.GetCoursesAsync();
         }
+
+        public async Task<IEnumerable<CourseDto?>> GetCoursesAsync(
+            SearchFilterDTO searchFilterDTO)
+        {
+            return await _dataCoordinator.Courses.GetCoursesAsync(searchFilterDTO);
+        }
+
         //GET single course (id)
         public async Task<CourseDto?> GetCourseDtoByIdAsync(int id)
         {
