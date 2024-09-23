@@ -31,16 +31,15 @@ public class CourseRepository : RepositoryBase<Course>, ICourseRepository
 
     public async Task<IEnumerable<CourseDto?>> GetCoursesAsync(SearchFilterDTO searchFilterDTO)
     {
-        if (searchFilterDTO.SearchText == string.Empty && (
-            searchFilterDTO.StartDate < DateTime.Now.AddYears(-10) ||
-            searchFilterDTO.EndDate < searchFilterDTO.StartDate))
+        if (searchFilterDTO.SearchText == string.Empty &&
+            searchFilterDTO.EndDate < searchFilterDTO.StartDate)
         {
             return await GetCoursesAsync();
         }
 
         var query = GetByConditionAsync(course =>
             (course.Name.Contains(searchFilterDTO.SearchText) ||
-            course.Name.Contains(searchFilterDTO.SearchText)) && 
+            course.Description.Contains(searchFilterDTO.SearchText)) && 
             course.StartDate >= searchFilterDTO.StartDate &&
             course.EndDate <= searchFilterDTO.EndDate);
 
