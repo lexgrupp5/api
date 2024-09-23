@@ -3,6 +3,7 @@ name: Build .NET 8.0 Project on PR
 on:
   pull_request:
     branches:
+      - main
       - dev
     types:
       - opened
