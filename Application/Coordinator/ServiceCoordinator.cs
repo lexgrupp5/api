@@ -33,4 +33,6 @@ public class ServiceCoordinator(
     public IModuleService ModuleService => _moduleService.Value;
 
     public UserManager<User> User => _userManager;
+
+    
 }
