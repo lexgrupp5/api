@@ -1,5 +1,9 @@
-﻿using Domain.Entities;
+﻿using Domain.Constants;
+using Domain.DTOs;
+using Domain.Entities;
 using Infrastructure.Interfaces;
+
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
@@ -17,6 +21,21 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         if (course == null) { return null; }
         var students = await _context.Users.Where(u => u.CourseId == courseId).ToListAsync();
         return students;
+        
+    }
+
+    public async Task<User?> CreateNewUserAsync(User? newUser)
+    {
+        if (newUser == null) { throw new ArgumentNullException(nameof(newUser)); }
+        await _context.SaveChangesAsync();
+        return newUser;
+
+        //var result = await userManager.CreateAsync(newUser, "Qwerty1234");
+        //if (!result.Succeeded) throw new Exception(string.Join("\n", result.Errors));
+        //await userManager.AddToRoleAsync(newUser, UserRoles.Student);
+
+        //var createdUser = await _context.Users.Where(u => u.Name == newUser.Name).FirstOrDefaultAsync();
+        //return createdUser;
         
     }
 

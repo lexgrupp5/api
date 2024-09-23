@@ -2,10 +2,11 @@ using Application.Interfaces;
 using AutoMapper;
 using Data;
 using Domain.DTOs;
+using Domain.Entities;
 
 namespace Application.Services;
 
-public class ModuleService : IModuleService
+public class ModuleService : ServiceBase<Module>, IModuleService
 {
     //UoW
     private readonly IDataCoordinator _dataCoordinator;

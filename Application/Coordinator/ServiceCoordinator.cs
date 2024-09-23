@@ -18,7 +18,7 @@ public class ServiceCoordinator(
     private readonly Lazy<IModuleService> _moduleService = moduleService;
 
     public ICourseService Course => _courseService.Value;
-    
+
     public IIdentityService Identity => _identityService.Value;
 
     public IUserService UserService => _userService.Value;

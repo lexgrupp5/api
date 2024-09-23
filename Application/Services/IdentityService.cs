@@ -15,7 +15,7 @@ public class IdentityService(
     RoleManager<IdentityRole> roleManager,
     IJwtService jwtService,
     JwtOptions jwtOptions
-) : ServiceBase, IIdentityService
+) : ServiceBase<User>, IIdentityService
 {
     private readonly UserManager<User> _userManager = userManager;
 

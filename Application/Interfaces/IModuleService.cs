@@ -1,11 +1,10 @@
 using Domain.DTOs;
 
-namespace Application.Interfaces
+namespace Application.Interfaces;
+
+public interface IModuleService
 {
-    public interface IModuleService
-    {
-        Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id);
-      
-        Task<ModuleDto?> GetModuleByIdWithActivitiesAsync(int id);
-    }
+    Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id);
+  
+    Task<ModuleDto?> GetModuleByIdWithActivitiesAsync(int id);
 }
