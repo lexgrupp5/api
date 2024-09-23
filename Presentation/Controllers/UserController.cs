@@ -1,8 +1,9 @@
 using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Application.Interfaces;
-using Azure;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Identity;
+using Domain.Entities;
 
 namespace Presentation.Controllers;
 
@@ -31,7 +32,7 @@ public class UserController: ControllerBase
 
         return Ok(users);
     }
-
+    
     //PATCH: Existing User by User ID
     [HttpPatch("{username}")]
     public async Task<ActionResult> PatchUserById(string username, [FromBody]JsonPatchDocument<UserForUpdateDto> patchDocument)
@@ -45,5 +46,29 @@ public class UserController: ControllerBase
 
         await _serviceCoordinator.UserService.PatchUser(userToBeUpdated!, patchDocument);
         return NoContent();
+    }
+
+    [HttpGet(Name = "GetAllStudents")]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
+    {
+        var users = await _serviceCoordinator.Identity.GetStudentsAsync();
+        if (users == null)
+        {
+            return NotFound("No students found in the database.");
+        }
+
+        return Ok(users);
+    }
+
+    //POST: Create new user
+    [HttpPost]
+    public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
+    {
+        var userToBeCreated = await _serviceCoordinator.UserService.CreateNewUserAsync(newUser, _serviceCoordinator.User, _serviceCoordinator.Identity);
+        if (userToBeCreated == null)
+        {
+            return BadRequest("The return body of the function call is 'null'");
+        }
+        return Ok(userToBeCreated);
     }
 }

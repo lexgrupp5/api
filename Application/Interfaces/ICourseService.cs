@@ -1,10 +1,9 @@
 ﻿using Domain.DTOs;
 
-namespace Application.Interfaces
+namespace Application.Interfaces;
+
+public interface ICourseService
 {
-    public interface ICourseService
-    {
-        Task<IEnumerable<CourseDto?>> GetCoursesAsync();
-        Task<CourseDto?> GetCourseDtoByIdAsync(int id);
-    }
+    Task<IEnumerable<CourseDto?>> GetCoursesAsync();
+    Task<CourseDto?> GetCourseDtoByIdAsync(int id);
 }
