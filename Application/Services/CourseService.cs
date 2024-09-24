@@ -30,19 +30,24 @@ namespace Application.Services
         public async Task<IEnumerable<CourseDto?>> GetCoursesAsync(
             SearchFilterDTO searchFilterDTO)
         {
-            var invalidDateCombination = EndDateValidationAttribute.IsValidDateCombination(
+            var isValidDateCombination = EndDateValidationAttribute.IsValidDateCombination(
                 searchFilterDTO.StartDate,
                 searchFilterDTO.EndDate);
 
-            return invalidDateCombination 
-                ? ([])
-                : await _dataCoordinator.Courses.GetCoursesAsync(searchFilterDTO);
+            return isValidDateCombination
+                ? await _dataCoordinator.Courses.GetCoursesAsync(searchFilterDTO)
+                : ([]);
         }
 
         //GET single course (id)
-        public async Task<CourseDto?> GetCourseDtoByIdAsync(int id)
+        public async Task<CourseDto> GetCourseDtoByIdAsync(int id)
         {
-            return await _dataCoordinator.Courses.GetCourseByIdAsync(id);
+            var course = await _dataCoordinator.Courses.GetCourseByIdAsync(id);
+            if (course == null)
+            {
+                NotFound($"Course with the ID {id} was not found in the database.");
+            }
+            return course;
         }
 
         public async Task<CourseCreateDto> CreateCourse(CourseCreateDto course)
@@ -53,16 +58,16 @@ namespace Application.Services
             return _mapper.Map<CourseCreateDto>(courseEntity);
         }
 
-        public async Task<bool> PatchCourse(int id, CourseDto courseDto)
+        public async Task<bool> PatchCourse(CourseDto courseDto)
         {
             var course = await _dataCoordinator.Courses
-                .GetByConditionAsync(course =>course.Id == id)
+                .GetByConditionAsync(course =>course.Id == courseDto.Id)
                 .FirstOrDefaultAsync();
 
             if (course == null) { return false; }
-
+            
             _mapper.Map(courseDto, course);
-
+            
             return await _dataCoordinator.IsCompleteAsyncWithChanges();
         }
     }

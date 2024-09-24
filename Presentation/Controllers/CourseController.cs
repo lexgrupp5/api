@@ -11,7 +11,7 @@ namespace Presentation.Controllers;
 [ApiController]
 [Produces("application/json")]
 
-public class CourseController : ControllerBase
+public class CourseController : ApiBaseController
 {
     private readonly IServiceCoordinator _serviceCoordinator;
 
@@ -36,13 +36,7 @@ public class CourseController : ControllerBase
     [HttpGet("{id}", Name = "GetCourse")]
     public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
     {
-        var dto = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
-        if (dto == null)
-        {
-            return NotFound($"Course with the ID {id} was not found in the database.");
-        }
-
-        return Ok(dto);
+        return await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
     }
 
     [HttpPost(Name = "CreateCourse")]
@@ -54,32 +48,23 @@ public class CourseController : ControllerBase
     }
 
     [HttpPatch("{id}")]
-    public async Task<ActionResult<string>> PatchTodo(
+    public async Task<IActionResult> PatchCourse(
         [FromRoute] int id,
         [FromBody] JsonPatchDocument<CourseDto> coursePatchDocument
     )
     {
         var courseToPatchWith = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
-        if (courseToPatchWith == null) { return NotFound(); }
 
-        coursePatchDocument.ApplyTo(courseToPatchWith, ModelState);
- 
-        if (!ModelState.IsValid || !TryValidateModel(courseToPatchWith))
+        if (!TryValidateAndApplyPatch(
+            coursePatchDocument,
+            courseToPatchWith,
+            out IActionResult errorResponse))
         {
-            var errors = ModelState.Values
-                .SelectMany(modelStateEntry => modelStateEntry.Errors)
-                .Select(modelError => modelError.ErrorMessage)
-                .ToList();
-
-            return BadRequest(new { Message = "Invalid state", Errors = errors });
+            return errorResponse;
         }
 
-        var isPacthed = await _serviceCoordinator.Course.PatchCourse(id, courseToPatchWith);
-        if (!isPacthed)
-        {
-            return BadRequest();
-        }
-
-        return Ok(NoContent());
+        return !(await _serviceCoordinator.Course.PatchCourse(courseToPatchWith))
+            ? BadRequest()
+            : Ok(NoContent());
     }
 }
