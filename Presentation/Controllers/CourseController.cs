@@ -2,6 +2,7 @@ using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Application.Coordinator;
 using Application.Interfaces;
+using Microsoft.AspNetCore.JsonPatch;
 
 
 namespace Presentation.Controllers;
@@ -50,5 +51,29 @@ public class CourseController : ControllerBase
     {    
         var createdCourse = await _serviceCoordinator.Course.CreateCourse(course);
         return CreatedAtRoute(nameof(CreateCourse), createdCourse);
+    }
+
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<string>> PatchTodo(
+        [FromRoute] int id,
+        [FromBody] JsonPatchDocument<CourseDto> coursePatchDocument
+    )
+    {
+        var courseToPatchWith = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
+        if (courseToPatchWith == null) { return NotFound(); }
+
+        coursePatchDocument.ApplyTo(courseToPatchWith, ModelState);
+        if (!ModelState.IsValid || !TryValidateModel(courseToPatchWith))
+        {
+            return BadRequest();
+        }
+
+        var isPacthed = await _serviceCoordinator.Course.PatchCourse(id, courseToPatchWith);
+        if (!isPacthed)
+        {
+            return BadRequest();
+        }
+
+        return Ok(NoContent());
     }
 }

@@ -9,4 +9,6 @@ public interface IDataCoordinator
     IUserRepository Users { get; }
 
     Task CompleteAsync();
+
+    Task<bool> IsCompleteAsyncWithChanges();
 }

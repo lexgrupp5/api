@@ -34,4 +34,9 @@ public class DataCoordinator : IDataCoordinator/*, IDisposable*/
     {
         await _appDbContext.SaveChangesAsync();
     }
+
+    public async Task<bool> IsCompleteAsyncWithChanges()
+    {
+        return await _appDbContext.SaveChangesAsync() >= 0;
+    }
 }

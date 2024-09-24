@@ -1,6 +1,8 @@
-﻿namespace Domain.DTOs;
+﻿using Domain.Validations;
 
-public class CourseCreateDto
+namespace Domain.DTOs;
+
+public class CourseCreateDto : ICourseDto
 {
     public string Name { get; set; } = String.Empty;
 
@@ -8,5 +10,6 @@ public class CourseCreateDto
 
     public DateTime StartDate { get; set; }
 
+    [EndDateValidation(nameof(StartDate))]
     public DateTime EndDate { get; set; }
 }
