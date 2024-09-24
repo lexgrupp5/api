@@ -44,7 +44,14 @@ namespace Application.Services
             return await _dataCoordinator.Courses.GetCourseByIdAsync(id);
         }
 
-        //POST new course
+        public async Task<CourseCreateDto> CreateCourse(CourseCreateDto course)
+        {
+            var courseEntity = _mapper.Map<Course>(course);
+            await _dataCoordinator.Courses.CreateAsync(courseEntity);
+            await _dataCoordinator.CompleteAsync();
+            return _mapper.Map<CourseCreateDto>(courseEntity);
+        }
+
         //PATCH existing course
     }
 }

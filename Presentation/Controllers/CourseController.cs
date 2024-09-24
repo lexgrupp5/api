@@ -43,4 +43,12 @@ public class CourseController : ControllerBase
 
         return Ok(dto);
     }
+
+    [HttpPost(Name = "CreateCourse")]
+    public async Task<ActionResult<CourseCreateDto>> CreateCourse(
+        [FromBody] CourseCreateDto course)
+    {    
+        var createdCourse = await _serviceCoordinator.Course.CreateCourse(course);
+        return CreatedAtRoute(nameof(CreateCourse), createdCourse);
+    }
 }
