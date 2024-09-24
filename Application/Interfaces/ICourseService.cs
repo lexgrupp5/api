@@ -1,7 +1,5 @@
 ﻿using Domain.DTOs;
 
-using Microsoft.AspNetCore.JsonPatch;
-
 namespace Application.Interfaces;
 
 public interface ICourseService
