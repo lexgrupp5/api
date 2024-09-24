@@ -3,6 +3,7 @@ using Data;
 using AutoMapper;
 using Domain.DTOs;
 using Domain.Entities;
+using Domain.Validations;
 
 namespace Application.Services
 {
@@ -24,6 +25,19 @@ namespace Application.Services
         {
             return await _dataCoordinator.Courses.GetCoursesAsync();
         }
+
+        public async Task<IEnumerable<CourseDto?>> GetCoursesAsync(
+            SearchFilterDTO searchFilterDTO)
+        {
+            var invalidDateCombination = DomainDateValidation.IsValidDateCombination(
+                searchFilterDTO.StartDate,
+                searchFilterDTO.EndDate);
+
+            return invalidDateCombination 
+                ? ([])
+                : await _dataCoordinator.Courses.GetCoursesAsync(searchFilterDTO);
+        }
+
         //GET single course (id)
         public async Task<CourseDto?> GetCourseDtoByIdAsync(int id)
         {
