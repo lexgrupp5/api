@@ -32,10 +32,26 @@ public class UserController: ControllerBase
 
         return Ok(users);
     }
+
+    //GET: Course from UserName
+    [HttpGet("{username}")]
+    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourseOfUser(string username)
+    {
+        var user = await _serviceCoordinator.UserService.GetUserByUsername(username);
+        if (user == null)
+        {
+            return BadRequest($"A user with the username {username} could not be found in the database.");
+        }
+        var usersCourseId = user.CourseId;
+        if (usersCourseId == null) { return BadRequest($"{username} is not assigned to a course"); }
+        var courseId = usersCourseId.GetValueOrDefault();
+        var course = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(courseId);
+        return Ok(course);
+    }
     
     //PATCH: Existing User by User ID
     [HttpPatch("{username}")]
-    public async Task<ActionResult> PatchUserById(string username, [FromBody]JsonPatchDocument<UserForUpdateDto> patchDocument)
+    public async Task<ActionResult> PatchUserByUsername(string username, [FromBody]JsonPatchDocument<UserForUpdateDto> patchDocument)
     {
         if (patchDocument == null)
         {
