@@ -1,3 +1,6 @@
+using AutoMapper;
+
+using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -6,9 +9,11 @@ namespace Infrastructure.Persistence.Repositories;
 
 public class ModuleRepository : RepositoryBase<Module>, IModuleRepository
 {
-    public ModuleRepository(AppDbContext context) : base(context)
+    private readonly IMapper _mapper;
+    public ModuleRepository(AppDbContext context, IMapper mapper) : base(context)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id)
@@ -25,8 +30,19 @@ public class ModuleRepository : RepositoryBase<Module>, IModuleRepository
         return result;
     }
 
+
     public async Task<bool> CheckModuleExistsAsync(Module module)
     {
         return await _context.Modules.AnyAsync(m => m.Name == module.Name);
+    }
+
+
+    public async Task<Module> CreateModuleAsync(ModuleForCreationDto moduleToCreate)
+    {
+        ArgumentNullException.ThrowIfNull(moduleToCreate);
+        var newModule = _mapper.Map<Module>(moduleToCreate);
+        _context.Modules.Add(newModule);
+        await _context.SaveChangesAsync();
+        return newModule;
     }
 }

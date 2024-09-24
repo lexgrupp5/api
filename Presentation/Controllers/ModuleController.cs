@@ -1,6 +1,7 @@
 using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Application.Interfaces;
+using Application.Models;
 
 namespace Presentation.Controllers;
 
@@ -42,5 +43,12 @@ public class ModuleController : ControllerBase
         return Ok(module);
     }
 
+    //POST: Create a module
+    [HttpPost]
+    public async Task<ActionResult<ModuleForCreationDto>> CreateModule(ModuleCreateModel moduleToCreate)
+    {
+        var result = await _serviceCoordinator.ModuleService.CreateModuleAsync(moduleToCreate);
+        return Ok(result);
+    }
 }
 
