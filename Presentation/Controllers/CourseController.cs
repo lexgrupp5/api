@@ -63,9 +63,15 @@ public class CourseController : ControllerBase
         if (courseToPatchWith == null) { return NotFound(); }
 
         coursePatchDocument.ApplyTo(courseToPatchWith, ModelState);
+ 
         if (!ModelState.IsValid || !TryValidateModel(courseToPatchWith))
         {
-            return BadRequest();
+            var errors = ModelState.Values
+                .SelectMany(modelStateEntry => modelStateEntry.Errors)
+                .Select(modelError => modelError.ErrorMessage)
+                .ToList();
+
+            return BadRequest(new { Message = "Invalid state", Errors = errors });
         }
 
         var isPacthed = await _serviceCoordinator.Course.PatchCourse(id, courseToPatchWith);

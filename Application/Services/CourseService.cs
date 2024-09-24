@@ -4,7 +4,6 @@ using AutoMapper;
 using Domain.DTOs;
 using Domain.Entities;
 using Domain.Validations;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services
