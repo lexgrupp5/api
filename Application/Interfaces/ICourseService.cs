@@ -8,5 +8,5 @@ public interface ICourseService
     Task<CourseDto> GetCourseDtoByIdAsync(int id);
     Task<IEnumerable<CourseDto?>> GetCoursesAsync(SearchFilterDTO searchFilterDTO);
     Task<CourseCreateDto> CreateCourse(CourseCreateDto course);
-    Task<bool> PatchCourse(CourseDto courseDto);
+    Task PatchCourse(CourseDto courseDto);
 }

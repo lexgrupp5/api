@@ -58,17 +58,17 @@ namespace Application.Services
             return _mapper.Map<CourseCreateDto>(courseEntity);
         }
 
-        public async Task<bool> PatchCourse(CourseDto courseDto)
+        public async Task PatchCourse(CourseDto courseDto)
         {
             var course = await _dataCoordinator.Courses
                 .GetByConditionAsync(course =>course.Id == courseDto.Id)
                 .FirstOrDefaultAsync();
 
-            if (course == null) { return false; }
+            if (course == null) { NotFound($"Course with the ID {courseDto.Id} was not found in the database."); }
             
             _mapper.Map(courseDto, course);
             
-            return await _dataCoordinator.IsCompleteAsyncWithChanges();
+            await _dataCoordinator.CompleteAsync();
         }
     }
 }

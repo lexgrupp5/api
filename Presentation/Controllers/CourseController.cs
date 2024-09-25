@@ -63,8 +63,7 @@ public class CourseController : ApiBaseController
             return errorResponse;
         }
 
-        return !(await _serviceCoordinator.Course.PatchCourse(courseToPatchWith))
-            ? BadRequest()
-            : Ok(NoContent());
+        await _serviceCoordinator.Course.PatchCourse(courseToPatchWith);
+        return Ok(NoContent());
     }
 }
