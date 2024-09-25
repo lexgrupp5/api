@@ -1,4 +1,6 @@
 using Application.Interfaces;
+using Application.Models;
+
 using AutoMapper;
 using Data;
 using Domain.DTOs;
@@ -32,5 +34,21 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         var modules = await _dataCoordinator.Modules.GetModuleByIdWithActivitiesAsync(id);
         var moduleDto = _mapper.Map<ModuleDto>(modules);
         return moduleDto;
+    }
+
+    public async Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel moduleToCreate)
+    {
+        var createdModule =
+            await _dataCoordinator.Modules.CreateModuleAsync(_mapper.Map<ModuleForCreationDto>(moduleToCreate));
+        var mappedModule = new ModuleForCreationDto
+        {
+            Name = createdModule.Name,
+            CourseId = createdModule.CourseId,
+            Description = createdModule.Description,
+            StartDate = createdModule.StartDate,
+            EndDate = createdModule.EndDate
+        };
+
+        return mappedModule;
     }
 }
