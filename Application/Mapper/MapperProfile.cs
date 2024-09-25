@@ -46,5 +46,6 @@ public class MapperProfile : Profile
         CreateMap<Activity, ActivityDto>().ReverseMap();
         CreateMap<User, UserForUpdateDto>().ReverseMap();
         CreateMap<User, UserDto>() .ReverseMap();
+        CreateMap<Course, CourseCreateDto>().ReverseMap();
     }
 }
