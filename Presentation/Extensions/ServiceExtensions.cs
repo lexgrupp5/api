@@ -1,19 +1,83 @@
+using System.Security.Claims;
+using System.Text;
 using Application.Coordinator;
 using Application.Interfaces;
 using Application.Services;
+
+using Domain.Configuration;
+using Domain.Constants;
 using Domain.Entities;
 using Infrastructure.Coordinators;
 using Infrastructure.Interfaces;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Presentation.Extensions;
 
 public static class ServiceExtensions
 {
+    public static void ConfigureAuthentication(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        services
+            .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options => {
+                var jwtOptions = configuration.GetSection("Jw1tOptions");
+                var authTokenOptions = jwtOptions.Get<AuthTokenOptions>();
+                ArgumentNullException.ThrowIfNull(jwtOptions, nameof(jwtOptions));
+                ArgumentNullException.ThrowIfNull(authTokenOptions, nameof(authTokenOptions));
+
+
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = configuration["JwtOptions:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = configuration["JwtOptions:Audience"],
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(configuration["JwtOptions:Secret"]!)
+                    ),
+                };
+            }
+            );
+    }
+
+    public static void ConfigureAuthorization(this IServiceCollection services)
+    {
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(
+                "TeacherPolicy",
+                policy =>
+                    policy
+                        .RequireRole(UserRoles.Teacher)
+                        .RequireClaim(ClaimTypes.NameIdentifier)
+                        .RequireClaim(ClaimTypes.Role)
+            );
+
+            options.AddPolicy(
+                "StudentPolicy",
+                policy =>
+                    policy
+                        .RequireRole(UserRoles.Student)
+                        .RequireClaim(ClaimTypes.NameIdentifier)
+                        .RequireClaim(ClaimTypes.Role)
+            );
+        });
+    }
+
     public static void ConfigureIdenttity(this IServiceCollection services)
     {
         services
@@ -36,9 +100,9 @@ public static class ServiceExtensions
 
     public static void LoadOptions(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<Domain.Configuration.AuthTokenOptions>(configuration.GetSection("Jwt"));
+        services.Configure<AuthTokenOptions>(configuration.GetSection("JwtOptions"));
         services.AddSingleton(service =>
-            service.GetRequiredService<IOptions<Domain.Configuration.AuthTokenOptions>>().Value
+            service.GetRequiredService<IOptions<AuthTokenOptions>>().Value
         );
     }
 

@@ -18,8 +18,8 @@ public class CourseController : ControllerBase
     }
 
     //GET: All courses
-    [Authorize(Roles = "teacher,student")]
     [HttpGet]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
     {
         var courses = await _serviceCoordinator.Course.GetCoursesAsync();
@@ -27,8 +27,8 @@ public class CourseController : ControllerBase
     }
 
     //GET: Course by ID
-    [Authorize(Roles = "teacher,student")]
     [HttpGet("{id}", Name = "GetCourse")]
+    [Authorize]
     public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
     {
         var dto = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
