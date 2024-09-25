@@ -32,7 +32,7 @@ public class ModuleController : ControllerBase
 
     //GET: Activities of a module by Module ID
     [HttpGet("activities/{id}")]
-    public async Task<ActionResult<ModuleDto>> GetModule(int id)
+    public async Task<ActionResult<ActivityDto[]>> GetActivitiesOfModule(int id)
     {
         var module = await _serviceCoordinator.ModuleService.GetModuleByIdWithActivitiesAsync(id);
         if (module == null)
@@ -40,7 +40,9 @@ public class ModuleController : ControllerBase
             return NotFound($"Module with the ID {id} was not found in the database.");
         }
 
-        return Ok(module);
+        var activities = module.Activities;
+
+        return Ok(activities);
     }
 
     //POST: Create activity
