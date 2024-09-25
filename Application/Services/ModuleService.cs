@@ -1,4 +1,6 @@
 using Application.Interfaces;
+using Application.Models;
+
 using AutoMapper;
 using Data;
 using Domain.DTOs;
