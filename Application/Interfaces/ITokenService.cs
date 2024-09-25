@@ -11,7 +11,7 @@ public interface ITokenService
 {
     string GenerateAccessToken(User user);
 
-    UserRefreshToken GenerateRefreshToken(User user);
+    string GenerateRefreshToken();
 
     ClaimsPrincipal GetPrincipalFromExpiredToken(string token, string secret);
 }

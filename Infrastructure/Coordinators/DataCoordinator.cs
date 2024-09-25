@@ -1,5 +1,6 @@
 using Infrastructure.Interfaces;
 using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Coordinators;
 
@@ -26,6 +27,9 @@ public class DataCoordinator(
     {
         return await _db.SaveChangesAsync();
     }
+
+    public bool IsEntityTracked<TEntity>(TEntity entity)
+        where TEntity : class => _db.Entry(entity).State != EntityState.Detached;
 
     public void Dispose()
     {

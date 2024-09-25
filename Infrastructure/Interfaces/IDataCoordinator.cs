@@ -7,4 +7,7 @@ public interface IDataCoordinator
     IUserRepository Users { get; }
 
     Task<int> CompleteAsync();
+
+    bool IsEntityTracked<TEntity>(TEntity entity)
+        where TEntity : class;
 }

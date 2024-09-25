@@ -54,12 +54,42 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         return await _db.Users.AnyAsync(u => u.Name == user.Name);
     }
 
-    public async Task<IEnumerable<UserRefreshToken>> GetUserRefreshTokensAsync(User user) =>
-        await _db.RefreshTokens.Where(r => r.User == user).ToListAsync();
+    // UserSession
 
-    public EntityEntry<UserRefreshToken> AddUserRefreshToken(UserRefreshToken token) =>
-        _db.RefreshTokens.Add(token);
+    /*
+     *
+     ****/
+    public async Task<UserSession?> GetUserSessionAsync(string token) =>
+        await _db
+            .UserSession.Where(x => x.RefreshToken == token)
+            .Include(x => x.User)
+            .FirstOrDefaultAsync();
 
-    public EntityEntry<UserRefreshToken> RemoveUserRefreshToken(UserRefreshToken token) =>
-        _db.RefreshTokens.Remove(token);
+    /*
+     *
+     ****/
+    public async Task<IEnumerable<UserSession>> GetAllUserSessionsAsync(User user) =>
+        await _db.UserSession.Where(r => r.User == user).ToListAsync();
+
+    /*
+     *
+     ****/
+    public async Task<User?> GetUserSessionByTokenAsync(string token) =>
+        await _db
+            .UserSession.Include(x => x.User)
+            .Where(x => x.RefreshToken == token)
+            .Select(x => x.User)
+            .FirstOrDefaultAsync();
+
+    /*
+     *
+     ****/
+    public EntityEntry<UserSession> AddUserSession(UserSession session) =>
+        _db.UserSession.Add(session);
+
+    /*
+     *
+     ****/
+    public EntityEntry<UserSession> RemoveUserSession(UserSession session) =>
+        _db.UserSession.Remove(session);
 }

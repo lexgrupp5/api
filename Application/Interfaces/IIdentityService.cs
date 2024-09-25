@@ -9,7 +9,9 @@ namespace Application.Interfaces;
 public interface IIdentityService
 {
     Task<UserTokenModel> AuthenticateAsync(UserAuthModel userDto);
-
+    
+    Task<UserTokenModel> RefreshAsync(UserTokenModel oldTokens);
+    
     Task<bool> RevokeAsync(User user);
 
     Task<bool> RevokeByTokenAsync(string token);

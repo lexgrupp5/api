@@ -15,7 +15,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole, string>
     public DbSet<Document> Documents => Set<Document>();
     public DbSet<Activity> Activities => Set<Activity>();
     public DbSet<ActivityType> ActivityType => Set<ActivityType>();
-    public DbSet<UserRefreshToken> RefreshTokens => Set<UserRefreshToken>();
+    public DbSet<UserSession> UserSession => Set<UserSession>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -17,14 +17,14 @@ public class TokenService : ITokenService
 {
     /* private readonly AuthTokenOptions _jwtOptions = jwtOptions.Value; */
 
-    private readonly AuthTokenOptions _jwtOptions;
+    private readonly TokenConfiguration _jwtOptions;
 
-    public TokenService(IOptions<AuthTokenOptions> jwtOptions)
+    public TokenService(IOptions<TokenConfiguration> jwtOptions)
     {
         _jwtOptions = jwtOptions.Value;
         Console.WriteLine(_jwtOptions.Secret);
 
-        _jwtOptions = new AuthTokenOptions() {
+        _jwtOptions = new TokenConfiguration() {
             Secret = "Z7yCwJqQBrpqTEx9UmzXiedyzWSPF6cM",
             Issuer = "myApp.com",
             Audience = "myApp.com",
@@ -44,7 +44,7 @@ public class TokenService : ITokenService
         return accessToken;
     }
 
-    public UserRefreshToken GenerateRefreshToken(User user)
+    public string GenerateRefreshToken()
     {
         var randomNumber = new byte[64];
         using (var rng = RandomNumberGenerator.Create())
@@ -52,12 +52,7 @@ public class TokenService : ITokenService
             rng.GetBytes(randomNumber);
         }
         var token = Convert.ToBase64String(randomNumber);
-
-        return new(){
-            Token = token,
-            ExpiresAt = DateTime.UtcNow.AddDays(1),
-            User = user
-        };
+        return token;
     }
 
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string token, string secret)
@@ -108,7 +103,7 @@ public class TokenService : ITokenService
 
 
     private static JwtSecurityToken CreateTokenOptions(
-        AuthTokenOptions options,
+        TokenConfiguration options,
         SigningCredentials credentials,
         IEnumerable<Claim> claims
     )

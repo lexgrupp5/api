@@ -4,7 +4,7 @@ namespace Domain.Configuration;
 
 #nullable disable
 
-public record AuthTokenOptions
+public record TokenConfiguration
 {
     [Required]
     public string Secret { get; init; }

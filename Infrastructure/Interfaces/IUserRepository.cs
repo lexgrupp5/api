@@ -12,7 +12,9 @@ public interface IUserRepository : IRepositoryBase<User>
     Task<User?> CreateNewUserAsync(User? newUser);
 
     //Refresh Tokens
-    Task<IEnumerable<UserRefreshToken>> GetUserRefreshTokensAsync(User user);
-    EntityEntry<UserRefreshToken> AddUserRefreshToken(UserRefreshToken token);
-    EntityEntry<UserRefreshToken> RemoveUserRefreshToken(UserRefreshToken token);
+    Task<UserSession?> GetUserSessionAsync(string token);
+    Task<IEnumerable<UserSession>> GetAllUserSessionsAsync(User user);
+    Task<User?> GetUserSessionByTokenAsync(string token);
+    EntityEntry<UserSession> AddUserSession(UserSession token);
+    EntityEntry<UserSession> RemoveUserSession(UserSession token);
 }

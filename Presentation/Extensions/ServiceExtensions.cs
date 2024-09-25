@@ -3,7 +3,6 @@ using System.Text;
 using Application.Coordinator;
 using Application.Interfaces;
 using Application.Services;
-
 using Domain.Configuration;
 using Domain.Constants;
 using Domain.Entities;
@@ -14,60 +13,32 @@ using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 namespace Presentation.Extensions;
 
 public static class ServiceExtensions
 {
-    public static void ConfigureAuthentication(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    public static void ConfigureIdenttity(this IServiceCollection services, IConfiguration config)
     {
+        var tokenConfig = new TokenConfiguration();
+        config.GetSection("JwtOptions").Bind(tokenConfig);
+        if (tokenConfig.Secret == null)
+            throw new Exception("Secret is null");
+        services.AddSingleton(tokenConfig);
+
         services
-            .AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options => {
-                var jwtOptions = configuration.GetSection("Jw1tOptions");
-                var authTokenOptions = jwtOptions.Get<AuthTokenOptions>();
-                ArgumentNullException.ThrowIfNull(jwtOptions, nameof(jwtOptions));
-                ArgumentNullException.ThrowIfNull(authTokenOptions, nameof(authTokenOptions));
-
-
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = configuration["JwtOptions:Issuer"],
-                    ValidateAudience = true,
-                    ValidAudience = configuration["JwtOptions:Audience"],
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["JwtOptions:Secret"]!)
-                    ),
-                };
-            }
-            );
-    }
-
-    public static void ConfigureAuthorization(this IServiceCollection services)
-    {
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy(
+            .AddAuthorizationBuilder()
+            .AddPolicy(
                 "TeacherPolicy",
                 policy =>
                     policy
                         .RequireRole(UserRoles.Teacher)
                         .RequireClaim(ClaimTypes.NameIdentifier)
                         .RequireClaim(ClaimTypes.Role)
-            );
-
-            options.AddPolicy(
+            )
+            .AddPolicy(
                 "StudentPolicy",
                 policy =>
                     policy
@@ -75,11 +46,28 @@ public static class ServiceExtensions
                         .RequireClaim(ClaimTypes.NameIdentifier)
                         .RequireClaim(ClaimTypes.Role)
             );
-        });
-    }
 
-    public static void ConfigureIdenttity(this IServiceCollection services)
-    {
+        services
+            .AddAuthentication(o =>
+            {
+                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = tokenConfig.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = tokenConfig.Audience,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(tokenConfig.Secret)
+                    ),
+                };
+            });
+
         services
             .AddIdentity<User, IdentityRole>(options =>
             {
@@ -96,15 +84,38 @@ public static class ServiceExtensions
     }
 
     public static void ConfigureOpenApi(this IServiceCollection services) =>
-        services.AddEndpointsApiExplorer().AddSwaggerGen();
-
-    public static void LoadOptions(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.Configure<AuthTokenOptions>(configuration.GetSection("JwtOptions"));
-        services.AddSingleton(service =>
-            service.GetRequiredService<IOptions<AuthTokenOptions>>().Value
-        );
-    }
+        services
+            .AddEndpointsApiExplorer()
+            .AddSwaggerGen(setup =>
+            {
+                setup.AddSecurityDefinition(
+                    "Bearer",
+                    new OpenApiSecurityScheme
+                    {
+                        In = ParameterLocation.Header,
+                        Description = "Place to add JWT with Bearer",
+                        Name = "Authorization",
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "Bearer"
+                    }
+                );
+                setup.AddSecurityRequirement(
+                    new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Id = "Bearer",
+                                    Type = ReferenceType.SecurityScheme
+                                }
+                            },
+                            new List<string>()
+                        }
+                    }
+                );
+            });
 
     public static void ConfigureRepositories(this IServiceCollection services)
     {

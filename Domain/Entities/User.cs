@@ -15,5 +15,5 @@ public class User : IdentityUser
 
     public ICollection<Document> Documents { get; set; }
 
-    public ICollection<UserRefreshToken> RefreshTokens { get; set; }
+    public ICollection<UserSession> RefreshTokens { get; set; }
 }
