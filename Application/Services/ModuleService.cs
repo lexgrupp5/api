@@ -43,6 +43,7 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         var mappedModule = new ModuleForCreationDto
         {
             Name = createdModule.Name,
+            CourseId = createdModule.CourseId,
             Description = createdModule.Description,
             StartDate = createdModule.StartDate,
             EndDate = createdModule.EndDate
