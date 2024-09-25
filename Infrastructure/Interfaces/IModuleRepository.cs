@@ -9,4 +9,7 @@ public interface IModuleRepository : IRepositoryBase<Module>
     Task<bool> CheckModuleExistsAsync(Module module);
 
     Task<Module?> GetModuleByIdWithActivitiesAsync(int id);
+
+    Task<Activity?> CreateActivityAsync(ActivityForCreationDto activityToCreate); 
+
 }
