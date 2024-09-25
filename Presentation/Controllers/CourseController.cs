@@ -40,11 +40,11 @@ public class CourseController : ApiBaseController
     }
 
     [HttpPost(Name = "CreateCourse")]
-    public async Task<ActionResult<CourseCreateDto>> CreateCourse(
+    public async Task<ActionResult<CourseDto>> CreateCourse(
         [FromBody] CourseCreateDto course)
     {    
         var createdCourse = await _serviceCoordinator.Course.CreateCourse(course);
-        return CreatedAtRoute(nameof(CreateCourse), createdCourse);
+        return Ok(createdCourse);
     }
 
     [HttpPatch("{id}")]
