@@ -53,14 +53,8 @@ public class UserController: ControllerBase
     [HttpPatch("{username}")]
     public async Task<ActionResult> PatchUserByUsername(string username, [FromBody]JsonPatchDocument<UserForUpdateDto> patchDocument)
     {
-        if (patchDocument == null)
-        {
-            return BadRequest("Patch document is null");
-        }
-        var userToBeUpdated = await _serviceCoordinator.UserService.GetUserByUsername(username);
-        if (userToBeUpdated == null) { BadRequest( $"A user with the username {username} could not be found in the database."); }
-
-        await _serviceCoordinator.UserService.PatchUser(userToBeUpdated!, patchDocument);
+        var result = await _serviceCoordinator.UserService.PatchUser(username, patchDocument);
+        if (result == null) { BadRequest("User failed to get updated"); }
         return NoContent();
     }
 

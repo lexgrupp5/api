@@ -30,9 +30,20 @@ public class ModuleRepository : RepositoryBase<Module>, IModuleRepository
         return result;
     }
 
+
     public async Task<bool> CheckModuleExistsAsync(Module module)
     {
         return await _context.Modules.AnyAsync(m => m.Name == module.Name);
+    }
+
+
+    public async Task<Module> CreateModuleAsync(ModuleForCreationDto moduleToCreate)
+    {
+        ArgumentNullException.ThrowIfNull(moduleToCreate);
+        var newModule = _mapper.Map<Module>(moduleToCreate);
+        _context.Modules.Add(newModule);
+        await _context.SaveChangesAsync();
+        return newModule;
     }
 
     public async Task<Activity?> CreateActivityAsync(ActivityForCreationDto activityToCreate)
