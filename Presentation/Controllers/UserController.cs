@@ -1,5 +1,7 @@
 using Application.Interfaces;
 using Domain.DTOs;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +19,7 @@ public class UserController : ControllerBase
     {
         _serviceCoordinator = serviceCoordinator;
     }
+
 
     //GET: Course participants by Course ID
     [HttpGet("course/{id}")]

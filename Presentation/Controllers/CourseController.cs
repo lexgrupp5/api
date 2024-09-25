@@ -19,7 +19,7 @@ public class CourseController : ControllerBase
 
     //GET: All courses
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "teacher")]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
     {
         var courses = await _serviceCoordinator.Course.GetCoursesAsync();
