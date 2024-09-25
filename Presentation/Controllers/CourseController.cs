@@ -2,13 +2,18 @@ using Application.Interfaces;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Application.Coordinator;
+using Application.Interfaces;
+using Microsoft.AspNetCore.JsonPatch;
+
 
 namespace Presentation.Controllers;
 
 [Route("api/courses")]
 [ApiController]
 [Produces("application/json")]
-public class CourseController : ControllerBase
+
+public class CourseController : ApiBaseController
 {
     private readonly IServiceCoordinator _serviceCoordinator;
 
@@ -20,9 +25,13 @@ public class CourseController : ControllerBase
     //GET: All courses
     [HttpGet]
     [Authorize(Roles = "teacher")]
-    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
+    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(
+        [FromQuery] SearchFilterDTO searchFilterDTO)
     {
-        var courses = await _serviceCoordinator.Course.GetCoursesAsync();
+        var courses = Request.Query.Count != 0
+            ? await _serviceCoordinator.Course.GetCoursesAsync(searchFilterDTO)
+            : await _serviceCoordinator.Course.GetCoursesAsync();
+        
         return Ok(courses);
     }
 
@@ -31,12 +40,34 @@ public class CourseController : ControllerBase
     [Authorize]
     public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
     {
-        var dto = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
-        if (dto == null)
+        return await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
+    }
+
+    [HttpPost(Name = "CreateCourse")]
+    public async Task<ActionResult<CourseCreateDto>> CreateCourse(
+        [FromBody] CourseCreateDto course)
+    {    
+        var createdCourse = await _serviceCoordinator.Course.CreateCourse(course);
+        return CreatedAtRoute(nameof(CreateCourse), createdCourse);
+    }
+
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> PatchCourse(
+        [FromRoute] int id,
+        [FromBody] JsonPatchDocument<CourseDto> coursePatchDocument
+    )
+    {
+        var courseToPatchWith = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
+
+        if (!TryValidateAndApplyPatch(
+            coursePatchDocument,
+            courseToPatchWith,
+            out IActionResult errorResponse))
         {
-            return NotFound($"Course with the ID {id} was not found in the database.");
+            return errorResponse;
         }
 
-        return Ok(dto);
+        await _serviceCoordinator.Course.PatchCourse(courseToPatchWith);
+        return Ok(NoContent());
     }
 }

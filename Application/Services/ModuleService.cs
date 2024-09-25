@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Models;
 
 using AutoMapper;
 
@@ -35,5 +36,34 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         var modules = await _dataCoordinator.Modules.GetModuleByIdWithActivitiesAsync(id);
         var moduleDto = _mapper.Map<ModuleDto>(modules);
         return moduleDto;
+    }
+
+    public async Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel moduleToCreate)
+    {
+        var createdModule =
+            await _dataCoordinator.Modules.CreateModuleAsync(_mapper.Map<ModuleForCreationDto>(moduleToCreate));
+        var mappedModule = new ModuleForCreationDto
+        {
+            Name = createdModule.Name,
+            CourseId = createdModule.CourseId,
+            Description = createdModule.Description,
+            StartDate = createdModule.StartDate,
+            EndDate = createdModule.EndDate
+        };
+
+        return mappedModule;
+    }
+
+    public async Task<ActivityForCreationDto> CreateActivityAsync(ActivityCreateModel activityCreate)
+    {
+        var  createdActivity = await _dataCoordinator.Modules.CreateActivityAsync((_mapper.Map<ActivityForCreationDto>(activityCreate)));
+        var mappedActivity = new ActivityForCreationDto
+        {
+            ModuleId = createdActivity.ModuleId,
+            Description = createdActivity.Description,
+            StartDate = createdActivity.StartDate,
+            EndDate = createdActivity.EndDate
+        };
+        return mappedActivity;
     }
 }

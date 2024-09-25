@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +29,7 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
     {
         //var user = await GetByConditionAsync(u => u.Name.Replace(" ", "").ToUpper() ==  username.ToUpper()).FirstAsync();
         var user = await _db
-            .Users.Where(u => u.Name.Replace(" ", "").ToUpper() == username.ToUpper())
+            .Users.Where(u => u.UserName.Replace(" ", "").ToUpper().Equals(username.ToUpper()))
             .FirstOrDefaultAsync();
         Console.WriteLine("Taking up space");
         if (user == null)
