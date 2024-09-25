@@ -57,6 +57,7 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         var  createdActivity = await _dataCoordinator.Modules.CreateActivityAsync((_mapper.Map<ActivityForCreationDto>(activityCreate)));
         var mappedActivity = new ActivityForCreationDto
         {
+            ModuleId = createdActivity.ModuleId,
             Description = createdActivity.Description,
             StartDate = createdActivity.StartDate,
             EndDate = createdActivity.EndDate

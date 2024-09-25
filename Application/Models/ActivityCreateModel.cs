@@ -1,3 +1,3 @@
 ﻿namespace Application.Models;
 
-public record ActivityCreateModel(string Description, DateTime StartDate, DateTime EndDate);
+public record ActivityCreateModel(int ModuleId,string Description, DateTime StartDate, DateTime EndDate);
