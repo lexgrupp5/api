@@ -10,9 +10,9 @@ public interface IIdentityService
 {
     Task<UserTokenModel> AuthenticateAsync(UserAuthModel userDto);
     
-    Task<UserTokenModel> RefreshAsync(UserTokenModel oldTokens);
-    
-    Task<bool> RevokeAsync(User user);
+    Task<UserTokenModel> RefreshTokensAsync(UserTokenModel oldTokens);
 
-    Task<bool> RevokeByTokenAsync(string token);
+    Task<bool> RevokeAsync(UserTokenModel tokens);
+
+    Task<bool> RevokeAllAsync(User user);
 }

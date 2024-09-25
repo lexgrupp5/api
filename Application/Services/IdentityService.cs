@@ -27,59 +27,66 @@ public class IdentityService(
     public async Task<UserTokenModel> AuthenticateAsync(UserAuthModel userDto)
     {
         var user = await ValidateUserAsync(userDto);
-        var (access, refresh) = await CreateTokensAsync(user);
+        var (access, refresh) = CreateTokens(user);
+
+        var userSession = new UserSession()
+        {
+            RefreshToken = refresh,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_tokenConfig.RefreshExpirationInMinutes),
+            User = user
+        };
+
+        _dc.Users.AddUserSession(userSession);
+        await _dc.CompleteAsync();
 
         return new(access, refresh);
     }
 
-    public async Task<UserTokenModel> RefreshAsync(UserTokenModel oldTokens)
+    public async Task<UserTokenModel> RefreshTokensAsync(UserTokenModel oldTokens)
     {
         var principal =
             _tokenService.GetPrincipalFromExpiredToken(oldTokens.AccessToken, _tokenConfig.Secret)
             ?? throw new SecurityTokenException("Invalid token");
 
         var userSession = await _dc.Users.GetUserSessionAsync(oldTokens.RefreshToken);
-        if (userSession == null)
-            Unauthorized("Refresh token is invalid");
-
-        _dc.Users.RemoveUserSession(userSession);
-
-        if (userSession.ExpiresAt < DateTime.UtcNow)
+        if (userSession == null || userSession.ExpiresAt < DateTime.UtcNow)
         {
-            await _dc.CompleteAsync();
-            Unauthorized("Refresh token has expired");
+            if (userSession != null)
+            {
+                _dc.Users.RemoveUserSession(userSession);
+                await _dc.CompleteAsync();
+            }
+            Unauthorized("Refresh token is invalid");
         }
 
-        var (access, refresh) = await CreateTokensAsync(userSession.User);        
+        if (principal.Identity?.Name != userSession.User.UserName)
+            Unauthorized("User mismatch.");
 
-        return new(access, refresh);
+        var (newAccess, newRefresh) = CreateTokens(userSession.User);
+        userSession.RefreshToken = newRefresh;
+        await _dc.CompleteAsync();
+
+        return new(newAccess, newRefresh);
     }
 
-    public async Task<bool> RevokeAsync(User user)
+    public async Task<bool> RevokeAsync(UserTokenModel tokens)
     {
-        throw new NotImplementedException();
+        var userSession = await _dc.Users.GetUserSessionAsync(tokens.RefreshToken);
+        if (userSession == null)
+            NotFound();
+
+        _dc.Users.RemoveUserSession(userSession);
+        await _dc.CompleteAsync();
+
+        return true;
     }
 
-    public async Task<bool> RevokeByTokenAsync(string token)
-    {
-        throw new NotImplementedException();
-    }
+    public async Task<bool> RevokeAllAsync(User user) => throw new NotImplementedException();
 
-    public async Task<bool> RevokeAllAsync() => throw new NotImplementedException();
-
-    private async Task<(string, string)> CreateTokensAsync(User user)
+    private (string access, string refresh) CreateTokens(User user)
     {
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
-
-        var userSession = new UserSession() {
-            RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(_tokenConfig.ExpirationMinutes),
-            User = user
-        };
-
-        _dc.Users.AddUserSession(userSession);
-        await _dc.CompleteAsync();
 
         return (accessToken, refreshToken);
     }

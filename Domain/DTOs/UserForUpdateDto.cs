@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Domain.Entities;
+﻿using Domain.Entities;
 
-namespace Domain.DTOs
+namespace Domain.DTOs;
+
+#nullable disable
+
+public class UserForUpdateDto
 {
-    public class UserForUpdateDto
-    {
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string Username { get; set; }
-        public Course Course { get; set; }
-    }
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public string Username { get; set; }
+    public Course Course { get; set; }
 }

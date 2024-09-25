@@ -17,28 +17,28 @@ public class TokenService : ITokenService
 {
     /* private readonly AuthTokenOptions _jwtOptions = jwtOptions.Value; */
 
-    private readonly TokenConfiguration _jwtOptions;
+    private readonly TokenConfiguration _tc;
 
-    public TokenService(IOptions<TokenConfiguration> jwtOptions)
+    public TokenService(TokenConfiguration tokenConfig)
     {
-        _jwtOptions = jwtOptions.Value;
-        Console.WriteLine(_jwtOptions.Secret);
+        _tc = tokenConfig;
+        Console.WriteLine(_tc.Secret);
 
-        _jwtOptions = new TokenConfiguration() {
+        _tc = new TokenConfiguration() {
             Secret = "Z7yCwJqQBrpqTEx9UmzXiedyzWSPF6cM",
             Issuer = "myApp.com",
             Audience = "myApp.com",
-            ExpirationMinutes = 60
+            AccessExpirationInMinutes = 60
         };
 
-        Console.WriteLine($"After: {_jwtOptions.Secret}");
+        Console.WriteLine($"After: {_tc.Secret}");
     }
 
     public string GenerateAccessToken(User user)
     {
-        var credentials = CreateSigningCredentials(_jwtOptions.Secret);
+        var credentials = CreateSigningCredentials(_tc.Secret);
         var claims = CreateClaims(user, UserRoles.All);
-        var tokenOptions = CreateTokenOptions(_jwtOptions, credentials, claims);
+        var tokenOptions = CreateTokenOptions(_tc, credentials, claims);
         var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
 
         return accessToken;
@@ -112,7 +112,7 @@ public class TokenService : ITokenService
             issuer: options.Issuer,
             audience: options.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(options.ExpirationMinutes),
+            expires: DateTime.UtcNow.AddMinutes(options.AccessExpirationInMinutes),
             signingCredentials: credentials
         );
     }

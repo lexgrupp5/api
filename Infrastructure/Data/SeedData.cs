@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using Domain.Constants;
 using Domain.Entities;
+using Infrastructure.Models;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -311,13 +312,4 @@ public static class SeedData
         }
         return courses;
     }
-}
-
-public class FakeUser
-{
-    public string UserName { get; set; }
-    public string Name { get; set; }
-    public string Email { get; set; }
-    public Course Course { get; set; }
-    public string RoleName { get; set; }
 }

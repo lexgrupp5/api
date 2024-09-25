@@ -7,6 +7,7 @@ namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class AuthController(IServiceCoordinator serviceCoordinator) : ControllerBase
 {
     private readonly IServiceCoordinator _services = serviceCoordinator;
@@ -20,17 +21,16 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout([FromBody] UserTokenModel tokens)
     {
-        throw new NotImplementedException();
+        await _services.Identity.RevokeAsync(tokens);
+        return Ok();
     }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken(UserTokenModel oldTokens)
     {
-        var newTokens = await _services.Identity.RefreshAsync(oldTokens);
+        var newTokens = await _services.Identity.RefreshTokensAsync(oldTokens);
         return newTokens == null ? BadRequest() : Ok(newTokens);
     }
-
 }
-
