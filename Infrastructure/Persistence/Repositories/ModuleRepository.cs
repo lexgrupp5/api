@@ -45,4 +45,12 @@ public class ModuleRepository : RepositoryBase<Module>, IModuleRepository
         await _context.SaveChangesAsync();
         return newModule;
     }
+
+    public async Task<Activity?> CreateActivityAsync(ActivityForCreationDto activityToCreate)
+    {
+        var newActivity = _mapper.Map<Activity>(activityToCreate);
+        _context.Activities.Add(newActivity);
+        await _context.SaveChangesAsync();
+        return newActivity;
+    }
 }

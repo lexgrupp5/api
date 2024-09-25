@@ -11,4 +11,7 @@ public interface IModuleRepository : IRepositoryBase<Module>
     Task<Module?> GetModuleByIdWithActivitiesAsync(int id);
 
     Task<Module> CreateModuleAsync(ModuleForCreationDto moduleToCreate);
+
+    Task<Activity?> CreateActivityAsync(ActivityForCreationDto activityToCreate); 
+
 }

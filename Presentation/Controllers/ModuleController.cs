@@ -52,5 +52,13 @@ public class ModuleController : ControllerBase
         var result = await _serviceCoordinator.ModuleService.CreateModuleAsync(moduleToCreate);
         return Ok(result);
     }
+    //POST: Create activity
+    [HttpPost("createActivity")]
+    public async Task<ActionResult<ActivityForCreationDto>> CreateActivity(ActivityCreateModel activityToCreate)
+    {
+        var result = await _serviceCoordinator.ModuleService.CreateActivityAsync(activityToCreate);
+        return Ok(result);
+    }
+
 }
 

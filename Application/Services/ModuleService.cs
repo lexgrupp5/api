@@ -51,4 +51,17 @@ public class ModuleService : ServiceBase<Module>, IModuleService
 
         return mappedModule;
     }
+
+    public async Task<ActivityForCreationDto> CreateActivityAsync(ActivityCreateModel activityCreate)
+    {
+        var  createdActivity = await _dataCoordinator.Modules.CreateActivityAsync((_mapper.Map<ActivityForCreationDto>(activityCreate)));
+        var mappedActivity = new ActivityForCreationDto
+        {
+            ModuleId = createdActivity.ModuleId,
+            Description = createdActivity.Description,
+            StartDate = createdActivity.StartDate,
+            EndDate = createdActivity.EndDate
+        };
+        return mappedActivity;
+    }
 }

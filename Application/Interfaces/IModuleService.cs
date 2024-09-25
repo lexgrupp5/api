@@ -11,4 +11,6 @@ public interface IModuleService
     Task<ModuleDto?> GetModuleByIdWithActivitiesAsync(int id);
 
     Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel module);
+    
+    Task<ActivityForCreationDto> CreateActivityAsync(ActivityCreateModel activityCreate);
 }
