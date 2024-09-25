@@ -36,18 +36,21 @@ public class UserService : IUserService
         return await _dataCoordinator.Users.GetUserByUsername(name);
     }
 
-    public async Task<UserDto> PatchUser(User user, JsonPatchDocument<UserForUpdateDto> patchDocument)
+    public async Task<UserDto?> PatchUser(string username, JsonPatchDocument<UserForUpdateDto> patchDocument)
     {
-        var userToPatch = _mapper.Map<UserForUpdateDto>(user);
+        var userToBeUpdated = await GetUserByUsername(username);
+        if (userToBeUpdated == null) { return null; }
+
+        var userToPatch = _mapper.Map<UserForUpdateDto>(userToBeUpdated);
         patchDocument.ApplyTo(userToPatch);
 
-        user.Name = userToPatch.Name;
-        user.Email = userToPatch.Email;
-        user.UserName = userToPatch.Username;
-        user.Course = userToPatch.Course;
+        userToBeUpdated.Name = userToPatch.Name;
+        userToBeUpdated.Email = userToPatch.Email;
+        userToBeUpdated.UserName = userToPatch.Username;
+        userToBeUpdated.Course = userToPatch.Course;
         await _dataCoordinator.CompleteAsync();
 
-        var updatedUser = _mapper.Map<UserDto>(user);
+        var updatedUser = _mapper.Map<UserDto>(userToBeUpdated);
         return updatedUser;
     }
 
