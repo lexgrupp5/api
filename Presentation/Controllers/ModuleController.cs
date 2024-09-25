@@ -20,7 +20,7 @@ public class ModuleController : ControllerBase
     [HttpGet("course/{id}")]
     public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id)
     {
-        var modules = await _serviceCoordinator.ModuleService.GetModulesOfCourseIdAsync(id);
+        var modules = await _serviceCoordinator.Module.GetModulesOfCourseIdAsync(id);
         if (modules == null)
         {
             return NotFound("No modules found. Either course ID was bad or course contains no modules.");
@@ -33,7 +33,7 @@ public class ModuleController : ControllerBase
     [HttpGet("activities/{id}")]
     public async Task<ActionResult<ModuleDto>> GetModule(int id)
     {
-        var module = await _serviceCoordinator.ModuleService.GetModuleByIdWithActivitiesAsync(id);
+        var module = await _serviceCoordinator.Module.GetModuleByIdWithActivitiesAsync(id);
         if (module == null)
         {
             return NotFound($"Module with the ID {id} was not found in the database.");

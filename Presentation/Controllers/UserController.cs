@@ -1,9 +1,7 @@
-using Domain.DTOs;
-using Microsoft.AspNetCore.Mvc;
 using Application.Interfaces;
+using Domain.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Identity;
-using Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
@@ -11,7 +9,7 @@ namespace Presentation.Controllers;
 [ApiController]
 [Produces("application/json")]
 //[Authorize(Roles = "Teacher")]
-public class UserController: ControllerBase
+public class UserController : ControllerBase
 {
     private readonly IServiceCoordinator _serviceCoordinator;
 
@@ -32,17 +30,23 @@ public class UserController: ControllerBase
 
         return Ok(users);
     }
-    
+
     //PATCH: Existing User by User ID
     [HttpPatch("{username}")]
-    public async Task<ActionResult> PatchUserById(string username, [FromBody]JsonPatchDocument<UserForUpdateDto> patchDocument)
+    public async Task<ActionResult> PatchUserById(
+        string username,
+        [FromBody] JsonPatchDocument<UserForUpdateDto> patchDocument
+    )
     {
         if (patchDocument == null)
         {
             return BadRequest("Patch document is null");
         }
         var userToBeUpdated = await _serviceCoordinator.UserService.GetUserByUsername(username);
-        if (userToBeUpdated == null) { BadRequest( $"A user with the username {username} could not be found in the database."); }
+        if (userToBeUpdated == null)
+        {
+            BadRequest($"A user with the username {username} could not be found in the database.");
+        }
 
         await _serviceCoordinator.UserService.PatchUser(userToBeUpdated!, patchDocument);
         return NoContent();
@@ -51,20 +55,25 @@ public class UserController: ControllerBase
     [HttpGet(Name = "GetAllStudents")]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
     {
-        var users = await _serviceCoordinator.Identity.GetStudentsAsync();
+        throw new NotImplementedException();
+        /* var users = await _serviceCoordinator.Identity.GetStudentsAsync();
         if (users == null)
         {
             return NotFound("No students found in the database.");
         }
 
-        return Ok(users);
+        return Ok(users); */
     }
 
     //POST: Create new user
     [HttpPost]
     public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
     {
-        var userToBeCreated = await _serviceCoordinator.UserService.CreateNewUserAsync(newUser, _serviceCoordinator.User, _serviceCoordinator.Identity);
+        var userToBeCreated = await _serviceCoordinator.UserService.CreateNewUserAsync(
+            newUser,
+            _serviceCoordinator.User,
+            _serviceCoordinator.Identity
+        );
         if (userToBeCreated == null)
         {
             return BadRequest("The return body of the function call is 'null'");

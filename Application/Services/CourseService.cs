@@ -1,8 +1,11 @@
 ﻿using Application.Interfaces;
-using Data;
+
 using AutoMapper;
+
 using Domain.DTOs;
 using Domain.Entities;
+
+using Infrastructure.Interfaces;
 
 namespace Application.Services
 {

@@ -1,75 +1,70 @@
-using Domain.Configuration;
-using Domain.Entities;
-using Microsoft.AspNetCore.Identity;
-using Application.Models;
 using Application.Interfaces;
-
+using Application.Models;
+using Domain.Configuration;
 using Domain.DTOs;
-
-using Microsoft.EntityFrameworkCore;
+using Domain.Entities;
+using Infrastructure.Coordinators;
+using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace Application.Services;
 
 public class IdentityService(
     UserManager<User> userManager,
     RoleManager<IdentityRole> roleManager,
-    IJwtService jwtService,
-    JwtOptions jwtOptions
+    ITokenService tokenService,
+    AuthTokenOptions authTokenOptions,
+    IDataCoordinator dataCoordinator
 ) : ServiceBase<User>, IIdentityService
 {
-    private readonly UserManager<User> _userManager = userManager;
+    private readonly IDataCoordinator _db = dataCoordinator;
+    private readonly UserManager<User> _user = userManager;
+    private readonly RoleManager<IdentityRole> _role = roleManager;
+    private readonly AuthTokenOptions _auth = authTokenOptions;
+    private readonly ITokenService _token = tokenService;
 
-    private readonly RoleManager<IdentityRole> _roleManager = roleManager;
-
-    private readonly JwtOptions _jwtOptions = jwtOptions;
-
-    private readonly IJwtService _jwtService = jwtService;
-
-    public async Task<IdentityResult> CreateUserAsync(UserCreateModel newUser)
+    public async Task<UserTokenModel> AuthenticateAsync(UserAuthModel userDto)
     {
-        var user = new User
-        {
-            UserName = newUser.UserName,
-            Name = newUser.Name,
-            Email = newUser.Email
-        };
+        var user = await ValidateUserAsync(userDto);
+        var (access, refresh) = await CreateTokensAsync(user);
 
-        return await _userManager.CreateAsync(user, newUser.Password);
+        return new(access, refresh);
     }
 
-
-    public async Task<string> AuthenticateAsync(UserAuthenticateModel userDto)
+    public async Task<bool> RevokeAsync(User user)
     {
-        var user = await ValidateUser(userDto) ?? throw new Exception("User not found");
-        var token = CreateToken(user);
-        return token;
+        throw new NotImplementedException();
     }
 
-    
-    private async Task<User?> ValidateUser(UserAuthenticateModel userDto)
+    public async Task<bool> RevokeByTokenAsync(string token)
     {
-        var user = await _userManager.FindByNameAsync(userDto.UserName);
+        throw new NotImplementedException();
+    }
+
+    public async Task<bool> RevokeAllAsync() => throw new NotImplementedException();
+
+
+    private async Task<(string, string)> CreateTokensAsync(User user)
+    {
+        var accessToken = _token.GenerateAccessToken(user);
+        var userRefreshToken = _token.GenerateRefreshToken(user);
+
+        _db.Users.AddUserRefreshToken(userRefreshToken);
+        await _db.CompleteAsync();
+
+        return (accessToken, userRefreshToken.Token);
+    }
+
+    private async Task<User> ValidateUserAsync(UserAuthModel userDto)
+    {
+        var user = await _user.FindByNameAsync(userDto.UserName);
         if (user == null)
-            return null;
+            NotFound();
 
-        return !await _userManager.CheckPasswordAsync(user, userDto.Password) ? null : user;
-    }
+        var isValidPassword = await _user.CheckPasswordAsync(user, userDto.Password);
+        if (!isValidPassword)
+            Unauthorized("Invalid password");
 
-
-    private string CreateToken(User user)
-    {
-        return _jwtService.GenerateToken(user);
-    }
-
-    public async Task<IEnumerable<UserDto>> GetStudentsAsync()
-    {
-        var roleStudent = _roleManager.Roles.Where(x => x.Name == "Student");
-        var students = await _userManager.GetUsersInRoleAsync(roleStudent.First().Name ?? "");
-
-        return students.Select(user => new UserDto(
-            Name: user.Name ?? string.Empty,
-            Username: user.UserName ?? string.Empty,
-            Email: user.Email ?? string.Empty
-        )).ToList();
+        return user;
     }
 }

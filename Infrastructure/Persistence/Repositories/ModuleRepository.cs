@@ -8,12 +8,12 @@ public class ModuleRepository : RepositoryBase<Module>, IModuleRepository
 {
     public ModuleRepository(AppDbContext context) : base(context)
     {
-        _context = context;
+        _db = context;
     }
 
     public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id)
     {
-        var course = await _context.Courses.Where(c => c.Id.Equals(id)).Include(c => c.Modules).FirstOrDefaultAsync();
+        var course = await _db.Courses.Where(c => c.Id.Equals(id)).Include(c => c.Modules).FirstOrDefaultAsync();
         if (course == null) { return null; }
 
         return course.Modules.ToList();
@@ -27,6 +27,6 @@ public class ModuleRepository : RepositoryBase<Module>, IModuleRepository
 
     public async Task<bool> CheckModuleExistsAsync(Module module)
     {
-        return await _context.Modules.AnyAsync(m => m.Name == module.Name);
+        return await _db.Modules.AnyAsync(m => m.Name == module.Name);
     }
 }

@@ -1,15 +1,13 @@
-using Domain.DTOs;
-using Microsoft.AspNetCore.Mvc;
-using Application.Coordinator;
 using Application.Interfaces;
-
+using Domain.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
 [Route("api/courses")]
 [ApiController]
 [Produces("application/json")]
-
 public class CourseController : ControllerBase
 {
     private readonly IServiceCoordinator _serviceCoordinator;
@@ -20,6 +18,7 @@ public class CourseController : ControllerBase
     }
 
     //GET: All courses
+    [Authorize(Roles = "teacher,student")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
     {
@@ -28,6 +27,7 @@ public class CourseController : ControllerBase
     }
 
     //GET: Course by ID
+    [Authorize(Roles = "teacher,student")]
     [HttpGet("{id}", Name = "GetCourse")]
     public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
     {

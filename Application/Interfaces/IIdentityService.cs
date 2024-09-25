@@ -1,6 +1,6 @@
 using Application.Models;
-
 using Domain.DTOs;
+using Domain.Entities;
 
 using Microsoft.AspNetCore.Identity;
 
@@ -8,9 +8,9 @@ namespace Application.Interfaces;
 
 public interface IIdentityService
 {
-    Task<IdentityResult> CreateUserAsync(UserCreateModel newUser);
+    Task<UserTokenModel> AuthenticateAsync(UserAuthModel userDto);
 
-    Task<string> AuthenticateAsync(UserAuthenticateModel userDto);
+    Task<bool> RevokeAsync(User user);
 
-    Task<IEnumerable<UserDto>> GetStudentsAsync();
+    Task<bool> RevokeByTokenAsync(string token);
 }

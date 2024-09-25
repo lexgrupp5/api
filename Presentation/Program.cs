@@ -1,51 +1,62 @@
 using Application.Mapper;
-using Domain.Entities;
-using Infrastructure.Persistence.Repositories;
-using Microsoft.AspNetCore.Identity;
 using Presentation;
 using Presentation.Extensions;
 using Presentation.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Context
 builder.Services.ConfigureSql(builder.Configuration);
 
 builder
     .Services.AddControllers(configure => configure.ReturnHttpNotAcceptable = true)
     .AddNewtonsoftJson()
     .AddApplicationPart(typeof(AssemblyRef).Assembly);
-
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
-//builder.Services.AddTransient(s => new Lazy<UserManager<User>>(() => s.GetRequiredService<UserManager<User>>()));
+builder.Services.AddSwaggerGen(c =>
+{
+    // Add JWT authentication option to Swagger
+    c.AddSecurityDefinition(
+        "Bearer",
+        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Description = "Please insert JWT with Bearer into field. Example: Bearer {your_token}",
+            Name = "Authorization",
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        }
+    );
+
+    c.AddSecurityRequirement(
+        new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        }
+    );
+});
 
 // Identity
 builder.Services.AddDataProtection();
-builder
-    .Services.AddIdentityCore<User>(options =>
-    {
-        // Password settings
-        options.Password.RequireDigit = true;
-        options.Password.RequiredLength = 8;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequiredUniqueChars = 1;
-    })
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+builder.Services.ConfigureIdenttity();
 
 builder.Services.ConfigureOpenApi();
 builder.Services.ConfigureServices();
 builder.Services.ConfigureRepositories();
-builder.Services.ConfigureOptions(builder.Configuration);
-builder.AddCORS();
+builder.Services.LoadOptions(builder.Configuration);
 
 var app = builder.Build();
-
 
 app.UseMiddleware<ApiExceptionMiddleware>();
 

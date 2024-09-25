@@ -1,6 +1,4 @@
-using Infrastructure.Interfaces;
-
-namespace Data;
+namespace Infrastructure.Interfaces;
 
 public interface IDataCoordinator
 {
@@ -8,5 +6,5 @@ public interface IDataCoordinator
     IModuleRepository Modules { get; }
     IUserRepository Users { get; }
 
-    Task CompleteAsync();
+    Task<int> CompleteAsync();
 }

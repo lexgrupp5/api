@@ -4,7 +4,7 @@ namespace Domain.Configuration;
 
 #nullable disable
 
-public record JwtOptions
+public record AuthTokenOptions
 {
     [Required]
     public string Secret { get; init; }
