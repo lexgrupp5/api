@@ -8,6 +8,8 @@ using Domain.Entities;
 
 using Infrastructure.Interfaces;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace Application.Services;
 
 public class ModuleService : ServiceBase<Module>, IModuleService
@@ -26,7 +28,7 @@ public class ModuleService : ServiceBase<Module>, IModuleService
 
     public async Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id)
     {
-        var modules = await _dataCoordinator.Modules.GetModulesByCourseIdAsync(id);
+        var modules = await _dataCoordinator.Modules.GetModulesOfCourseAsync(id);
         var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
         return moduleDtos;
     }
@@ -36,6 +38,14 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         var modules = await _dataCoordinator.Modules.GetModuleByIdWithActivitiesAsync(id);
         var moduleDto = _mapper.Map<ModuleDto>(modules);
         return moduleDto;
+    }
+
+    public async Task<ModuleToPatchDto> GetModule(int id)
+    {
+        var module = await _dataCoordinator.Modules.GetModule(id);
+        var moduleToPatchDto = _mapper.Map<ModuleToPatchDto>(module);
+        return moduleToPatchDto;
+        
     }
 
     public async Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel moduleToCreate)
@@ -65,5 +75,19 @@ public class ModuleService : ServiceBase<Module>, IModuleService
             EndDate = createdActivity.EndDate
         };
         return mappedActivity;
+    }
+    
+    
+    public async Task PatchModule(ModuleToPatchDto moduleToPatchDto)
+    {
+        var module = await _dataCoordinator.Modules
+            .GetByConditionAsync(module =>module.Id == moduleToPatchDto.Id)
+            .FirstOrDefaultAsync();
+
+        if (module == null) { NotFound($"Module with the ID {moduleToPatchDto.Id} was not found in the database."); }
+            
+        _mapper.Map(moduleToPatchDto, module);
+            
+        await _dataCoordinator.CompleteAsync();
     }
 }

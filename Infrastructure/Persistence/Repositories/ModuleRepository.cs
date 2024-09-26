@@ -12,7 +12,7 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
 {
     private readonly IMapper _mapper = mapper;
 
-    public async Task<ICollection<Module>?> GetModulesByCourseIdAsync(int id) =>
+    public async Task<IEnumerable<Module>?> GetModulesOfCourseAsync(int id) =>
         await _db
             .Courses.Where(x => x.Id == id)
             .Include(x => x.Modules)
@@ -24,9 +24,18 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
             .Include(m => m.Activities)
             .FirstOrDefaultAsync();
 
-    public async Task<bool> CheckModuleExistsAsync(Module module) =>
-        await _db.Modules.AnyAsync(m => m.Name == module.Name);
+    public async Task<Module> GetModule(int id)
+    {
+        var result = await GetByConditionAsync(m => m.Id.Equals(id)).FirstOrDefaultAsync();
+        return result;
+    }
+    
 
+    public async Task<bool> CheckModuleExistsAsync(Module module)
+    {
+        return await _db.Modules.AnyAsync(m => m.Name == module.Name);
+    }
+    
     public async Task<Module> CreateModuleAsync(ModuleForCreationDto moduleToCreate)
     {
         ArgumentNullException.ThrowIfNull(moduleToCreate);
