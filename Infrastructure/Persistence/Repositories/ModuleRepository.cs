@@ -29,13 +29,13 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
         var result = await GetByConditionAsync(m => m.Id.Equals(id)).FirstOrDefaultAsync();
         return result;
     }
-    
+
 
     public async Task<bool> CheckModuleExistsAsync(Module module)
     {
         return await _db.Modules.AnyAsync(m => m.Name == module.Name);
     }
-    
+
     public async Task<Module> CreateModuleAsync(ModuleForCreationDto moduleToCreate)
     {
         ArgumentNullException.ThrowIfNull(moduleToCreate);
@@ -51,5 +51,11 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
         _db.Activities.Add(newActivity);
         await _db.SaveChangesAsync();
         return newActivity;
+    }
+
+    public async Task<Activity> GetActivityByIdAsync(int id)
+    {
+        var activity = await _db.Activities.FirstOrDefaultAsync(x => x.Id == id);
+        return activity;
     }
 }
