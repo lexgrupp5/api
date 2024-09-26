@@ -25,7 +25,7 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
 
     [HttpPost("logout")]
     [AllowAnonymous]
-    public async Task<IActionResult> Logout([FromHeader] string access)
+    public async Task<ActionResult> Logout([FromHeader] string access)
     {
         var refresh = HttpContext.Request.Cookies["RefreshToken"];
         if (refresh == null)
@@ -34,7 +34,7 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
         HttpContext.Response.Cookies.Delete("RefreshToken");
 
         await _services.Identity.RevokeAsync(access, refresh);
-        return Ok();
+        return NoContent();
     }
 
     [HttpPost("refresh")]

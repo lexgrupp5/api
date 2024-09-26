@@ -25,18 +25,6 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         return students;
     }
 
-    public async Task<User?> GetUserByUsername(string username)
-    {
-        var user = await _db
-            .Users.Where(u => u.UserName.Replace(" ", "").ToUpper().Equals(username.ToUpper()))
-            .FirstOrDefaultAsync();
-        if (user == null)
-        {
-            return null;
-        }
-        return user;
-    }
-
     public async Task<User?> CreateNewUserAsync(User? newUser)
     {
         if (newUser == null)

@@ -1,10 +1,11 @@
+using System.Security.Claims;
 using Application.Interfaces;
 using Application.Models;
 using Domain.Configuration;
 using Domain.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
+using Application.DTOs;
 
 namespace Application.Services;
 
@@ -22,10 +23,12 @@ public class IdentityService(
     private readonly ITokenService _tService = tokenService;
     private readonly TokenConfig _tConfig = tokenConfiguration;
 
-    public async Task<(string, RefreshCookieParameter)> AuthenticateAsync(UserAuthModel userDto)
+    public async Task<TokenResult> AuthenticateAsync(UserAuthModel userDto)
     {
-        var user = await ValidateUserAsync(userDto);
-        var (access, refresh) = CreateTokens(user);
+        var user = await ValidateUser(userDto);
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var access = _tService.GenerateAccessToken(user, userRoles);
+        var refresh = _tService.GenerateRefreshToken();
 
         var userSession = new UserSession()
         {
@@ -42,33 +45,14 @@ public class IdentityService(
         return new(access, cookieParam);
     }
 
-    public async Task<(string, RefreshCookieParameter)> RefreshTokensAsync(
-        string oldAccess,
-        string oldRefresh
-    )
+    public async Task<TokenResult> RefreshTokensAsync(string oldAccess, string oldRefresh)
     {
-        var principal =
-            _tService.GetPrincipalFromExpiredToken(oldAccess, _tConfig.Access.Secret)
-            ?? throw new SecurityTokenException("Invalid token");
-
-        var userSession = await _dc.Users.GetUserSessionAsync(oldRefresh);
-        if (userSession == null || userSession.ExpiresAt < DateTime.UtcNow)
-        {
-            if (userSession != null)
-            {
-                _dc.Users.RemoveUserSession(userSession);
-                await _dc.CompleteAsync();
-            }
-            Unauthorized("Refresh token is invalid");
-        }
-
-        if (principal.Identity?.Name != userSession.User.UserName)
-            Unauthorized("User mismatch.");
-
-        var (newAccess, newRefresh) = CreateTokens(userSession.User);
-
+        var user = await GetUserFromAccessToken(oldAccess);
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var userSession = await GetUserSession(oldRefresh, user);
+        var newAccess = _tService.GenerateAccessToken(user, userRoles);
+        var newRefresh = _tService.GenerateRefreshToken();
         var newCookieParam = CreateRefreshCookieParameter(newRefresh);
-
         userSession.RefreshToken = newRefresh;
         await _dc.CompleteAsync();
 
@@ -89,15 +73,44 @@ public class IdentityService(
 
     public Task<bool> RevokeAllAsync(User user) => throw new NotImplementedException();
 
-    private (string access, string refresh) CreateTokens(User user)
+    private async Task<User> GetUserFromAccessToken(string token)
     {
-        var accessToken = _tService.GenerateAccessToken(user);
-        var refreshToken = _tService.GenerateRefreshToken();
+        var principal = _tService.GetPrincipalFromExpiredToken(token, _tConfig.Access.Secret);
+        if (principal == null)
+            Unauthorized("Invalid token");
 
-        return (accessToken, refreshToken);
+        var user = await FindUserByPrincipalAsync(principal);
+        if (user == null)
+            NotFound();
+
+        return user;
     }
 
-    private async Task<User> ValidateUserAsync(UserAuthModel userDto)
+    private async Task<UserSession> GetUserSession(string refreshToken, User user)
+    {
+        var userSession = await _dc.Users.GetUserSessionAsync(refreshToken);
+        if (userSession == null)
+            NotFound();
+
+        if (userSession.ExpiresAt < DateTime.UtcNow)
+        {
+            _dc.Users.RemoveUserSession(userSession);
+            await _dc.CompleteAsync();
+            Unauthorized("Refresh token has expired");
+        }
+
+        if (user.UserName != userSession.User.UserName)
+            Unauthorized("User mismatch.");
+
+        return userSession;
+    }
+
+    private async Task<User?> FindUserByPrincipalAsync(ClaimsPrincipal principal) =>
+        await _userManager.FindByNameAsync(
+            principal.FindFirst(ClaimTypes.NameIdentifier)?.ToString() ?? string.Empty
+        );
+
+    private async Task<User> ValidateUser(UserAuthModel userDto)
     {
         var user = await _userManager.FindByNameAsync(userDto.UserName);
         if (user == null)
