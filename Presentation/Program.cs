@@ -29,6 +29,7 @@ builder.Services.AddDataProtection();
 builder.Services.ConfigureIdenttity(builder.Configuration);
 
 builder.Services.ConfigureOpenApi();
+builder.AddCORS();
 var app = builder.Build();
 
 app.UseMiddleware<ApiExceptionMiddleware>();

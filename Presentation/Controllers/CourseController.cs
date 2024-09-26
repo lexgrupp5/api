@@ -25,7 +25,6 @@ public class CourseController : ApiBaseController
 
     //GET: All courses
     [HttpGet]
-    [Authorize(Roles = "teacher")]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(
         [FromQuery] SearchFilterDTO searchFilterDTO)
     {
@@ -38,14 +37,13 @@ public class CourseController : ApiBaseController
 
     //GET: Course by ID
     [HttpGet("{id}", Name = "GetCourse")]
-    [Authorize]
     public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
     {
         return await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
     }
 
     [HttpPost(Name = "CreateCourse")]
-    public async Task<ActionResult<CourseCreateDto>> CreateCourse(
+    public async Task<ActionResult<CourseDto>> CreateCourse(
         [FromBody] CourseCreateDto course)
     {    
         var createdCourse = await _serviceCoordinator.Course.CreateCourse(course);

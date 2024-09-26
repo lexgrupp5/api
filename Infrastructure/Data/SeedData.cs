@@ -35,7 +35,7 @@ public static class SeedData
         await context.AddRangeAsync(activityTypes);
         await context.SaveChangesAsync();
 
-        var courses = GenerateCourses(5, activityTypes);
+        var courses = GenerateCourses(40, activityTypes);
         await context.AddRangeAsync(courses);
         await context.SaveChangesAsync();
 
