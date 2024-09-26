@@ -54,5 +54,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.ActivityType, opt => opt.Ignore());
         CreateMap<ActivityCreateModel, ActivityForCreationDto>().ReverseMap();
         CreateMap<ActivityForCreationDto, Activity>().ReverseMap();
+
+        CreateMap<Module, ModuleToPatchDto>().ReverseMap();
     }
 }

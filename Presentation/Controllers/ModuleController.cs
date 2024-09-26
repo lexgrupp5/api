@@ -2,13 +2,14 @@ using Application.Interfaces;
 using Application.Models;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Presentation.Controllers;
 
 [Route("api/modules")]
 [ApiController]
 [Produces("application/json")]
-public class ModuleController(IServiceCoordinator serviceCoordinator) : ControllerBase
+public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseController
 {
     private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
 
@@ -60,5 +61,24 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : Controll
     {
         var result = await _serviceCoordinator.Module.CreateActivityAsync(activityToCreate);
         return Ok(result);
+    }
+    //PATCH: Patch a module
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> PatchModule(
+        [FromRoute] int id,
+        [FromBody] JsonPatchDocument<ModuleToPatchDto> modulePatchDocument)
+    {
+         var moduleToPatch = await _serviceCoordinator.Module.GetModule(id);
+        
+        if (!TryValidateAndApplyPatch(
+                modulePatchDocument,
+                moduleToPatch,
+                out IActionResult errorResponse))
+        {
+            return errorResponse;
+        }
+
+        await _serviceCoordinator.Module.PatchModule(moduleToPatch);
+        return Ok(NoContent());
     }
 }
