@@ -63,13 +63,13 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         return Ok(result);
     }
     //PATCH: Patch a module
-    [HttpPatch("{id}")]
+    [HttpPatch("module/{id}")]
     public async Task<IActionResult> PatchModule(
         [FromRoute] int id,
         [FromBody] JsonPatchDocument<ModuleToPatchDto> modulePatchDocument)
     {
-         var moduleToPatch = await _serviceCoordinator.Module.GetModule(id);
-        
+        var moduleToPatch = await _serviceCoordinator.Module.GetModule(id);
+
         if (!TryValidateAndApplyPatch(
                 modulePatchDocument,
                 moduleToPatch,
@@ -79,6 +79,26 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         }
 
         await _serviceCoordinator.Module.PatchModule(moduleToPatch);
+        return Ok(NoContent());
+    }
+
+    //PATCH: Patch an activity
+    [HttpPatch("activity/{id}")]
+    public async Task<IActionResult> PatchActivity(
+        [FromRoute] int id,
+        [FromBody] JsonPatchDocument<ActivityDto> activityPatchDocument)
+    {
+        var activityToPatch = await _serviceCoordinator.Module.GetActivityByIdAsync(id);
+
+        if (!TryValidateAndApplyPatch(
+                activityPatchDocument,
+                activityToPatch,
+                out IActionResult errorResponse))
+        {
+            return errorResponse;
+        }
+
+        await _serviceCoordinator.Module.PatchActivity(activityToPatch);
         return Ok(NoContent());
     }
 }

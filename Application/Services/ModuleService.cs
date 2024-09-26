@@ -45,7 +45,6 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         var module = await _dataCoordinator.Modules.GetModule(id);
         var moduleToPatchDto = _mapper.Map<ModuleToPatchDto>(module);
         return moduleToPatchDto;
-        
     }
 
     public async Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel moduleToCreate)
@@ -66,7 +65,8 @@ public class ModuleService : ServiceBase<Module>, IModuleService
 
     public async Task<ActivityForCreationDto> CreateActivityAsync(ActivityCreateModel activityCreate)
     {
-        var  createdActivity = await _dataCoordinator.Modules.CreateActivityAsync((_mapper.Map<ActivityForCreationDto>(activityCreate)));
+        var createdActivity =
+            await _dataCoordinator.Modules.CreateActivityAsync((_mapper.Map<ActivityForCreationDto>(activityCreate)));
         var mappedActivity = new ActivityForCreationDto
         {
             ModuleId = createdActivity.ModuleId,
@@ -76,18 +76,37 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         };
         return mappedActivity;
     }
-    
-    
+
+
     public async Task PatchModule(ModuleToPatchDto moduleToPatchDto)
     {
         var module = await _dataCoordinator.Modules
-            .GetByConditionAsync(module =>module.Id == moduleToPatchDto.Id)
+            .GetByConditionAsync(module => module.Id == moduleToPatchDto.Id)
             .FirstOrDefaultAsync();
 
         if (module == null) { NotFound($"Module with the ID {moduleToPatchDto.Id} was not found in the database."); }
-            
+
         _mapper.Map(moduleToPatchDto, module);
-            
+
         await _dataCoordinator.CompleteAsync();
+    }
+
+    public async Task PatchActivity(ActivityDto activityDto)
+    {
+        var activity = await _dataCoordinator.Modules.GetActivityByIdAsync(activityDto.Id);
+
+        if (activity == null) { NotFound($"Activity with the ID {activityDto.Id} was not found in the database."); }
+
+        _mapper.Map(activityDto, activity);
+
+        await _dataCoordinator.CompleteAsync();
+    }
+
+
+    public async Task<ActivityDto> GetActivityByIdAsync(int id)
+    {
+        var activity = await _dataCoordinator.Modules.GetActivityByIdAsync(id);
+        var activityDto = _mapper.Map<ActivityDto>(activity);
+        return activityDto;
     }
 }
