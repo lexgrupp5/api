@@ -22,7 +22,6 @@ public class TokenService : ITokenService
     public TokenService(TokenConfiguration tokenConfig)
     {
         _tc = tokenConfig;
-        Console.WriteLine(_tc.Secret);
 
         _tc = new TokenConfiguration() {
             Secret = "Z7yCwJqQBrpqTEx9UmzXiedyzWSPF6cM",
