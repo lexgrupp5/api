@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Presentation.Extensions;
 
-public static class WebapplicationsExtensions
+public static class SeedExtensions
 {
     public static async Task SeedDataAsync(this IApplicationBuilder builder)
     {

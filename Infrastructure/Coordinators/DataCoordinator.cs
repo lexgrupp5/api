@@ -28,8 +28,8 @@ public class DataCoordinator(
         return await _db.SaveChangesAsync();
     }
 
-    public bool IsEntityTracked<TEntity>(TEntity entity)
-        where TEntity : class => _db.Entry(entity).State != EntityState.Detached;
+    public bool IsTracked<T>(T entity)
+        where T : class => _db.Entry(entity).State != EntityState.Detached;
 
     public void Dispose()
     {

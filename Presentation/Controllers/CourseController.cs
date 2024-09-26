@@ -2,37 +2,30 @@
 using Application.Interfaces;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Application.Coordinator;
-using Application.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
-
+using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
 [Route("api/courses")]
 [ApiController]
 [Produces("application/json")]
-
-public class CourseController : ApiBaseController
+public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseController
 {
-    private readonly IServiceCoordinator _serviceCoordinator;
-
-    public CourseController(IServiceCoordinator serviceCoordinator)
-    {
-        _serviceCoordinator = serviceCoordinator;
-    }
+    private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
 
     //GET: All courses
     [HttpGet]
     [Authorize(Roles = "teacher")]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(
-        [FromQuery] SearchFilterDTO searchFilterDTO)
+        [FromQuery] SearchFilterDTO searchFilterDTO
+    )
     {
-        var courses = Request.Query.Count != 0
-            ? await _serviceCoordinator.Course.GetCoursesAsync(searchFilterDTO)
-            : await _serviceCoordinator.Course.GetCoursesAsync();
-        
+        var courses =
+            Request.Query.Count != 0
+                ? await _serviceCoordinator.Course.GetCoursesAsync(searchFilterDTO)
+                : await _serviceCoordinator.Course.GetCoursesAsync();
+
         return Ok(courses);
     }
 
@@ -45,9 +38,8 @@ public class CourseController : ApiBaseController
     }
 
     [HttpPost(Name = "CreateCourse")]
-    public async Task<ActionResult<CourseCreateDto>> CreateCourse(
-        [FromBody] CourseCreateDto course)
-    {    
+    public async Task<ActionResult<CourseDto>> CreateCourse([FromBody] CourseCreateDto course)
+    {
         var createdCourse = await _serviceCoordinator.Course.CreateCourse(course);
         return CreatedAtRoute(nameof(CreateCourse), createdCourse);
     }
@@ -60,10 +52,13 @@ public class CourseController : ApiBaseController
     {
         var courseToPatchWith = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
 
-        if (!TryValidateAndApplyPatch(
-            coursePatchDocument,
-            courseToPatchWith,
-            out IActionResult errorResponse))
+        if (
+            !TryValidateAndApplyPatch(
+                coursePatchDocument,
+                courseToPatchWith,
+                out IActionResult errorResponse
+            )
+        )
         {
             return errorResponse;
         }

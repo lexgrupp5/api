@@ -1,18 +1,13 @@
-using System.Security.Claims;
-using System.Text;
 using Application.Mapper;
-using Domain.Configuration;
-using Domain.Constants;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using Presentation;
 using Presentation.Extensions;
 using Presentation.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+
 // Context
 builder.Services.ConfigureSql(builder.Configuration);
+builder.Services.AddRouting(opt => opt.LowercaseUrls = true);
 
 builder
     .Services.AddControllers(configure => configure.ReturnHttpNotAcceptable = true)

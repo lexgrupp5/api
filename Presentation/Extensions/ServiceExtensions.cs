@@ -22,10 +22,17 @@ public static class ServiceExtensions
 {
     public static void ConfigureIdenttity(this IServiceCollection services, IConfiguration config)
     {
-        var tokenConfig = new TokenConfiguration();
-        config.GetSection("JwtOptions").Bind(tokenConfig);
-        if (tokenConfig.Secret == null)
-            throw new Exception("Secret is null");
+        var accessConfig = new AccessConfig();
+        config.GetSection("AccessToken").Bind(accessConfig);
+        if (accessConfig == null)
+            throw new Exception("AccessToken is null");
+
+        var refreshConfig = new RefreshConfig();
+        config.GetSection("RefreshToken").Bind(refreshConfig);
+        if (refreshConfig == null)
+            throw new Exception("RefreshToken is null");
+
+        var tokenConfig = new TokenConfig() { Access = accessConfig, Refresh = refreshConfig };
         services.AddSingleton(tokenConfig);
 
         services
@@ -48,35 +55,32 @@ public static class ServiceExtensions
             );
 
         services
-            .AddAuthentication(o =>
+            .AddAuthentication(opt =>
             {
-                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(options =>
+            .AddJwtBearer(opt => opt.TokenValidationParameters = new TokenValidationParameters
             {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = tokenConfig.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = tokenConfig.Audience,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(tokenConfig.Secret)
+                ValidateIssuer = true,
+                ValidIssuer = accessConfig.Issuer,
+                ValidateAudience = true,
+                ValidAudience = accessConfig.Audience,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(accessConfig.Secret)
                     ),
-                };
             });
 
         services
-            .AddIdentity<User, IdentityRole>(options =>
+            .AddIdentity<User, IdentityRole>(opt =>
             {
-                options.Password.RequireDigit = true;
-                options.Password.RequiredLength = 8;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequiredUniqueChars = 1;
+                opt.Password.RequireDigit = true;
+                opt.Password.RequiredLength = 8;
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.Password.RequireUppercase = true;
+                opt.Password.RequireLowercase = true;
+                opt.Password.RequiredUniqueChars = 1;
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
