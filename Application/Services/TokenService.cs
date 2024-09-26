@@ -22,15 +22,6 @@ public class TokenService : ITokenService
     public TokenService(TokenConfiguration tokenConfig)
     {
         _tc = tokenConfig;
-
-        _tc = new TokenConfiguration() {
-            Secret = "Z7yCwJqQBrpqTEx9UmzXiedyzWSPF6cM",
-            Issuer = "myApp.com",
-            Audience = "myApp.com",
-            AccessExpirationInMinutes = 60
-        };
-
-        Console.WriteLine($"After: {_tc.Secret}");
     }
 
     public string GenerateAccessToken(User user)
