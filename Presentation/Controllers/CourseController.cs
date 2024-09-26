@@ -1,4 +1,7 @@
+
+using Application.Interfaces;
 using Domain.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Application.Coordinator;
 using Application.Interfaces;
@@ -22,6 +25,7 @@ public class CourseController : ApiBaseController
 
     //GET: All courses
     [HttpGet]
+    [Authorize(Roles = "teacher")]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(
         [FromQuery] SearchFilterDTO searchFilterDTO)
     {
@@ -34,17 +38,18 @@ public class CourseController : ApiBaseController
 
     //GET: Course by ID
     [HttpGet("{id}", Name = "GetCourse")]
+    [Authorize]
     public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
     {
         return await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
     }
 
     [HttpPost(Name = "CreateCourse")]
-    public async Task<ActionResult<CourseDto>> CreateCourse(
+    public async Task<ActionResult<CourseCreateDto>> CreateCourse(
         [FromBody] CourseCreateDto course)
     {    
         var createdCourse = await _serviceCoordinator.Course.CreateCourse(course);
-        return Ok(createdCourse);
+        return CreatedAtRoute(nameof(CreateCourse), createdCourse);
     }
 
     [HttpPatch("{id}")]

@@ -1,37 +1,46 @@
 using Infrastructure.Interfaces;
-using Infrastructure.Persistence.Repositories;
+using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
-namespace Data;
+namespace Infrastructure.Coordinators;
 
-public class DataCoordinator : IDataCoordinator/*, IDisposable*/
+public class DataCoordinator(
+    AppDbContext context,
+    Lazy<ICourseRepository> courseRepository,
+    Lazy<IModuleRepository> moduleRepository,
+    Lazy<IActivityRepository> activityRepository,
+    Lazy<IUserRepository> userRepository
+) : IDataCoordinator, IDisposable, IAsyncDisposable
 {
-    private readonly AppDbContext _appDbContext;
-    private readonly Lazy<ICourseRepository> _courseRepository;
-    private readonly Lazy<IModuleRepository> _moduleRepository;
-    private readonly Lazy<IActivityRepository> _activityRepository;
-    private readonly Lazy<IUserRepository> _userRepository;
+    private readonly AppDbContext _db = context;
+    private readonly Lazy<ICourseRepository> _courseRepository = courseRepository;
+    private readonly Lazy<IModuleRepository> _moduleRepository = moduleRepository;
+    private readonly Lazy<IActivityRepository> _activityRepository = activityRepository;
+    private readonly Lazy<IUserRepository> _userRepository = userRepository;
 
     public ICourseRepository Courses => _courseRepository.Value;
     public IModuleRepository Modules => _moduleRepository.Value;
     public IActivityRepository Activities => _activityRepository.Value;
     public IUserRepository Users => _userRepository.Value;
 
-    public DataCoordinator(AppDbContext appDbContext, Lazy<ICourseRepository> courseRepository, Lazy<IModuleRepository> moduleRepository, Lazy<IActivityRepository> activityRepository, Lazy<IUserRepository> userRepository)
+    public async Task<int> CompleteAsync()
     {
-        _appDbContext = appDbContext;
-        _courseRepository = courseRepository;
-        _moduleRepository = moduleRepository;
-        _activityRepository = activityRepository;
-        _userRepository = userRepository;
+        return await _db.SaveChangesAsync();
     }
 
-    //public void Dispose()
-    //{
-    //    _appDbContext.Dispose();
-    //}
+    public bool IsEntityTracked<TEntity>(TEntity entity)
+        where TEntity : class => _db.Entry(entity).State != EntityState.Detached;
 
-    public async Task CompleteAsync()
+    public void Dispose()
     {
-        await _appDbContext.SaveChangesAsync();
+        _db.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_db is not null)
+            await _db.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
 }

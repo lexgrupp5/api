@@ -10,7 +10,7 @@ public interface IServiceCoordinator
 
     IIdentityService Identity { get; }
 
-    IModuleService ModuleService { get; }
+    IModuleService Module { get; }
    
     IUserService UserService { get; }
 

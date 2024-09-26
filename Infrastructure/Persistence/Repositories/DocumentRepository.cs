@@ -8,11 +8,11 @@ public class DocumentRepository : RepositoryBase<Document>, IDocumentRepository
 {
     public DocumentRepository(AppDbContext context) : base(context)
     {
-        _context = context;
+        _db = context;
     }
 
     public async Task<bool> CheckDocumentExistsAsync(Document document)
     {
-        return await _context.Documents.AnyAsync(d => d.Name == document.Name);
+        return await _db.Documents.AnyAsync(d => d.Name == document.Name);
     }
 }

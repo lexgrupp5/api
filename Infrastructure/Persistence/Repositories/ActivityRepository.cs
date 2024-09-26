@@ -1,6 +1,5 @@
-﻿using Infrastructure.Interfaces;
-
-using Activity = Domain.Entities.Activity;
+﻿using Domain.Entities;
+using Infrastructure.Interfaces;
 
 namespace Infrastructure.Persistence.Repositories;
 

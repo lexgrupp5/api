@@ -1,11 +1,23 @@
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using Domain.Exceptions;
 using Application.Interfaces;
+using Domain.Exceptions;
 
 namespace Application.Services;
 
 public abstract class ServiceBase<T> : IServiceBase<T>
 {
+    protected static bool TryValidateDto<TDto>(TDto dto, out ICollection<ValidationResult> results)
+    {
+        results = [];
+
+        if (dto is null)
+            return false;
+
+        var context = new ValidationContext(dto);
+        return Validator.TryValidateObject(dto, context, results, true);
+    }
+
     [DoesNotReturn]
     protected static void NotFound(
         string detail = "Entity not found",

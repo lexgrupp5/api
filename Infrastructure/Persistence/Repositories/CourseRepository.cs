@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Domain.DTOs;
 using Domain.Entities;
@@ -14,7 +14,7 @@ public class CourseRepository : RepositoryBase<Course>, ICourseRepository
     private readonly IMapper _mapper;
     public CourseRepository(AppDbContext context, IMapper mapper) : base(context)
     {
-        _context = context;
+        _db = context;
         _mapper = mapper;
     }
 
@@ -60,6 +60,6 @@ public class CourseRepository : RepositoryBase<Course>, ICourseRepository
 
     public async Task<bool> CheckCourseExistsAsync(Course course)
     {
-        return await _context.Courses.AnyAsync(c => c.Name == course.Name);
+        return await _db.Courses.AnyAsync(c => c.Name == course.Name);
     }
 }

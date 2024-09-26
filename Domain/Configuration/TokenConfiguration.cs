@@ -4,7 +4,7 @@ namespace Domain.Configuration;
 
 #nullable disable
 
-public record JwtOptions
+public record TokenConfiguration
 {
     [Required]
     public string Secret { get; init; }
@@ -16,5 +16,8 @@ public record JwtOptions
     public string Audience { get; init; }
 
     [Range(1, int.MaxValue, ErrorMessage = "ExpirationMinutes must be greater than 0")]
-    public int ExpirationMinutes { get; init; }
+    public int AccessExpirationInMinutes { get; init; }
+
+    [Range(1, int.MaxValue, ErrorMessage = "ExpirationMinutes must be greater than 0")]
+    public int RefreshExpirationInMinutes { get; init; }
 }

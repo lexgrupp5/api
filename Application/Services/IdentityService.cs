@@ -1,75 +1,106 @@
-using Domain.Configuration;
-using Domain.Entities;
-using Microsoft.AspNetCore.Identity;
-using Application.Models;
 using Application.Interfaces;
-
+using Application.Models;
+using Domain.Configuration;
 using Domain.DTOs;
-
-using Microsoft.EntityFrameworkCore;
+using Domain.Entities;
+using Infrastructure.Coordinators;
+using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Services;
 
 public class IdentityService(
     UserManager<User> userManager,
     RoleManager<IdentityRole> roleManager,
-    IJwtService jwtService,
-    JwtOptions jwtOptions
+    ITokenService tokenService,
+    TokenConfiguration tokenConfiguration,
+    IDataCoordinator dataCoordinator
 ) : ServiceBase<User>, IIdentityService
 {
+    private readonly IDataCoordinator _dc = dataCoordinator;
     private readonly UserManager<User> _userManager = userManager;
-
     private readonly RoleManager<IdentityRole> _roleManager = roleManager;
+    private readonly TokenConfiguration _tokenConfig = tokenConfiguration;
+    private readonly ITokenService _tokenService = tokenService;
 
-    private readonly JwtOptions _jwtOptions = jwtOptions;
-
-    private readonly IJwtService _jwtService = jwtService;
-
-    public async Task<IdentityResult> CreateUserAsync(UserCreateModel newUser)
+    public async Task<UserTokenModel> AuthenticateAsync(UserAuthModel userDto)
     {
-        var user = new User
+        var user = await ValidateUserAsync(userDto);
+        var (access, refresh) = CreateTokens(user);
+
+        var userSession = new UserSession()
         {
-            UserName = newUser.UserName,
-            Name = newUser.Name,
-            Email = newUser.Email
+            RefreshToken = refresh,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_tokenConfig.RefreshExpirationInMinutes),
+            User = user
         };
 
-        return await _userManager.CreateAsync(user, newUser.Password);
+        _dc.Users.AddUserSession(userSession);
+        await _dc.CompleteAsync();
+
+        return new(access, refresh);
     }
 
-
-    public async Task<string> AuthenticateAsync(UserAuthenticateModel userDto)
+    public async Task<UserTokenModel> RefreshTokensAsync(UserTokenModel oldTokens)
     {
-        var user = await ValidateUser(userDto) ?? throw new Exception("User not found");
-        var token = CreateToken(user);
-        return token;
+        var principal =
+            _tokenService.GetPrincipalFromExpiredToken(oldTokens.AccessToken, _tokenConfig.Secret)
+            ?? throw new SecurityTokenException("Invalid token");
+
+        var userSession = await _dc.Users.GetUserSessionAsync(oldTokens.RefreshToken);
+        if (userSession == null || userSession.ExpiresAt < DateTime.UtcNow)
+        {
+            if (userSession != null)
+            {
+                _dc.Users.RemoveUserSession(userSession);
+                await _dc.CompleteAsync();
+            }
+            Unauthorized("Refresh token is invalid");
+        }
+
+        if (principal.Identity?.Name != userSession.User.UserName)
+            Unauthorized("User mismatch.");
+
+        var (newAccess, newRefresh) = CreateTokens(userSession.User);
+        userSession.RefreshToken = newRefresh;
+        await _dc.CompleteAsync();
+
+        return new(newAccess, newRefresh);
     }
 
-    
-    private async Task<User?> ValidateUser(UserAuthenticateModel userDto)
+    public async Task<bool> RevokeAsync(UserTokenModel tokens)
+    {
+        var userSession = await _dc.Users.GetUserSessionAsync(tokens.RefreshToken);
+        if (userSession == null)
+            NotFound();
+
+        _dc.Users.RemoveUserSession(userSession);
+        await _dc.CompleteAsync();
+
+        return true;
+    }
+
+    public async Task<bool> RevokeAllAsync(User user) => throw new NotImplementedException();
+
+    private (string access, string refresh) CreateTokens(User user)
+    {
+        var accessToken = _tokenService.GenerateAccessToken(user);
+        var refreshToken = _tokenService.GenerateRefreshToken();
+
+        return (accessToken, refreshToken);
+    }
+
+    private async Task<User> ValidateUserAsync(UserAuthModel userDto)
     {
         var user = await _userManager.FindByNameAsync(userDto.UserName);
         if (user == null)
-            return null;
+            NotFound();
 
-        return !await _userManager.CheckPasswordAsync(user, userDto.Password) ? null : user;
-    }
+        var isValidPassword = await _userManager.CheckPasswordAsync(user, userDto.Password);
+        if (!isValidPassword)
+            Unauthorized("Invalid password");
 
-
-    private string CreateToken(User user)
-    {
-        return _jwtService.GenerateToken(user);
-    }
-
-    public async Task<IEnumerable<UserDto>> GetStudentsAsync()
-    {
-        var roleStudent = _roleManager.Roles.Where(x => x.Name == "Student");
-        var students = await _userManager.GetUsersInRoleAsync(roleStudent.First().Name ?? "");
-
-        return students.Select(user => new UserDto(
-            Name: user.Name ?? string.Empty,
-            Username: user.UserName ?? string.Empty,
-            Email: user.Email ?? string.Empty
-        )).ToList();
+        return user;
     }
 }

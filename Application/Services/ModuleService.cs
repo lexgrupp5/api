@@ -2,9 +2,11 @@ using Application.Interfaces;
 using Application.Models;
 
 using AutoMapper;
-using Data;
+
 using Domain.DTOs;
 using Domain.Entities;
+
+using Infrastructure.Interfaces;
 
 namespace Application.Services;
 
@@ -24,7 +26,7 @@ public class ModuleService : ServiceBase<Module>, IModuleService
 
     public async Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id)
     {
-        var modules = await _dataCoordinator.Modules.GetModulesOfCourseAsync(id);
+        var modules = await _dataCoordinator.Modules.GetModulesByCourseIdAsync(id);
         var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
         return moduleDtos;
     }

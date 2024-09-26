@@ -7,12 +7,12 @@ namespace Infrastructure.Persistence.Repositories;
 public abstract class RepositoryBase<T> : IRepositoryBase<T>
     where T : class
 {
-    protected AppDbContext _context;
+    protected AppDbContext _db;
     protected DbSet<T> DbSet { get; }
 
     protected RepositoryBase(AppDbContext context)
     {
-        _context = context;
+        _db = context;
         DbSet = context.Set<T>();
     }
 

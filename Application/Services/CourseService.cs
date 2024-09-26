@@ -1,10 +1,13 @@
 ﻿using Application.Interfaces;
-using Data;
+
 using AutoMapper;
+
 using Domain.DTOs;
 using Domain.Entities;
 using Domain.Validations;
 using Microsoft.EntityFrameworkCore;
+
+using Infrastructure.Interfaces;
 
 namespace Application.Services
 {
