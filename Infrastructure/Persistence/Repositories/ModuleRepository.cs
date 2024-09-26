@@ -30,11 +30,8 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
         return result;
     }
 
-
-    public async Task<bool> CheckModuleExistsAsync(Module module)
-    {
-        return await _db.Modules.AnyAsync(m => m.Name == module.Name);
-    }
+    public async Task<bool> CheckModuleExistsAsync(Module module) =>
+        await _db.Modules.AnyAsync(m => m.Name == module.Name);
 
     public async Task<Module> CreateModuleAsync(ModuleForCreationDto moduleToCreate)
     {

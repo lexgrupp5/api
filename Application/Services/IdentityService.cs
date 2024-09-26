@@ -1,28 +1,28 @@
 using Application.Interfaces;
 using Application.Models;
-using Infrastructure.Interfaces;
 using Domain.Configuration;
 using Domain.Entities;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Services;
 
 public class IdentityService(
+    IDataCoordinator dataCoordinator,
     UserManager<User> userManager,
     RoleManager<IdentityRole> roleManager,
     ITokenService tokenService,
-    TokenConfiguration tokenConfiguration,
-    IDataCoordinator dataCoordinator
+    TokenConfig tokenConfiguration
 ) : ServiceBase<User>, IIdentityService
 {
     private readonly IDataCoordinator _dc = dataCoordinator;
     private readonly UserManager<User> _userManager = userManager;
     private readonly RoleManager<IdentityRole> _roleManager = roleManager;
-    private readonly TokenConfiguration _tokenConfig = tokenConfiguration;
-    private readonly ITokenService _tokenService = tokenService;
+    private readonly ITokenService _tService = tokenService;
+    private readonly TokenConfig _tConfig = tokenConfiguration;
 
-    public async Task<UserTokenModel> AuthenticateAsync(UserAuthModel userDto)
+    public async Task<(string, RefreshCookieParameter)> AuthenticateAsync(UserAuthModel userDto)
     {
         var user = await ValidateUserAsync(userDto);
         var (access, refresh) = CreateTokens(user);
@@ -30,23 +30,28 @@ public class IdentityService(
         var userSession = new UserSession()
         {
             RefreshToken = refresh,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(_tokenConfig.RefreshExpirationInMinutes),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_tConfig.Access.ExpirationInMinutes),
             User = user
         };
+
+        var cookieParam = CreateRefreshCookieParameter(refresh);
 
         _dc.Users.AddUserSession(userSession);
         await _dc.CompleteAsync();
 
-        return new(access, refresh);
+        return new(access, cookieParam);
     }
 
-    public async Task<UserTokenModel> RefreshTokensAsync(UserTokenModel oldTokens)
+    public async Task<(string, RefreshCookieParameter)> RefreshTokensAsync(
+        string oldAccess,
+        string oldRefresh
+    )
     {
         var principal =
-            _tokenService.GetPrincipalFromExpiredToken(oldTokens.AccessToken, _tokenConfig.Secret)
+            _tService.GetPrincipalFromExpiredToken(oldAccess, _tConfig.Access.Secret)
             ?? throw new SecurityTokenException("Invalid token");
 
-        var userSession = await _dc.Users.GetUserSessionAsync(oldTokens.RefreshToken);
+        var userSession = await _dc.Users.GetUserSessionAsync(oldRefresh);
         if (userSession == null || userSession.ExpiresAt < DateTime.UtcNow)
         {
             if (userSession != null)
@@ -61,15 +66,18 @@ public class IdentityService(
             Unauthorized("User mismatch.");
 
         var (newAccess, newRefresh) = CreateTokens(userSession.User);
+
+        var newCookieParam = CreateRefreshCookieParameter(newRefresh);
+
         userSession.RefreshToken = newRefresh;
         await _dc.CompleteAsync();
 
-        return new(newAccess, newRefresh);
+        return new(newAccess, newCookieParam);
     }
 
-    public async Task<bool> RevokeAsync(UserTokenModel tokens)
+    public async Task<bool> RevokeAsync(string access, string refresh)
     {
-        var userSession = await _dc.Users.GetUserSessionAsync(tokens.RefreshToken);
+        var userSession = await _dc.Users.GetUserSessionAsync(refresh);
         if (userSession == null)
             NotFound();
 
@@ -79,12 +87,12 @@ public class IdentityService(
         return true;
     }
 
-    public async Task<bool> RevokeAllAsync(User user) => throw new NotImplementedException();
+    public Task<bool> RevokeAllAsync(User user) => throw new NotImplementedException();
 
     private (string access, string refresh) CreateTokens(User user)
     {
-        var accessToken = _tokenService.GenerateAccessToken(user);
-        var refreshToken = _tokenService.GenerateRefreshToken();
+        var accessToken = _tService.GenerateAccessToken(user);
+        var refreshToken = _tService.GenerateRefreshToken();
 
         return (accessToken, refreshToken);
     }
@@ -101,4 +109,16 @@ public class IdentityService(
 
         return user;
     }
+
+    private RefreshCookieParameter CreateRefreshCookieParameter(string refreshToken) =>
+        new(
+            refreshToken,
+            new()
+            {
+                HttpOnly = _tConfig.Refresh.HttpOnly,
+                SameSite = _tConfig.Refresh.SameSite,
+                Secure = _tConfig.Refresh.Secure,
+                Expires = DateTime.UtcNow.AddMinutes(_tConfig.Refresh.ExpirationInMinutes),
+            }
+        );
 }

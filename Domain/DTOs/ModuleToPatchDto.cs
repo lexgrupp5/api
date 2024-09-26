@@ -6,4 +6,5 @@ public record ModuleToPatchDto(
     string Name,
     string Description,
     DateTime StartDate,
-    DateTime EndDate);
+    DateTime EndDate
+);

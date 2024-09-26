@@ -14,23 +14,41 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
 
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login([FromBody] UserAuthModel userDto)
+    public async Task<ActionResult<string>> Login([FromBody] UserAuthModel userDto)
     {
-        var tokens = await _services.Identity.AuthenticateAsync(userDto);
-        return tokens == null ? BadRequest() : Ok(tokens);
+        var (access, cookie) = await _services.Identity.AuthenticateAsync(userDto);
+        
+        HttpContext.Response.Cookies.Append(cookie.Key, cookie.Token, cookie.Options);
+        
+        return access == null ? BadRequest() : Ok(access);
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] UserTokenModel tokens)
+    [AllowAnonymous]
+    public async Task<IActionResult> Logout([FromHeader] string access)
     {
-        await _services.Identity.RevokeAsync(tokens);
+        var refresh = HttpContext.Request.Cookies["RefreshToken"];
+        if (refresh == null)
+            return BadRequest();
+
+        HttpContext.Response.Cookies.Delete("RefreshToken");
+
+        await _services.Identity.RevokeAsync(access, refresh);
         return Ok();
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken(UserTokenModel oldTokens)
+    [AllowAnonymous]
+    public async Task<ActionResult<string>> RefreshToken([FromHeader] string access)
     {
-        var newTokens = await _services.Identity.RefreshTokensAsync(oldTokens);
-        return newTokens == null ? BadRequest() : Ok(newTokens);
+        var refresh = HttpContext.Request.Cookies["RefreshToken"];
+        if (refresh == null)
+            return BadRequest();
+
+        var (newAccess, cookie) = await _services.Identity.RefreshTokensAsync(access, refresh);
+
+        HttpContext.Response.Cookies.Append(cookie.Key, cookie.Token, cookie.Options);
+
+        return newAccess == null ? BadRequest() : Ok(newAccess);
     }
 }

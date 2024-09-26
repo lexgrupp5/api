@@ -4,7 +4,7 @@ namespace Domain.Configuration;
 
 #nullable disable
 
-public record TokenConfiguration
+public class AccessConfig
 {
     [Required]
     public string Secret { get; init; }
@@ -16,8 +16,5 @@ public record TokenConfiguration
     public string Audience { get; init; }
 
     [Range(1, int.MaxValue, ErrorMessage = "ExpirationMinutes must be greater than 0")]
-    public int AccessExpirationInMinutes { get; init; }
-
-    [Range(1, int.MaxValue, ErrorMessage = "ExpirationMinutes must be greater than 0")]
-    public int RefreshExpirationInMinutes { get; init; }
+    public int ExpirationInMinutes { get; init; }
 }

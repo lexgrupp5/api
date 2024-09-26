@@ -1,10 +1,7 @@
 using Application.Models;
-
 using AutoMapper;
 using Domain.DTOs;
 using Domain.Entities;
-
-using Microsoft.AspNetCore.Identity;
 
 namespace Application.Mapper;
 
@@ -20,8 +17,8 @@ public class MapperProfile : Profile
                 src.Description,
                 src.StartDate,
                 src.EndDate
-                //src.Modules.Select(m => m.Name).ToList()
-                ))
+            //src.Modules.Select(m => m.Name).ToList()
+            ))
             .ReverseMap();
 
         //Module -> ModuleDTO
@@ -45,7 +42,7 @@ public class MapperProfile : Profile
         CreateMap<UserCreateModel, UserForCreationDto>().ReverseMap();
         CreateMap<Activity, ActivityDto>().ReverseMap();
         CreateMap<User, UserForUpdateDto>().ReverseMap();
-        CreateMap<User, UserDto>() .ReverseMap();
+        CreateMap<User, UserDto>().ReverseMap();
         CreateMap<Course, CourseCreateDto>().ReverseMap();
 
         CreateMap<ActivityCreateModel, Activity>()

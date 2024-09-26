@@ -9,24 +9,18 @@ public static class CORSExtension
     public static void AddCORS(this WebApplicationBuilder builder)
     {
         builder.Services.AddCors(options =>
-        {
-            options.AddPolicy(_dev, builder =>
-            {
-                builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
-        });
+            options.AddPolicy(
+                _dev,
+                builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+            )
+        );
 
         builder.Services.AddCors(options =>
-        {
-            options.AddPolicy(_prod, builder =>
-            {
-                builder.WithOrigins("")
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
-        });
+            options.AddPolicy(
+                _prod,
+                builder => builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader()
+            )
+        );
     }
 
     public static void UseDevCORS(this WebApplication application)

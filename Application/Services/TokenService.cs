@@ -6,29 +6,19 @@ using Application.Interfaces;
 using Domain.Configuration;
 using Domain.Constants;
 using Domain.Entities;
-
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Services;
 
-public class TokenService : ITokenService
+public class TokenService(TokenConfig tokenConfig) : ITokenService
 {
-    /* private readonly AuthTokenOptions _jwtOptions = jwtOptions.Value; */
-
-    private readonly TokenConfiguration _tc;
-
-    public TokenService(TokenConfiguration tokenConfig)
-    {
-        _tc = tokenConfig;
-    }
+    private readonly TokenConfig _tc = tokenConfig;
 
     public string GenerateAccessToken(User user)
     {
-        var credentials = CreateSigningCredentials(_tc.Secret);
+        var credentials = CreateSigningCredentials(_tc.Access.Secret);
         var claims = CreateClaims(user, UserRoles.All);
-        var tokenOptions = CreateTokenOptions(_tc, credentials, claims);
+        var tokenOptions = CreateTokenOptions(_tc.Access, credentials, claims);
         var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
 
         return accessToken;
@@ -72,24 +62,22 @@ public class TokenService : ITokenService
     }
 
     private static JwtSecurityToken CreateTokenOptions(
-        TokenConfiguration options,
+        AccessConfig options,
         SigningCredentials credentials,
         IEnumerable<Claim> claims
-    )
-    {
-        return new(
+    ) =>
+        new(
             issuer: options.Issuer,
             audience: options.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(options.AccessExpirationInMinutes),
+            expires: DateTime.UtcNow.AddMinutes(options.ExpirationInMinutes),
             signingCredentials: credentials
         );
-    }
 
     private static List<Claim> CreateClaims(User user, IEnumerable<string>? roles)
     {
         var claims = new List<Claim>()
-        {
+        {  
             new(ClaimTypes.Name, user.UserName!),
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
         };
@@ -103,11 +91,6 @@ public class TokenService : ITokenService
         return claims;
     }
 
-    private static SigningCredentials CreateSigningCredentials(string key)
-    {
-        return new(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-            SecurityAlgorithms.HmacSha256
-        );
-    }
+    private static SigningCredentials CreateSigningCredentials(string key) =>
+        new(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256);
 }

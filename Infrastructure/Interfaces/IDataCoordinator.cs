@@ -8,6 +8,6 @@ public interface IDataCoordinator
 
     Task<int> CompleteAsync();
 
-    bool IsEntityTracked<TEntity>(TEntity entity)
+    bool IsTracked<TEntity>(TEntity entity)
         where TEntity : class;
 }

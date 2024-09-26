@@ -16,7 +16,7 @@ public class UserService(
     UserManager<User> userManager,
     RoleManager<IdentityRole> roleManager,
     ITokenService tokenService,
-    TokenConfiguration tokenOptions,
+    TokenConfig tokenOptions,
     IDataCoordinator dataCoordinator,
     IMapper mapper
 ) : IUserService
@@ -25,7 +25,7 @@ public class UserService(
     private readonly IMapper _mapper = mapper;
     private readonly UserManager<User> _userManager = userManager;
     private readonly RoleManager<IdentityRole> _roleManager = roleManager;
-    private readonly TokenConfiguration _tokenOptions = tokenOptions;
+    private readonly TokenConfig _tokenOptions = tokenOptions;
     private readonly ITokenService _tokenService = tokenService;
 
     public async Task<IEnumerable<UserDto?>> GetUsersOfCourseByIdAsync(int courseId)
