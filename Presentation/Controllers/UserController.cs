@@ -72,6 +72,7 @@ public class UserController : ControllerBase
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
     {
         throw new NotImplementedException();
+        //ToDo: Make not crash
         /* var users = await _serviceCoordinator.Identity.GetStudentsAsync();
         if (users == null)
         {
