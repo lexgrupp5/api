@@ -2,22 +2,16 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Domain.DTOs;
 using Domain.Entities;
-using Domain.Validations;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class CourseRepository : RepositoryBase<Course>, ICourseRepository
+public class CourseRepository(AppDbContext context, IMapper mapper)
+    : RepositoryBase<Course>(context),
+        ICourseRepository
 {
-    private readonly IMapper _mapper;
-
-    public CourseRepository(AppDbContext context, IMapper mapper)
-        : base(context)
-    {
-        _db = context;
-        _mapper = mapper;
-    }
+    private readonly IMapper _mapper = mapper;
 
     public async Task<IEnumerable<CourseDto>> GetCoursesAsync() =>
         await _db

@@ -1,7 +1,5 @@
-
 using Application.Interfaces;
 using Domain.DTOs;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +14,6 @@ public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseC
 
     //GET: All courses
     [HttpGet]
-    [Authorize(Roles = "teacher")]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(
         [FromQuery] SearchFilterDTO searchFilterDTO
     )
@@ -31,7 +28,6 @@ public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseC
 
     //GET: Course by ID
     [HttpGet("{id}", Name = "GetCourse")]
-    [Authorize]
     public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
     {
         return await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);

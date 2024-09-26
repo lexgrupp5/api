@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Application.Models;
 using Domain.DTOs;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
@@ -8,7 +9,7 @@ namespace Presentation.Controllers;
 [Route("api/modules")]
 [ApiController]
 [Produces("application/json")]
-public class ModuleController(IServiceCoordinator serviceCoordinator) : ControllerBase
+public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseController
 {
     private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
 
@@ -16,7 +17,7 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : Controll
     [HttpGet("course/{id}")]
     public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id)
     {
-        var modules = await _serviceCoordinator.Module.GetModulesOfCourseIdAsync(id);
+        var modules = await _serviceCoordinator.Module.GetModulesByCourseIdAsync(id);
         if (modules == null)
         {
             return NotFound(
@@ -60,5 +61,53 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : Controll
     {
         var result = await _serviceCoordinator.Module.CreateActivityAsync(activityToCreate);
         return Ok(result);
+    }
+
+    //PATCH: Patch a module
+    [HttpPatch("module/{id}")]
+    public async Task<IActionResult> PatchModule(
+        [FromRoute] int id,
+        [FromBody] JsonPatchDocument<ModuleToPatchDto> modulePatchDocument
+    )
+    {
+        var moduleToPatch = await _serviceCoordinator.Module.GetModule(id);
+
+        if (
+            !TryValidateAndApplyPatch(
+                modulePatchDocument,
+                moduleToPatch,
+                out IActionResult errorResponse
+            )
+        )
+        {
+            return errorResponse;
+        }
+
+        await _serviceCoordinator.Module.PatchModule(moduleToPatch);
+        return Ok(NoContent());
+    }
+
+    //PATCH: Patch an activity
+    [HttpPatch("activity/{id}")]
+    public async Task<IActionResult> PatchActivity(
+        [FromRoute] int id,
+        [FromBody] JsonPatchDocument<ActivityDto> activityPatchDocument
+    )
+    {
+        var activityToPatch = await _serviceCoordinator.Module.GetActivityByIdAsync(id);
+
+        if (
+            !TryValidateAndApplyPatch(
+                activityPatchDocument,
+                activityToPatch,
+                out IActionResult errorResponse
+            )
+        )
+        {
+            return errorResponse;
+        }
+
+        await _serviceCoordinator.Module.PatchActivity(activityToPatch);
+        return Ok(NoContent());
     }
 }

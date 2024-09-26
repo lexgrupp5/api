@@ -60,17 +60,19 @@ public static class ServiceExtensions
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(opt => opt.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidIssuer = accessConfig.Issuer,
-                ValidateAudience = true,
-                ValidAudience = accessConfig.Audience,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(
+            .AddJwtBearer(opt =>
+                opt.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = accessConfig.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = accessConfig.Audience,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(accessConfig.Secret)
                     ),
-            });
+                }
+            );
 
         services
             .AddIdentity<User, IdentityRole>(opt =>

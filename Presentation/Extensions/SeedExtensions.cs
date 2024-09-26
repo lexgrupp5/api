@@ -1,10 +1,7 @@
 ﻿using Domain.Entities;
-
 using Infrastructure.Data;
 using Infrastructure.Persistence;
-
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Presentation.Extensions;
 
@@ -18,8 +15,8 @@ public static class SeedExtensions
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.MigrateAsync();
+        //await context.Database.EnsureDeletedAsync();
+        //await context.Database.MigrateAsync();
 
         try
         {

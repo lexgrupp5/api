@@ -42,7 +42,10 @@ public class IdentityService(
         return new(access, cookieParam);
     }
 
-    public async Task<(string, RefreshCookieParameter)> RefreshTokensAsync(string oldAccess, string oldRefresh)
+    public async Task<(string, RefreshCookieParameter)> RefreshTokensAsync(
+        string oldAccess,
+        string oldRefresh
+    )
     {
         var principal =
             _tService.GetPrincipalFromExpiredToken(oldAccess, _tConfig.Access.Secret)
