@@ -27,7 +27,6 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
 
     public async Task<User?> GetUserByUsername(string username)
     {
-        //var user = await GetByConditionAsync(u => u.Name.Replace(" ", "").ToUpper() ==  username.ToUpper()).FirstAsync();
         var user = await _db
             .Users.Where(u => u.UserName.Replace(" ", "").ToUpper().Equals(username.ToUpper()))
             .FirstOrDefaultAsync();
