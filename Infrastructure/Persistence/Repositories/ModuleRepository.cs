@@ -12,7 +12,7 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
 {
     private readonly IMapper _mapper = mapper;
 
-    public async Task<IEnumerable<Module>?> GetModulesOfCourseAsync(int id) =>
+    public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id) =>
         await _db
             .Courses.Where(x => x.Id == id)
             .Include(x => x.Modules)
