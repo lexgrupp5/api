@@ -30,7 +30,6 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         var user = await _db
             .Users.Where(u => u.UserName.Replace(" ", "").ToUpper().Equals(username.ToUpper()))
             .FirstOrDefaultAsync();
-        Console.WriteLine("Taking up space");
         if (user == null)
         {
             return null;
