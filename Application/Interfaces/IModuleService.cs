@@ -14,4 +14,5 @@ public interface IModuleService
     Task<IEnumerable<ModuleDto?>> GetModulesByCourseIdAsync(int id);
     Task PatchActivity(ActivityDto activityDto);
     Task PatchModule(ModuleToPatchDto moduleToPatchDto);
+    Task<TDto?> GetModuleByIdAsync<TDto>(int id);
 }

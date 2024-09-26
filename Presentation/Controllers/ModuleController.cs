@@ -14,7 +14,7 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
 
     //GET: Modules by Course ID
-    [HttpGet("course/{id}")]
+    [HttpGet("{id}/course")]
     public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id)
     {
         var modules = await _serviceCoordinator.Module.GetModulesByCourseIdAsync(id);
@@ -29,10 +29,12 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     }
 
     //GET: Activities of a module by Module ID
-    [HttpGet("activities/{id}")]
+    [HttpGet("{id}/activities")]
     public async Task<ActionResult<ActivityDto[]>> GetActivitiesOfModule(int id)
     {
-        var module = await _serviceCoordinator.Module.GetModuleByIdWithActivitiesAsync(id);
+        /* var module = await _serviceCoordinator.Module.GetModuleByIdWithActivitiesAsync(id); */
+
+        var module = await _serviceCoordinator.Module.GetModuleByIdAsync<ModuleDto>(id);
         if (module == null)
         {
             return NotFound($"Module with the ID {id} was not found in the database.");

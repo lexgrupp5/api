@@ -53,5 +53,8 @@ public class MapperProfile : Profile
         CreateMap<ActivityForCreationDto, Activity>().ReverseMap();
 
         CreateMap<Module, ModuleToPatchDto>().ReverseMap();
+
+        CreateMap<Module, ModuleDto>()
+            .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.Activities));
     }
 }

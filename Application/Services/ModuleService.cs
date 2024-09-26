@@ -8,44 +8,43 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class ModuleService : ServiceBase<Module>, IModuleService
+public class ModuleService(IDataCoordinator dataCoordinator, IMapper mapper) : ServiceBase<Module>, IModuleService
 {
     //UoW
-    private readonly IDataCoordinator _dataCoordinator;
+    private readonly IDataCoordinator _dc = dataCoordinator;
 
     //Mapper
-    private readonly IMapper _mapper;
-
-    public ModuleService(IDataCoordinator dataCoordinator, IMapper mapper)
-    {
-        _dataCoordinator = dataCoordinator;
-        _mapper = mapper;
-    }
+    private readonly IMapper _mapper = mapper;
 
     public async Task<IEnumerable<ModuleDto?>> GetModulesByCourseIdAsync(int id)
     {
-        var modules = await _dataCoordinator.Modules.GetModulesOfCourseAsync(id);
+        var modules = await _dc.Modules.GetModulesOfCourseAsync(id);
         var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
         return moduleDtos;
     }
 
+    public async Task<TDto?> GetModuleByIdAsync<TDto>(int id)
+    {
+        return await _mapper.ProjectTo<TDto>(_dc.Modules.QueryModuleById(id)).FirstAsync();
+    }
+
     public async Task<ModuleDto?> GetModuleByIdWithActivitiesAsync(int id)
     {
-        var modules = await _dataCoordinator.Modules.GetModuleByIdWithActivitiesAsync(id);
+        var modules = await _dc.Modules.GetModuleByIdWithActivitiesAsync(id);
         var moduleDto = _mapper.Map<ModuleDto>(modules);
         return moduleDto;
     }
 
     public async Task<ModuleToPatchDto> GetModule(int id)
     {
-        var module = await _dataCoordinator.Modules.GetModule(id);
+        var module = await _dc.Modules.GetModule(id);
         var moduleToPatchDto = _mapper.Map<ModuleToPatchDto>(module);
         return moduleToPatchDto;
     }
 
     public async Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel moduleToCreate)
     {
-        var createdModule = await _dataCoordinator.Modules.CreateModuleAsync(
+        var createdModule = await _dc.Modules.CreateModuleAsync(
             _mapper.Map<ModuleForCreationDto>(moduleToCreate)
         );
         var mappedModule = new ModuleForCreationDto
@@ -64,7 +63,7 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         ActivityCreateModel activityCreate
     )
     {
-        var createdActivity = await _dataCoordinator.Modules.CreateActivityAsync(
+        var createdActivity = await _dc.Modules.CreateActivityAsync(
             (_mapper.Map<ActivityForCreationDto>(activityCreate))
         );
         var mappedActivity = new ActivityForCreationDto
@@ -79,7 +78,7 @@ public class ModuleService : ServiceBase<Module>, IModuleService
 
     public async Task PatchModule(ModuleToPatchDto moduleToPatchDto)
     {
-        var module = await _dataCoordinator
+        var module = await _dc
             .Modules.GetByConditionAsync(module => module.Id == moduleToPatchDto.Id)
             .FirstOrDefaultAsync();
 
@@ -90,12 +89,12 @@ public class ModuleService : ServiceBase<Module>, IModuleService
 
         _mapper.Map(moduleToPatchDto, module);
 
-        await _dataCoordinator.CompleteAsync();
+        await _dc.CompleteAsync();
     }
 
     public async Task PatchActivity(ActivityDto activityDto)
     {
-        var activity = await _dataCoordinator.Modules.GetActivityByIdAsync(activityDto.Id);
+        var activity = await _dc.Modules.GetActivityByIdAsync(activityDto.Id);
 
         if (activity == null)
         {
@@ -104,12 +103,12 @@ public class ModuleService : ServiceBase<Module>, IModuleService
 
         _mapper.Map(activityDto, activity);
 
-        await _dataCoordinator.CompleteAsync();
+        await _dc.CompleteAsync();
     }
 
     public async Task<ActivityDto> GetActivityByIdAsync(int id)
     {
-        var activity = await _dataCoordinator.Modules.GetActivityByIdAsync(id);
+        var activity = await _dc.Modules.GetActivityByIdAsync(id);
         var activityDto = _mapper.Map<ActivityDto>(activity);
         return activityDto;
     }

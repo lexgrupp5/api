@@ -1,7 +1,6 @@
 using Application.Interfaces;
 using Application.Models;
 using AutoMapper;
-
 using Domain.Configuration;
 using Domain.DTOs;
 using Domain.Entities;
@@ -19,7 +18,7 @@ public class UserService(
     TokenConfig tokenOptions,
     IDataCoordinator dataCoordinator,
     IMapper mapper
-) : IUserService
+) : ServiceBase<User>, IUserService
 {
     private readonly IDataCoordinator _dataCoordinator = dataCoordinator;
     private readonly IMapper _mapper = mapper;
@@ -36,10 +35,8 @@ public class UserService(
         return userDtos;
     }
 
-    public async Task<User?> GetUserByUsername(string name)
-    {
-        return await _dataCoordinator.Users.GetUserByUsername(name);
-    }
+    public async Task<User?> GetUserByUsername(string name) =>
+        await _userManager.FindByNameAsync(name);
 
     public async Task<UserDto?> PatchUser(
         string username,
@@ -47,7 +44,10 @@ public class UserService(
     )
     {
         var userToBeUpdated = await GetUserByUsername(username);
-        if (userToBeUpdated == null) { return null; }
+        if (userToBeUpdated == null)
+        {
+            return null;
+        }
 
         var userToPatch = _mapper.Map<UserForUpdateDto>(userToBeUpdated);
         patchDocument.ApplyTo(userToPatch);
@@ -60,7 +60,15 @@ public class UserService(
 
         var updatedUser = _mapper.Map<UserDto>(userToBeUpdated);
         return updatedUser;
+
+        /* var currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser == null)
+            NotFound();
+
+        patchDocument.ApplyTo(currentUser); */
     }
+
+    /* public async Task<TDto> PartialAsync<TEntity, TDto>() { } */
 
     public async Task<UserDto?> CreateNewUserAsync(
         UserForCreationDto newUser,
@@ -75,7 +83,7 @@ public class UserService(
             newUser.Email,
             "Qwerty1234"
         );
-        
+
         var user = _mapper.Map<User>(userCreateModel);
         var result = await userManager.CreateAsync(user);
 
