@@ -71,27 +71,6 @@ public class TokenService : ITokenService
         return isValid ? principal : throw new SecurityTokenException("Invalid token");
     }
 
-    /* public SecurityToken ValidateToken(string token)
-    {
-        var handler = new JwtSecurityTokenHandler();
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
-        var validationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = _jwtOptions.Issuer,
-            ValidAudience = _jwtOptions.Audience,
-            IssuerSigningKey = key,
-            ValidateLifetime = true,
-        };
-
-        handler.ValidateToken(token, validationParameters, out var validatedToken);
-        return validatedToken;
-    } */
-
-
-
     private static JwtSecurityToken CreateTokenOptions(
         TokenConfiguration options,
         SigningCredentials credentials,
