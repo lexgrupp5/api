@@ -4,7 +4,6 @@ using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Application.Coordinator;
-using Application.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 
 

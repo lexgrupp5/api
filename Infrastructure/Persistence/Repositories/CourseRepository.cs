@@ -2,8 +2,6 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Domain.DTOs;
 using Domain.Entities;
-using Domain.Validations;
-
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +10,7 @@ namespace Infrastructure.Persistence.Repositories;
 public class CourseRepository : RepositoryBase<Course>, ICourseRepository
 {
     private readonly IMapper _mapper;
+    private readonly AppDbContext _db;
     public CourseRepository(AppDbContext context, IMapper mapper) : base(context)
     {
         _db = context;

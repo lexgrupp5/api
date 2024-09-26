@@ -1,10 +1,8 @@
 using Application.Interfaces;
 using Application.Models;
-using Domain.Configuration;
-using Domain.DTOs;
-using Domain.Entities;
-using Infrastructure.Coordinators;
 using Infrastructure.Interfaces;
+using Domain.Configuration;
+using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 

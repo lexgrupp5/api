@@ -18,8 +18,8 @@ public static class WebapplicationsExtensions
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.MigrateAsync();
+        //await context.Database.EnsureDeletedAsync();
+        //await context.Database.MigrateAsync();
 
         try
         {
