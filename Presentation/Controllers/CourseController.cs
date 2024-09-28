@@ -3,16 +3,20 @@ using Domain.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
+using Presentation.Filters;
+
 namespace Presentation.Controllers;
 
 [Route("api/courses")]
 [ApiController]
 [Produces("application/json")]
+[ValidateInput]
 public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseController
 {
     private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
 
     //GET: All courses
+    /* [SkipValidation] */
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(
         [FromQuery] SearchFilterDTO searchFilterDTO
@@ -27,12 +31,14 @@ public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     }
 
     //GET: Course by ID
+    /* [SkipValidation] */
     [HttpGet("{id}", Name = "GetCourse")]
     public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
     {
         return await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
     }
 
+    /* [SkipValidation] */
     [HttpPost(Name = "CreateCourse")]
     public async Task<ActionResult<CourseDto>> CreateCourse([FromBody] CourseCreateDto course)
     {
@@ -40,6 +46,7 @@ public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         return CreatedAtRoute(nameof(CreateCourse), createdCourse);
     }
 
+    /* [SkipValidation] */
     [HttpPatch("{id}")]
     public async Task<IActionResult> PatchCourse(
         [FromRoute] int id,

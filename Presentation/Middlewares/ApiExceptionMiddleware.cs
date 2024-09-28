@@ -24,12 +24,12 @@ public class ApiExceptionMiddleware(
         }
     }
 
-    private Task HandleExceptionAsync(HttpContext context, ApiException exception)
+    private async Task HandleExceptionAsync(HttpContext context, ApiException exception)
     {
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = exception.StatusCode;
 
-        return context.Response.WriteAsync(
+        await context.Response.WriteAsync(
             JsonConvert.SerializeObject(
                 _problemDetailsFactory.CreateProblemDetails(
                     context,
@@ -40,5 +40,7 @@ public class ApiExceptionMiddleware(
                 )
             )
         );
+        
+        return;
     }
 }
