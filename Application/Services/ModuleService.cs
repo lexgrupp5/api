@@ -1,9 +1,13 @@
 using Application.Interfaces;
 using Application.Models;
+
 using AutoMapper;
+
 using Domain.DTOs;
 using Domain.Entities;
+
 using Infrastructure.Interfaces;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
@@ -21,10 +25,10 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         _dataCoordinator = dataCoordinator;
         _mapper = mapper;
     }
-
-    public async Task<IEnumerable<ModuleDto?>> GetModulesByCourseIdAsync(int id)
+    
+    public async Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id, SearchFilterDTO searchFilterDto) 
     {
-        var modules = await _dataCoordinator.Modules.GetModulesOfCourseAsync(id);
+        var modules = await _dataCoordinator.Modules.GetModulesOfCourseAsync(id, searchFilterDto);
         var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
         return moduleDtos;
     }

@@ -1,8 +1,8 @@
 using Application.Interfaces;
 using Application.Models;
 using Domain.DTOs;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Presentation.Controllers;
 
@@ -15,9 +15,10 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
 
     //GET: Modules by Course ID
     [HttpGet("course/{id}")]
-    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id)
+    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id,  [FromQuery] SearchFilterDTO searchFilterDTO)
     {
-        var modules = await _serviceCoordinator.Module.GetModulesByCourseIdAsync(id);
+        var modules = await _serviceCoordinator.Module.GetModulesOfCourseIdAsync(id, searchFilterDTO);
+        
         if (modules == null)
         {
             return NotFound(
@@ -62,23 +63,18 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         var result = await _serviceCoordinator.Module.CreateActivityAsync(activityToCreate);
         return Ok(result);
     }
-
     //PATCH: Patch a module
     [HttpPatch("module/{id}")]
     public async Task<IActionResult> PatchModule(
         [FromRoute] int id,
-        [FromBody] JsonPatchDocument<ModuleToPatchDto> modulePatchDocument
-    )
+        [FromBody] JsonPatchDocument<ModuleToPatchDto> modulePatchDocument)
     {
         var moduleToPatch = await _serviceCoordinator.Module.GetModule(id);
 
-        if (
-            !TryValidateAndApplyPatch(
+        if (!TryValidateAndApplyPatch(
                 modulePatchDocument,
                 moduleToPatch,
-                out IActionResult errorResponse
-            )
-        )
+                out IActionResult errorResponse))
         {
             return errorResponse;
         }
@@ -91,18 +87,14 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     [HttpPatch("activity/{id}")]
     public async Task<IActionResult> PatchActivity(
         [FromRoute] int id,
-        [FromBody] JsonPatchDocument<ActivityDto> activityPatchDocument
-    )
+        [FromBody] JsonPatchDocument<ActivityDto> activityPatchDocument)
     {
         var activityToPatch = await _serviceCoordinator.Module.GetActivityByIdAsync(id);
 
-        if (
-            !TryValidateAndApplyPatch(
+        if (!TryValidateAndApplyPatch(
                 activityPatchDocument,
                 activityToPatch,
-                out IActionResult errorResponse
-            )
-        )
+                out IActionResult errorResponse))
         {
             return errorResponse;
         }

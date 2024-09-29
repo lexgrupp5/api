@@ -1,11 +1,13 @@
-﻿using Domain.DTOs;
+﻿using System.Collections;
+
+using Domain.DTOs;
 using Domain.Entities;
 
 namespace Infrastructure.Interfaces;
 
 public interface IModuleRepository : IRepositoryBase<Module>
 {
-    Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id);
+    Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id, SearchFilterDTO searchFilterDto);
 
     Task<bool> CheckModuleExistsAsync(Module module);
 

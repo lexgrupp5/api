@@ -12,12 +12,21 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
 {
     private readonly IMapper _mapper = mapper;
 
-    public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id) =>
-        await _db
-            .Courses.Where(x => x.Id == id)
+    public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id, SearchFilterDTO searchFilterDto)
+    {
+        IQueryable<Module> query = _db.Courses.Where(x => x.Id == id)
             .Include(x => x.Modules)
-            .SelectMany(x => x.Modules)
-            .ToListAsync();
+            .SelectMany(x => x.Modules);
+
+        if (searchFilterDto.SearchText != null)
+        {
+            query = query.Where(m => m.Name.Contains(searchFilterDto.SearchText));
+        }
+
+        var modules = await query.ToListAsync();
+
+        return modules;
+    }
 
     public async Task<Module?> GetModuleByIdWithActivitiesAsync(int id) =>
         await GetByConditionAsync(m => m.Id.Equals(id))
