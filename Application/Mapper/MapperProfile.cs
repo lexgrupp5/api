@@ -11,14 +11,14 @@ public class MapperProfile : Profile
     {
         // Course -> CourseDTO
         CreateMap<Course, CourseDto>()
-            .ForMember(dest => dest.ModuleNames, opt => opt.MapFrom(src => src.Modules.Select(m => m.Name).ToArray()))
+            // .ForMember(dest => dest.ModuleNames, opt => opt.MapFrom(src => src.Modules.Select(m => m.Name).ToArray()))
             .ConstructUsing(src => new CourseDto(
                 src.Id,
                 src.Name,
                 src.Description,
                 src.StartDate,
-                src.EndDate,
-                src.Modules.Select(m => m.Name).ToArray()
+                src.EndDate
+                // src.Modules.Select(m => m.Name).ToArray()
                 ))
             .ReverseMap();
 

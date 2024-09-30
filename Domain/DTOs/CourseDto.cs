@@ -8,7 +8,6 @@ namespace Domain.DTOs
         [DomainTextValidation(V.DEFAULT_MIN, V.TITLE_MAX)] string Name,
         [DomainTextValidation(V.DEFAULT_MIN, V.DESCRIPTION_MAX)] string Description,
         DateTime StartDate,
-        [EndDateValidation(nameof(StartDate))] DateTime EndDate,
-        string[] ModuleNames
+        [EndDateValidation(nameof(StartDate))] DateTime EndDate
     ) : ICourseDto;
 }

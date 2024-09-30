@@ -59,7 +59,8 @@ namespace Application.Services
             var courseEntity = _mapper.Map<Course>(course);
             await _dataCoordinator.Courses.CreateAsync(courseEntity);
             await _dataCoordinator.CompleteAsync();
-            return _mapper.Map<CourseDto>(courseEntity);
+            var res = _mapper.Map<CourseDto>(courseEntity);
+            return res;
         }
 
         public async Task PatchCourse(CourseDto courseDto)
