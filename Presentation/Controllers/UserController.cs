@@ -106,12 +106,5 @@ public class UserController : ControllerBase
         }
         return Ok(userToBeCreated);
     }
-
-    // TODO: REMOVE
-    [HttpGet("test")]
-    public async Task<ActionResult<IEnumerable<UserDto>>> TestUserQuery()
-    {
-        var users = await _serviceCoordinator.UserService.TestUserQuery();
-        return Ok(users);
-    }
+    
 }
