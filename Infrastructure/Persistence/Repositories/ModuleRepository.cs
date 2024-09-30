@@ -11,13 +11,7 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
         IModuleRepository
 {
     private readonly IMapper _mapper = mapper;
-
-    public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id) =>
-        await _db
-            .Courses.Where(x => x.Id == id)
-            .Include(x => x.Modules)
-            .SelectMany(x => x.Modules)
-            .ToListAsync();
+    
 
     public async Task<Module?> GetModuleByIdWithActivitiesAsync(int id) =>
         await GetByConditionAsync(m => m.Id.Equals(id))
@@ -55,11 +49,6 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
         var activity = await _db.Activities.FirstOrDefaultAsync(x => x.Id == id);
         return activity;
     }
-
-    public Task<Module?> GetModuleByIdAsync(int id)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     public IQueryable<Module> QueryModuleById(int id) => _db.Modules.Where(x => x.Id == id);
 }

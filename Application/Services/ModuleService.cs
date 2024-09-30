@@ -14,15 +14,8 @@ public class ModuleService(IDataCoordinator dataCoordinator, IMapper mapper) : S
     private readonly IDataCoordinator _dc = dataCoordinator;
 
     //Mapper
-    private readonly IMapper _mapper = mapper;
-
-    public async Task<IEnumerable<ModuleDto?>> GetModulesByCourseIdAsync(int id)
-    {
-        var modules = await _dc.Modules.GetModulesOfCourseAsync(id);
-        var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
-        return moduleDtos;
-    }
-
+    private readonly IMapper _mapper;
+    
     public async Task<TDto?> GetModuleByIdAsync<TDto>(int id)
     {
         return await _mapper.ProjectTo<TDto>(_dc.Modules.QueryModuleById(id)).FirstAsync();

@@ -73,5 +73,12 @@ namespace Application.Services
             
             await _dataCoordinator.CompleteAsync();
         }
+        
+        public async Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id, SearchFilterDTO searchFilterDto) 
+        {
+            var modules = await _dataCoordinator.Courses.GetModulesOfCourseAsync(id, searchFilterDto);
+            var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
+            return moduleDtos;
+        }
     }
 }

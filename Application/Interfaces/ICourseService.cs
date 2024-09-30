@@ -9,4 +9,7 @@ public interface ICourseService
     Task<IEnumerable<CourseDto?>> GetCoursesAsync(SearchFilterDTO searchFilterDTO);
     Task<CourseDto> CreateCourse(CourseCreateDto course);
     Task PatchCourse(CourseDto courseDto);
+    
+    Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id, SearchFilterDTO searchFilterDto);
+
 }

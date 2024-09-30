@@ -38,6 +38,22 @@ public class CourseRepository(AppDbContext context, IMapper mapper)
 
         return await query.ProjectTo<CourseDto>(_mapper.ConfigurationProvider).ToListAsync();
     }
+    
+    public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id, SearchFilterDTO searchFilterDto)
+    {
+        IQueryable<Module> query = _db.Courses.Where(x => x.Id == id)
+            .Include(x => x.Modules)
+            .SelectMany(x => x.Modules);
+
+        if (searchFilterDto.SearchText != null)
+        {
+            query = query.Where(m => m.Name.Contains(searchFilterDto.SearchText));
+        }
+
+        var modules = await query.ToListAsync();
+
+        return modules;
+    }
 
     public async Task<CourseDto?> GetCourseByIdAsync(int id)
     {
