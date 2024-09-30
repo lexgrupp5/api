@@ -3,19 +3,27 @@ using Application.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using Presentation.Filters;
+
 namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
+[ValidateInput]
 public class AuthController(IServiceCoordinator serviceCoordinator) : ControllerBase
 {
     private readonly IServiceCoordinator _services = serviceCoordinator;
 
-    [HttpPost("login")]
+    /*
+     *
+     ****/
+    /* [SkipValidation] */
     [AllowAnonymous]
+    [HttpPost("login")]
     public async Task<ActionResult<string>> Login([FromBody] UserAuthModel userDto)
     {
+        /* return BadRequest("test"); */
         var (access, cookie) = await _services.Identity.AuthenticateAsync(userDto);
         
         HttpContext.Response.Cookies.Append(cookie.Key, cookie.Token, cookie.Options);
@@ -23,9 +31,13 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
         return access == null ? BadRequest() : Ok(access);
     }
 
-    [HttpPost("logout")]
+    /*
+     *
+     ****/
+    /* [SkipValidation] */
     [AllowAnonymous]
-    public async Task<IActionResult> Logout([FromHeader] string access)
+    [HttpPost("logout")]
+    public async Task<ActionResult> Logout([FromHeader] string access)
     {
         var refresh = HttpContext.Request.Cookies["RefreshToken"];
         if (refresh == null)
@@ -34,11 +46,15 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
         HttpContext.Response.Cookies.Delete("RefreshToken");
 
         await _services.Identity.RevokeAsync(access, refresh);
-        return Ok();
+        return NoContent();
     }
 
-    [HttpPost("refresh")]
+    /*
+     *
+     ****/
+    /* [SkipValidation] */
     [AllowAnonymous]
+    [HttpPost("refresh")]
     public async Task<ActionResult<string>> RefreshToken([FromHeader] string access)
     {
         var refresh = HttpContext.Request.Cookies["RefreshToken"];
@@ -50,5 +66,16 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
         HttpContext.Response.Cookies.Append(cookie.Key, cookie.Token, cookie.Options);
 
         return newAccess == null ? BadRequest() : Ok(newAccess);
+    }
+
+    /*
+     *
+     ****/
+    /* [SkipValidation] */
+    [AllowAnonymous]
+    [HttpGet("roles")]
+    public Task<ActionResult> ListUserRoles()
+    {
+        throw new NotImplementedException();
     }
 }

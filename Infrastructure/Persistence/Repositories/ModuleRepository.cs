@@ -64,4 +64,11 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
         var activity = await _db.Activities.FirstOrDefaultAsync(x => x.Id == id);
         return activity;
     }
+
+    public Task<Module?> GetModuleByIdAsync(int id)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IQueryable<Module> QueryModuleById(int id) => _db.Modules.Where(x => x.Id == id);
 }

@@ -4,12 +4,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
+using Presentation.Filters;
+
 namespace Presentation.Controllers;
 
 [Route("api/User")]
 [ApiController]
 [Produces("application/json")]
 //[Authorize(Roles = "Teacher")]
+[ValidateInput]
 public class UserController : ControllerBase
 {
     private readonly IServiceCoordinator _serviceCoordinator;
@@ -20,6 +23,7 @@ public class UserController : ControllerBase
     }
 
     //GET: Course participants by Course ID
+    /* [SkipValidation] */
     [HttpGet("course/{id}")]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersOfCourse(int id)
     {
@@ -33,6 +37,7 @@ public class UserController : ControllerBase
     }
 
     //GET: Course from UserName
+    /* [SkipValidation] */
     [HttpGet("{username}")]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourseOfUser(string username)
     {
@@ -54,6 +59,7 @@ public class UserController : ControllerBase
     }
 
     //PATCH: Existing User by User ID
+    /* [SkipValidation] */
     [HttpPatch("{username}")]
     public async Task<ActionResult> PatchUserByUsername(
         string username,
@@ -68,6 +74,10 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
+    /*
+     *
+     ****/
+    /* [SkipValidation] */
     [HttpGet(Name = "GetAllStudents")]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
     {
@@ -82,7 +92,10 @@ public class UserController : ControllerBase
         return Ok(users); */
     }
 
-    //POST: Create new user
+    /*
+     * POST: Create new user
+     ****/
+    /* [SkipValidation] */
     [HttpPost]
     public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
     {

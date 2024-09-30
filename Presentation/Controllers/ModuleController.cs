@@ -4,16 +4,20 @@ using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
 
+using Presentation.Filters;
+
 namespace Presentation.Controllers;
 
 [Route("api/modules")]
 [ApiController]
 [Produces("application/json")]
+[ValidateInput]
 public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseController
 {
     private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
 
     //GET: Modules by Course ID
+/* [SkipValidation] */
     [HttpGet("course/{id}")]
     public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id,  [FromQuery] SearchFilterDTO searchFilterDTO)
     {
@@ -30,10 +34,13 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     }
 
     //GET: Activities of a module by Module ID
-    [HttpGet("activities/{id}")]
+    /* [SkipValidation] */
+    [HttpGet("{id}/activities")]
     public async Task<ActionResult<ActivityDto[]>> GetActivitiesOfModule(int id)
     {
-        var module = await _serviceCoordinator.Module.GetModuleByIdWithActivitiesAsync(id);
+        /* var module = await _serviceCoordinator.Module.GetModuleByIdWithActivitiesAsync(id); */
+
+        var module = await _serviceCoordinator.Module.GetModuleByIdAsync<ModuleDto>(id);
         if (module == null)
         {
             return NotFound($"Module with the ID {id} was not found in the database.");
@@ -45,6 +52,7 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     }
 
     //POST: Create a module
+    /* [SkipValidation] */
     [HttpPost]
     public async Task<ActionResult<ModuleForCreationDto>> CreateModule(
         ModuleCreateModel moduleToCreate
@@ -55,6 +63,7 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     }
 
     //POST: Create activity
+    /* [SkipValidation] */
     [HttpPost("createActivity")]
     public async Task<ActionResult<ActivityForCreationDto>> CreateActivity(
         ActivityCreateModel activityToCreate
@@ -64,6 +73,7 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         return Ok(result);
     }
     //PATCH: Patch a module
+    /* [SkipValidation] */
     [HttpPatch("module/{id}")]
     public async Task<IActionResult> PatchModule(
         [FromRoute] int id,
@@ -84,6 +94,7 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     }
 
     //PATCH: Patch an activity
+    /* [SkipValidation] */
     [HttpPatch("activity/{id}")]
     public async Task<IActionResult> PatchActivity(
         [FromRoute] int id,

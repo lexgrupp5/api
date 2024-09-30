@@ -18,4 +18,5 @@ public interface IModuleService
     Task<ActivityDto> GetActivityByIdAsync(int id);
     Task PatchActivity(ActivityDto activityDto);
     Task PatchModule(ModuleToPatchDto moduleToPatchDto);
+    Task<TDto?> GetModuleByIdAsync<TDto>(int id);
 }
