@@ -41,9 +41,12 @@ public class CourseRepository(AppDbContext context, IMapper mapper)
     
     public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id, SearchFilterDTO searchFilterDto)
     {
-        IQueryable<Module> query = _db.Courses.Where(x => x.Id == id)
-            .Include(x => x.Modules)
-            .SelectMany(x => x.Modules);
+        IQueryable<Module> query = _db.Courses
+            .Where(c => c.Id == id)
+            .Include(c => c.Modules)
+            .ThenInclude(m => m.Activities)
+            .ThenInclude(a => a.ActivityType)
+            .SelectMany(c => c.Modules);
 
         if (searchFilterDto.SearchText != null)
         {
