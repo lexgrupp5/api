@@ -62,4 +62,19 @@ public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         await _serviceCoordinator.Course.PatchCourse(courseToPatchWith);
         return Ok(NoContent());
     }
+    //GET: Modules by Course ID
+    [HttpGet("modules/{id}")]
+    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id,  [FromQuery] SearchFilterDTO searchFilterDTO)
+    {
+        var modules = await _serviceCoordinator.Course.GetModulesOfCourseIdAsync(id, searchFilterDTO);
+        
+        if (modules == null)
+        {
+            return NotFound(
+                "No modules found. Either course ID was bad or course contains no modules."
+            );
+        }
+
+        return Ok(modules);
+    }
 }

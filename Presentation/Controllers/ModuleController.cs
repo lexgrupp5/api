@@ -12,22 +12,7 @@ namespace Presentation.Controllers;
 public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseController
 {
     private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
-
-    //GET: Modules by Course ID
-    [HttpGet("course/{id}")]
-    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id,  [FromQuery] SearchFilterDTO searchFilterDTO)
-    {
-        var modules = await _serviceCoordinator.Module.GetModulesOfCourseIdAsync(id, searchFilterDTO);
-        
-        if (modules == null)
-        {
-            return NotFound(
-                "No modules found. Either course ID was bad or course contains no modules."
-            );
-        }
-
-        return Ok(modules);
-    }
+    
 
     //GET: Activities of a module by Module ID
     [HttpGet("activities/{id}")]

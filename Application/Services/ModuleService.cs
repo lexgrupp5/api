@@ -26,12 +26,7 @@ public class ModuleService : ServiceBase<Module>, IModuleService
         _mapper = mapper;
     }
     
-    public async Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id, SearchFilterDTO searchFilterDto) 
-    {
-        var modules = await _dataCoordinator.Modules.GetModulesOfCourseAsync(id, searchFilterDto);
-        var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
-        return moduleDtos;
-    }
+  
 
     public async Task<ModuleDto?> GetModuleByIdWithActivitiesAsync(int id)
     {
