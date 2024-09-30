@@ -11,7 +11,6 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
         IModuleRepository
 {
     private readonly IMapper _mapper = mapper;
-    
 
     public async Task<Module?> GetModuleByIdWithActivitiesAsync(int id) =>
         await GetByConditionAsync(m => m.Id.Equals(id))
@@ -20,7 +19,7 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
 
     public async Task<Module> GetModule(int id)
     {
-        var result = await GetByConditionAsync(m => m.Id.Equals(id)).FirstOrDefaultAsync();
+        var result = await GetByConditionAsync(m => m.Id.Equals(id)).Include(m => m.Activities).FirstOrDefaultAsync();
         return result;
     }
 

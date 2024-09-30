@@ -50,7 +50,8 @@ namespace Application.Services
             {
                 NotFound($"Course with the ID {id} was not found in the database.");
             }
-            return course;
+            var courseDto = _mapper.Map<CourseDto>(course);
+            return courseDto;
         }
 
         public async Task<CourseDto> CreateCourse(CourseCreateDto course)
