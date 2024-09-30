@@ -7,4 +7,5 @@ public interface ICourseDto
     DateTime EndDate { get; }
     string Name { get; }
     DateTime StartDate { get; }
+    string[] ModuleNames { get; }
 }

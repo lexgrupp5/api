@@ -14,9 +14,11 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
 
     public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id) =>
         await _db
-            .Courses.Where(x => x.Id == id)
-            .Include(x => x.Modules)
-            .SelectMany(x => x.Modules)
+            .Courses.Where(c => c.Id == id)
+            .Include(c => c.Modules)
+            .ThenInclude(m => m.Activities)
+            .ThenInclude(a => a.ActivityType)
+            .SelectMany(c => c.Modules)
             .ToListAsync();
 
     public async Task<Module?> GetModuleByIdWithActivitiesAsync(int id) =>
@@ -26,7 +28,7 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
 
     public async Task<Module> GetModule(int id)
     {
-        var result = await GetByConditionAsync(m => m.Id.Equals(id)).FirstOrDefaultAsync();
+        var result = await GetByConditionAsync(m => m.Id.Equals(id)).Include(m => m.Activities).FirstOrDefaultAsync();
         return result;
     }
 

@@ -39,7 +39,7 @@ public class CourseRepository(AppDbContext context, IMapper mapper)
         return await query.ProjectTo<CourseDto>(_mapper.ConfigurationProvider).ToListAsync();
     }
 
-    public async Task<CourseDto?> GetCourseByIdAsync(int id)
+    public async Task<Course?> GetCourseByIdAsync(int id)
     {
         var result = await GetByConditionAsync(m => m.Id.Equals(id))
             .Include(m => m.Modules)
@@ -48,7 +48,7 @@ public class CourseRepository(AppDbContext context, IMapper mapper)
         {
             return null;
         }
-        return _mapper.Map<CourseDto>(result);
+        return result;
     }
 
     public async Task<bool> CheckCourseExistsAsync(Course course)

@@ -15,4 +15,6 @@ public class CourseCreateDto : ICourseDto
 
     [EndDateValidation(nameof(StartDate))]
     public DateTime EndDate { get; set; }
+
+    public string[] ModuleNames { get; } 
 }
