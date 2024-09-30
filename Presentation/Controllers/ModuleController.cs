@@ -17,6 +17,20 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
     
 
+    //GET: Modules by Course ID
+/* [SkipValidation] */
+    [HttpGet("course/{id}")]
+    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id,  [FromQuery] SearchFilterDTO searchFilterDTO)
+    {
+        var modules = await _serviceCoordinator.Module.GetModulesOfCourseIdAsync(id, searchFilterDTO);
+        
+        if (modules == null)
+        {
+            return NotFound(
+                "No modules found. Either course ID was bad or course contains no modules."
+            );
+        }
+
     //GET: Activities of a module by Module ID
     /* [SkipValidation] */
     [HttpGet("{id}/activities")]
