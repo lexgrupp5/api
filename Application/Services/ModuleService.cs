@@ -8,17 +8,28 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class ModuleService(IDataCoordinator dataCoordinator, IMapper mapper) : ServiceBase<Module>, IModuleService
+public class ModuleService : ServiceBase<Module>, IModuleService
 {
     //UoW
-    private readonly IDataCoordinator _dc = dataCoordinator;
-
+    private readonly IDataCoordinator _dc;
     //Mapper
     private readonly IMapper _mapper;
-    
+
+    public ModuleService(IDataCoordinator dataCoordinator, IMapper mapper)
+    {
+        _dc = dataCoordinator;
+        _mapper = mapper;
+    }
+
     public async Task<TDto?> GetModuleByIdAsync<TDto>(int id)
     {
-        return await _mapper.ProjectTo<TDto>(_dc.Modules.QueryModuleById(id)).FirstAsync();
+        var queryResult = await _dc.Modules.QueryModuleById(id)
+            .Include(c => c.Course)
+            .Include(m => m.Activities)
+            .ThenInclude(a => a.ActivityType)
+            .FirstOrDefaultAsync();
+        var result = _mapper.Map<TDto>(queryResult);
+        return result;
     }
 
     public async Task<ModuleDto?> GetModuleByIdWithActivitiesAsync(int id)

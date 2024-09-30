@@ -11,7 +11,7 @@ public class MapperProfile : Profile
     {
         // Course -> CourseDTO
         CreateMap<Course, CourseDto>()
-            //.ForMember(dest => dest.ModuleNames, opt => opt.MapFrom(src => src.Modules.Select(m => m.Name).ToArray()))
+            .ForMember(dest => dest.ModuleNames, opt => opt.MapFrom(src => src.Modules.Select(m => m.Name).ToArray()))
             .ConstructUsing(src => new CourseDto(
                 src.Id,
                 src.Name,
@@ -30,23 +30,7 @@ public class MapperProfile : Profile
 
         //Module -> ModuleDTO
         CreateMap<Module, ModuleDto>()
-            .ConstructUsing(src => new ModuleDto(
-                src.Id,
-                src.CourseId,
-                src.Name,
-                src.Description,
-                src.StartDate,
-                src.EndDate,
-                src.Activities.Select(a => new ActivityDto(
-                    a.Id,
-                    a.ModuleId,
-                    a.Description,
-                    a.StartDate,
-                    a.EndDate,
-                    a.ActivityType.Name,
-                    a.ActivityType.Description
-                )).ToList()
-            ))
+            .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.Activities))
             .ReverseMap();
 
         CreateMap<ModuleCreateModel, Module>()
