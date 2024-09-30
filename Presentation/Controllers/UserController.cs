@@ -3,6 +3,7 @@ using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Filters;
 
 using Presentation.Filters;
 
@@ -81,15 +82,10 @@ public class UserController : ControllerBase
     [HttpGet(Name = "GetAllStudents")]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
     {
-        throw new NotImplementedException();
-        //ToDo: Make not crash
-        /* var users = await _serviceCoordinator.Identity.GetStudentsAsync();
-        if (users == null)
-        {
-            return NotFound("No students found in the database.");
-        }
-
-        return Ok(users); */
+        var users = await _serviceCoordinator.UserService.GetAllUsersAsync();
+        return users == null
+            ? NotFound("No users found in the database.")
+            : Ok(users);
     }
 
     /*
@@ -109,5 +105,13 @@ public class UserController : ControllerBase
             return BadRequest("The return body of the function call is 'null'");
         }
         return Ok(userToBeCreated);
+    }
+
+    // TODO: REMOVE
+    [HttpGet("test")]
+    public async Task<ActionResult<IEnumerable<UserDto>>> TestUserQuery()
+    {
+        var users = await _serviceCoordinator.UserService.TestUserQuery();
+        return Ok(users);
     }
 }
