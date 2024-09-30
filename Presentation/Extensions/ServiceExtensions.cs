@@ -12,8 +12,10 @@ using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 
 namespace Presentation.Extensions;
@@ -92,9 +94,24 @@ public static class ServiceExtensions
     public static void ConfigureOpenApi(this IServiceCollection services) =>
         services
             .AddEndpointsApiExplorer()
-            .AddSwaggerGen(setup =>
+            .AddSwaggerGen(options =>
             {
-                setup.AddSecurityDefinition(
+                options.MapType<JsonResult>(
+                    () =>
+                        new OpenApiSchema
+                        {
+                            Type = "object",
+                            Properties =
+                            {
+                                ["Content-Type"] = new OpenApiSchema
+                                {
+                                    Type = "string",
+                                    Default = new OpenApiString("application/json")
+                                }
+                            }
+                        }
+                );
+                options.AddSecurityDefinition(
                     "Bearer",
                     new OpenApiSecurityScheme
                     {
@@ -105,7 +122,7 @@ public static class ServiceExtensions
                         Scheme = "Bearer"
                     }
                 );
-                setup.AddSecurityRequirement(
+                options.AddSecurityRequirement(
                     new OpenApiSecurityRequirement
                     {
                         {

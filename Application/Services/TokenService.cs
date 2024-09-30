@@ -14,10 +14,10 @@ public class TokenService(TokenConfig tokenConfig) : ITokenService
 {
     private readonly TokenConfig _tc = tokenConfig;
 
-    public string GenerateAccessToken(User user)
+    public string GenerateAccessToken(User user, ICollection<string>? roles)
     {
         var credentials = CreateSigningCredentials(_tc.Access.Secret);
-        var claims = CreateClaims(user, UserRoles.All);
+        var claims = CreateClaims(user, roles);
         var tokenOptions = CreateTokenOptions(_tc.Access, credentials, claims);
         var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
 
@@ -74,7 +74,7 @@ public class TokenService(TokenConfig tokenConfig) : ITokenService
             signingCredentials: credentials
         );
 
-    private static List<Claim> CreateClaims(User user, IEnumerable<string>? roles)
+    private static List<Claim> CreateClaims(User user, ICollection<string>? roles)
     {
         var claims = new List<Claim>()
         {  
@@ -82,11 +82,7 @@ public class TokenService(TokenConfig tokenConfig) : ITokenService
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
         };
 
-        if (roles == null)
-            return claims;
-
-        foreach (var role in roles)
-            claims.Add(new Claim(ClaimTypes.Role, role));
+        claims.AddRange(roles?.Select(r => new Claim(ClaimTypes.Role, r)) ?? []);
 
         return claims;
     }
