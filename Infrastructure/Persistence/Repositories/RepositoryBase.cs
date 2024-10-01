@@ -7,37 +7,24 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public abstract class RepositoryBase<T>(AppDbContext context) : IRepositoryBase<T>
+public abstract class RepositoryBase<T> : IRepositoryBase<T>
     where T : class
 {
-    protected AppDbContext _db = context;
+    protected AppDbContext _db;
+
+    public RepositoryBase(AppDbContext context)
+    {
+        _db = context;
+    }
 
     /*
      *
      ****/
     public IQueryable<T> GetQuery(
         IEnumerable<Expression<Func<T, bool>>>? filters = null,
-        ICollection<SortParams>? sorting = null,
-        PageParams? paging = null,
-        IEnumerable<Expression<Func<T, object>>>? includes = null
-    )
-    {
-        var query = _db.Set<T>().AsQueryable();
-
-        if (filters != null)
-            query = ApplyFilters(query, filters);
-
-        if (includes != null)
-            query = ApplyIncludes(query, includes);
-
-        if (sorting != null)
-            query = ApplySorting(query, sorting);
-
-        if (paging != null)
-            query = ApplyPagination(query, paging);
-
-        return query;
-    }
+        IEnumerable<SortParams>? sorting = null,
+        PageParams? paging = null
+    ) => BuildQuery(_db.Set<T>().AsQueryable(), filters, sorting, paging);
 
     /*
      *
@@ -73,6 +60,28 @@ public abstract class RepositoryBase<T>(AppDbContext context) : IRepositoryBase<
     /*
      *
      ****/
+    protected IQueryable<T> BuildQuery(
+        IQueryable<T> query,
+        IEnumerable<Expression<Func<T, bool>>>? filters = null,
+        IEnumerable<SortParams>? sorting = null,
+        PageParams? paging = null
+    )
+    {
+        if (filters != null)
+            query = ApplyFilters(query, filters);
+
+        if (sorting != null)
+            query = ApplySorting(query, sorting);
+
+        if (paging != null)
+            query = ApplyPagination(query, paging);
+
+        return query;
+    }
+
+    /*
+     *
+     ****/
     protected IQueryable<T> ApplyFilters(
         IQueryable<T> query,
         IEnumerable<Expression<Func<T, bool>>>? filters
@@ -81,23 +90,12 @@ public abstract class RepositoryBase<T>(AppDbContext context) : IRepositoryBase<
     /*
      *
      ****/
-    protected IQueryable<T> ApplyIncludes(
-        IQueryable<T> query,
-        IEnumerable<Expression<Func<T, object>>>? includes
-    ) => includes?.Aggregate(query, (cur, include) => cur.Include(include)) ?? query;
-
-    /*
-     *
-     ****/
-    protected IQueryable<T> ApplySorting(
-        IQueryable<T> query,
-        ICollection<SortParams>? sortingOptions
-    )
+    protected IQueryable<T> ApplySorting(IQueryable<T> query, IEnumerable<SortParams>? sorting)
     {
-        if (sortingOptions is null || sortingOptions.Count == 0)
+        if (sorting is null || !sorting.Any())
             return query;
 
-        foreach (var sort in sortingOptions)
+        foreach (var sort in sorting)
         {
             var propInfo = typeof(T).GetProperty(
                 sort.Field,

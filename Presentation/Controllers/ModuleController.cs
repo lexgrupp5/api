@@ -1,9 +1,8 @@
 using Application.Interfaces;
 using Application.Models;
 using Domain.DTOs;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
-
+using Microsoft.AspNetCore.Mvc;
 using Presentation.Filters;
 
 namespace Presentation.Controllers;
@@ -14,17 +13,22 @@ namespace Presentation.Controllers;
 [ValidateInput]
 public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseController
 {
-    private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
-    
+    private readonly IServiceCoordinator _services = serviceCoordinator;
+
+    [HttpGet("{id}")]
+    public Task<ActionResult<ModuleDto>> GetModuleById(int id)
+    {
+        throw new NotImplementedException();
+    }
 
     //GET: Activities of a module by Module ID
     /* [SkipValidation] */
     [HttpGet("{id}/activities")]
-    public async Task<ActionResult<ActivityDto[]>> GetActivitiesOfModule(int id)
+    public async Task<ActionResult<ActivityDto[]>> GetModuleActivities(int id)
     {
         /* var module = await _serviceCoordinator.Module.GetModuleByIdWithActivitiesAsync(id); */
 
-        var module = await _serviceCoordinator.Module.GetModuleByIdAsync<ModuleDto>(id);
+        var module = await _services.Module.GetModuleByIdAsync<ModuleDto>(id);
         if (module == null)
         {
             return NotFound($"Module with the ID {id} was not found in the database.");
@@ -42,7 +46,7 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         ModuleCreateModel moduleToCreate
     )
     {
-        var result = await _serviceCoordinator.Module.CreateModuleAsync(moduleToCreate);
+        var result = await _services.Module.CreateModuleAsync(moduleToCreate);
         return Ok(result);
     }
 
@@ -53,27 +57,45 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         ActivityCreateModel activityToCreate
     )
     {
-        var result = await _serviceCoordinator.Module.CreateActivityAsync(activityToCreate);
+        var result = await _services.Module.CreateActivityAsync(activityToCreate);
         return Ok(result);
     }
+
+    // TODO: Implement update for module
+    [HttpPut("{id}")]
+    public Task<ActionResult<ModuleDto>> UpdateModule(int id, [FromBody] ModuleDto module)
+    {
+        throw new NotImplementedException();
+
+        /* var updatedModule = await _services.Module.UpdateModule(module);
+        return Ok(updatedModule); */
+    }
+
+    /* DEPRECATED
+     **************/
+
     //PATCH: Patch a module
     /* [SkipValidation] */
     [HttpPatch("module/{id}")]
     public async Task<IActionResult> PatchModule(
         [FromRoute] int id,
-        [FromBody] JsonPatchDocument<ModuleToPatchDto> modulePatchDocument)
+        [FromBody] JsonPatchDocument<ModuleToPatchDto> modulePatchDocument
+    )
     {
-        var moduleToPatch = await _serviceCoordinator.Module.GetModule(id);
+        var moduleToPatch = await _services.Module.GetModule(id);
 
-        if (!TryValidateAndApplyPatch(
+        if (
+            !TryValidateAndApplyPatch(
                 modulePatchDocument,
                 moduleToPatch,
-                out IActionResult errorResponse))
+                out IActionResult errorResponse
+            )
+        )
         {
             return errorResponse;
         }
 
-        await _serviceCoordinator.Module.PatchModule(moduleToPatch);
+        await _services.Module.PatchModule(moduleToPatch);
         return Ok(NoContent());
     }
 
@@ -82,19 +104,23 @@ public class ModuleController(IServiceCoordinator serviceCoordinator) : ApiBaseC
     [HttpPatch("activity/{id}")]
     public async Task<IActionResult> PatchActivity(
         [FromRoute] int id,
-        [FromBody] JsonPatchDocument<ActivityDto> activityPatchDocument)
+        [FromBody] JsonPatchDocument<ActivityDto> activityPatchDocument
+    )
     {
-        var activityToPatch = await _serviceCoordinator.Module.GetActivityByIdAsync(id);
+        var activityToPatch = await _services.Module.GetActivityByIdAsync(id);
 
-        if (!TryValidateAndApplyPatch(
+        if (
+            !TryValidateAndApplyPatch(
                 activityPatchDocument,
                 activityToPatch,
-                out IActionResult errorResponse))
+                out IActionResult errorResponse
+            )
+        )
         {
             return errorResponse;
         }
 
-        await _serviceCoordinator.Module.PatchActivity(activityToPatch);
+        await _services.Module.PatchActivity(activityToPatch);
         return Ok(NoContent());
     }
 }
