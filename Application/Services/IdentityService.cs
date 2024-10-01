@@ -1,75 +1,137 @@
+using System.Security.Claims;
+using Application.Interfaces;
+using Application.Models;
 using Domain.Configuration;
 using Domain.Entities;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using Application.Models;
-using Application.Interfaces;
-
-using Domain.DTOs;
-
-using Microsoft.EntityFrameworkCore;
+using Application.DTOs;
 
 namespace Application.Services;
 
 public class IdentityService(
+    IDataCoordinator dataCoordinator,
     UserManager<User> userManager,
     RoleManager<IdentityRole> roleManager,
-    IJwtService jwtService,
-    JwtOptions jwtOptions
+    ITokenService tokenService,
+    TokenConfig tokenConfiguration
 ) : ServiceBase<User>, IIdentityService
 {
+    private readonly IDataCoordinator _dc = dataCoordinator;
     private readonly UserManager<User> _userManager = userManager;
-
     private readonly RoleManager<IdentityRole> _roleManager = roleManager;
+    private readonly ITokenService _tService = tokenService;
+    private readonly TokenConfig _tConfig = tokenConfiguration;
 
-    private readonly JwtOptions _jwtOptions = jwtOptions;
-
-    private readonly IJwtService _jwtService = jwtService;
-
-    public async Task<IdentityResult> CreateUserAsync(UserCreateModel newUser)
+    public async Task<TokenResult> AuthenticateAsync(UserAuthModel userDto)
     {
-        var user = new User
+        var user = await ValidateUser(userDto);
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var access = _tService.GenerateAccessToken(user, userRoles);
+        var refresh = _tService.GenerateRefreshToken();
+
+        var userSession = new UserSession()
         {
-            UserName = newUser.UserName,
-            Name = newUser.Name,
-            Email = newUser.Email
+            RefreshToken = refresh,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_tConfig.Access.ExpirationInMinutes),
+            User = user
         };
 
-        return await _userManager.CreateAsync(user, newUser.Password);
+        var cookieParam = CreateRefreshCookieParameter(refresh);
+
+        _dc.Users.AddUserSession(userSession);
+        await _dc.CompleteAsync();
+
+        return new(access, cookieParam);
     }
 
-
-    public async Task<string> AuthenticateAsync(UserAuthenticateModel userDto)
+    public async Task<TokenResult> RefreshTokensAsync(string oldAccess, string oldRefresh)
     {
-        var user = await ValidateUser(userDto) ?? throw new Exception("User not found");
-        var token = CreateToken(user);
-        return token;
+        var user = await GetUserFromAccessToken(oldAccess);
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var userSession = await GetUserSession(oldRefresh, user);
+        var newAccess = _tService.GenerateAccessToken(user, userRoles);
+        var newRefresh = _tService.GenerateRefreshToken();
+        var newCookieParam = CreateRefreshCookieParameter(newRefresh);
+        userSession.RefreshToken = newRefresh;
+        await _dc.CompleteAsync();
+
+        return new(newAccess, newCookieParam);
     }
 
-    
-    private async Task<User?> ValidateUser(UserAuthenticateModel userDto)
+    public async Task<bool> RevokeAsync(string access, string refresh)
+    {
+        var userSession = await _dc.Users.GetUserSessionAsync(refresh);
+        if (userSession == null)
+            NotFound();
+
+        _dc.Users.RemoveUserSession(userSession);
+        await _dc.CompleteAsync();
+
+        return true;
+    }
+
+    public Task<bool> RevokeAllAsync(User user) => throw new NotImplementedException();
+
+    private async Task<User> GetUserFromAccessToken(string token)
+    {
+        var principal = _tService.GetPrincipalFromExpiredToken(token, _tConfig.Access.Secret);
+        if (principal == null)
+            Unauthorized("Invalid token");
+
+        var user = await FindUserByPrincipalAsync(principal);
+        if (user == null)
+            NotFound();
+
+        return user;
+    }
+
+    private async Task<UserSession> GetUserSession(string refreshToken, User user)
+    {
+        var userSession = await _dc.Users.GetUserSessionAsync(refreshToken);
+        if (userSession == null)
+            NotFound();
+
+        if (userSession.ExpiresAt < DateTime.UtcNow)
+        {
+            _dc.Users.RemoveUserSession(userSession);
+            await _dc.CompleteAsync();
+            Unauthorized("Refresh token has expired");
+        }
+
+        if (user.UserName != userSession.User.UserName)
+            Unauthorized("User mismatch.");
+
+        return userSession;
+    }
+
+    private async Task<User?> FindUserByPrincipalAsync(ClaimsPrincipal principal) =>
+        await _userManager.FindByNameAsync(
+            principal.FindFirst(ClaimTypes.NameIdentifier)?.ToString() ?? string.Empty
+        );
+
+    private async Task<User> ValidateUser(UserAuthModel userDto)
     {
         var user = await _userManager.FindByNameAsync(userDto.UserName);
         if (user == null)
-            return null;
+            NotFound();
 
-        return !await _userManager.CheckPasswordAsync(user, userDto.Password) ? null : user;
+        var isValidPassword = await _userManager.CheckPasswordAsync(user, userDto.Password);
+        if (!isValidPassword)
+            Unauthorized("Invalid password");
+
+        return user;
     }
 
-
-    private string CreateToken(User user)
-    {
-        return _jwtService.GenerateToken(user);
-    }
-
-    public async Task<IEnumerable<UserDto>> GetStudentsAsync()
-    {
-        var roleStudent = _roleManager.Roles.Where(x => x.Name == "Student");
-        var students = await _userManager.GetUsersInRoleAsync(roleStudent.First().Name ?? "");
-
-        return students.Select(user => new UserDto(
-            Name: user.Name ?? string.Empty,
-            Username: user.UserName ?? string.Empty,
-            Email: user.Email ?? string.Empty
-        )).ToList();
-    }
+    private RefreshCookieParameter CreateRefreshCookieParameter(string refreshToken) =>
+        new(
+            refreshToken,
+            new()
+            {
+                HttpOnly = _tConfig.Refresh.HttpOnly,
+                SameSite = _tConfig.Refresh.SameSite,
+                Secure = _tConfig.Refresh.Secure,
+                Expires = DateTime.UtcNow.AddMinutes(_tConfig.Refresh.ExpirationInMinutes),
+            }
+        );
 }

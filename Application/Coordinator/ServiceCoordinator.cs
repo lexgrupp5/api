@@ -1,7 +1,5 @@
 using Application.Interfaces;
-
 using Domain.Entities;
-
 using Microsoft.AspNetCore.Identity;
 
 namespace Application.Coordinator;
@@ -29,8 +27,8 @@ public class ServiceCoordinator(
     public IIdentityService Identity => _identityService.Value;
 
     public IUserService UserService => _userService.Value;
-    
-    public IModuleService ModuleService => _moduleService.Value;
+
+    public IModuleService Module => _moduleService.Value;
 
     public UserManager<User> User => _userManager;
 }

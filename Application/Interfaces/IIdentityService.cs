@@ -1,16 +1,20 @@
 using Application.Models;
+using Application.DTOs;
+using Application.Services;
 
-using Domain.DTOs;
-
-using Microsoft.AspNetCore.Identity;
+using Domain.Entities;
 
 namespace Application.Interfaces;
 
 public interface IIdentityService
 {
-    Task<IdentityResult> CreateUserAsync(UserCreateModel newUser);
+    Task<TokenResult> AuthenticateAsync(UserAuthModel userDto);
+    
+    Task<TokenResult> RefreshTokensAsync(string accessToken, string refreshToken);
 
-    Task<string> AuthenticateAsync(UserAuthenticateModel userDto);
+    Task<bool> RevokeAsync(string accessToken, string refreshToken);
 
-    Task<IEnumerable<UserDto>> GetStudentsAsync();
+    Task<bool> RevokeAllAsync(User user);
+
+    
 }

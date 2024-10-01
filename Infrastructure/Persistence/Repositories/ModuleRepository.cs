@@ -1,32 +1,53 @@
+using AutoMapper;
+using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class ModuleRepository : RepositoryBase<Module>, IModuleRepository
+public class ModuleRepository(AppDbContext context, IMapper mapper)
+    : RepositoryBase<Module>(context),
+        IModuleRepository
 {
-    public ModuleRepository(AppDbContext context) : base(context)
-    {
-        _context = context;
-    }
+    private readonly IMapper _mapper = mapper;
 
-    public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id)
-    {
-        var course = await _context.Courses.Where(c => c.Id.Equals(id)).Include(c => c.Modules).FirstOrDefaultAsync();
-        if (course == null) { return null; }
+    public async Task<Module?> GetModuleByIdWithActivitiesAsync(int id) =>
+        await GetByConditionAsync(m => m.Id.Equals(id))
+            .Include(m => m.Activities)
+            .FirstOrDefaultAsync();
 
-        return course.Modules.ToList();
-    }
-
-    public async Task<Module?> GetModuleByIdWithActivitiesAsync(int id)
+    public async Task<Module> GetModule(int id)
     {
         var result = await GetByConditionAsync(m => m.Id.Equals(id)).Include(m => m.Activities).FirstOrDefaultAsync();
         return result;
     }
 
-    public async Task<bool> CheckModuleExistsAsync(Module module)
+    public async Task<bool> CheckModuleExistsAsync(Module module) =>
+        await _db.Modules.AnyAsync(m => m.Name == module.Name);
+
+    public async Task<Module> CreateModuleAsync(ModuleForCreationDto moduleToCreate)
     {
-        return await _context.Modules.AnyAsync(m => m.Name == module.Name);
+        ArgumentNullException.ThrowIfNull(moduleToCreate);
+        var newModule = _mapper.Map<Module>(moduleToCreate);
+        _db.Modules.Add(newModule);
+        await _db.SaveChangesAsync();
+        return newModule;
     }
+
+    public async Task<Activity?> CreateActivityAsync(ActivityForCreationDto activityToCreate)
+    {
+        var newActivity = _mapper.Map<Activity>(activityToCreate);
+        _db.Activities.Add(newActivity);
+        await _db.SaveChangesAsync();
+        return newActivity;
+    }
+
+    public async Task<Activity> GetActivityByIdAsync(int id)
+    {
+        var activity = await _db.Activities.FirstOrDefaultAsync(x => x.Id == id);
+        return activity;
+    }
+    
+    public IQueryable<Module> QueryModuleById(int id) => _db.Modules.Where(x => x.Id == id);
 }

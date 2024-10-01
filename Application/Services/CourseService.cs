@@ -1,8 +1,13 @@
 ﻿using Application.Interfaces;
-using Data;
+
 using AutoMapper;
+
 using Domain.DTOs;
 using Domain.Entities;
+using Domain.Validations;
+using Microsoft.EntityFrameworkCore;
+
+using Infrastructure.Interfaces;
 
 namespace Application.Services
 {
@@ -24,13 +29,58 @@ namespace Application.Services
         {
             return await _dataCoordinator.Courses.GetCoursesAsync();
         }
-        //GET single course (id)
-        public async Task<CourseDto?> GetCourseDtoByIdAsync(int id)
+
+        public async Task<IEnumerable<CourseDto?>> GetCoursesAsync(
+            SearchFilterDTO searchFilterDTO)
         {
-            return await _dataCoordinator.Courses.GetCourseByIdAsync(id);
+            var isValidDateCombination = EndDateValidationAttribute.IsValidDateCombination(
+                searchFilterDTO.StartDate,
+                searchFilterDTO.EndDate);
+
+            return isValidDateCombination
+                ? await _dataCoordinator.Courses.GetCoursesAsync(searchFilterDTO)
+                : ([]);
         }
 
-        //POST new course
-        //PATCH existing course
+        //GET single course (id)
+        public async Task<CourseDto> GetCourseDtoByIdAsync(int id)
+        {
+            var course = await _dataCoordinator.Courses.GetCourseByIdAsync(id);
+            if (course == null)
+            {
+                NotFound($"Course with the ID {id} was not found in the database.");
+            }
+            var courseDto = _mapper.Map<CourseDto>(course);
+            return courseDto;
+        }
+
+        public async Task<CourseDto> CreateCourse(CourseCreateDto course)
+        {
+            var courseEntity = _mapper.Map<Course>(course);
+            await _dataCoordinator.Courses.CreateAsync(courseEntity);
+            await _dataCoordinator.CompleteAsync();
+            var res = _mapper.Map<CourseDto>(courseEntity);
+            return res;
+        }
+
+        public async Task PatchCourse(CourseDto courseDto)
+        {
+            var course = await _dataCoordinator.Courses
+                .GetByConditionAsync(course =>course.Id == courseDto.Id)
+                .FirstOrDefaultAsync();
+
+            if (course == null) { NotFound($"Course with the ID {courseDto.Id} was not found in the database."); }
+            
+            _mapper.Map(courseDto, course);
+            
+            await _dataCoordinator.CompleteAsync();
+        }
+        
+        public async Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id, SearchFilterDTO searchFilterDto) 
+        {
+            var modules = await _dataCoordinator.Courses.GetModulesOfCourseAsync(id, searchFilterDto);
+            var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
+            return moduleDtos;
+        }
     }
 }

@@ -1,9 +1,11 @@
-using Domain.DTOs;
-using Microsoft.AspNetCore.Mvc;
 using Application.Interfaces;
+using Domain.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Identity;
-using Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
+using Presentation.Filters;
+
+using Presentation.Filters;
 
 namespace Presentation.Controllers;
 
@@ -11,7 +13,8 @@ namespace Presentation.Controllers;
 [ApiController]
 [Produces("application/json")]
 //[Authorize(Roles = "Teacher")]
-public class UserController: ControllerBase
+[ValidateInput]
+public class UserController : ControllerBase
 {
     private readonly IServiceCoordinator _serviceCoordinator;
 
@@ -21,6 +24,7 @@ public class UserController: ControllerBase
     }
 
     //GET: Course participants by Course ID
+    /* [SkipValidation] */
     [HttpGet("course/{id}")]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersOfCourse(int id)
     {
@@ -32,43 +36,75 @@ public class UserController: ControllerBase
 
         return Ok(users);
     }
-    
-    //PATCH: Existing User by User ID
-    [HttpPatch("{username}")]
-    public async Task<ActionResult> PatchUserById(string username, [FromBody]JsonPatchDocument<UserForUpdateDto> patchDocument)
-    {
-        if (patchDocument == null)
-        {
-            return BadRequest("Patch document is null");
-        }
-        var userToBeUpdated = await _serviceCoordinator.UserService.GetUserByUsername(username);
-        if (userToBeUpdated == null) { BadRequest( $"A user with the username {username} could not be found in the database."); }
 
-        await _serviceCoordinator.UserService.PatchUser(userToBeUpdated!, patchDocument);
+    //GET: Course from UserName
+    /* [SkipValidation] */
+    [HttpGet("{username}")]
+    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourseOfUser(string username)
+    {
+        var user = await _serviceCoordinator.UserService.GetUserByUsername(username);
+        if (user == null)
+        {
+            return BadRequest(
+                $"A user with the username {username} could not be found in the database."
+            );
+        }
+        var usersCourseId = user.CourseId;
+        if (usersCourseId == null)
+        {
+            return BadRequest($"{username} is not assigned to a course");
+        }
+        var courseId = usersCourseId.GetValueOrDefault();
+        var course = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(courseId);
+        return Ok(course);
+    }
+
+    //PATCH: Existing User by User ID
+    /* [SkipValidation] */
+    [HttpPatch("{username}")]
+    public async Task<ActionResult> PatchUserByUsername(
+        string username,
+        [FromBody] JsonPatchDocument<UserForUpdateDto> patchDocument
+    )
+    {
+        var result = await _serviceCoordinator.UserService.PatchUser(username, patchDocument);
+        if (result == null)
+        {
+            BadRequest("User failed to get updated");
+        }
         return NoContent();
     }
 
+    /*
+     *
+     ****/
+    /* [SkipValidation] */
     [HttpGet(Name = "GetAllStudents")]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
     {
-        var users = await _serviceCoordinator.Identity.GetStudentsAsync();
-        if (users == null)
-        {
-            return NotFound("No students found in the database.");
-        }
-
-        return Ok(users);
+        var users = await _serviceCoordinator.UserService.GetAllUsersAsync();
+        return users == null
+            ? NotFound("No users found in the database.")
+            : Ok(users);
     }
 
-    //POST: Create new user
+    /*
+     * POST: Create new user
+     ****/
+    /* [SkipValidation] */
     [HttpPost]
     public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
     {
-        var userToBeCreated = await _serviceCoordinator.UserService.CreateNewUserAsync(newUser, _serviceCoordinator.User, _serviceCoordinator.Identity);
+        var userToBeCreated = await _serviceCoordinator.UserService.CreateNewUserAsync(
+            newUser,
+            _serviceCoordinator.User,
+            _serviceCoordinator.Identity
+        );
         if (userToBeCreated == null)
         {
             return BadRequest("The return body of the function call is 'null'");
         }
         return Ok(userToBeCreated);
     }
+    
 }
