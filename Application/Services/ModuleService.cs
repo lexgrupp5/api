@@ -8,14 +8,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class ModuleService(IDataCoordinator dataCoordinator, IMapper mapper) : ServiceBase<Module>, IModuleService
+public class ModuleService(IDataCoordinator dataCoordinator, IMapper mapper)
+    : ServiceBase<Module>,
+        IModuleService
 {
     //UoW
     private readonly IDataCoordinator _dc = dataCoordinator;
 
     //Mapper
-    private readonly IMapper _mapper;
-    
+    private readonly IMapper _mapper = mapper;
+
     public async Task<TDto?> GetModuleByIdAsync<TDto>(int id)
     {
         return await _mapper.ProjectTo<TDto>(_dc.Modules.QueryModuleById(id)).FirstAsync();
@@ -69,21 +71,16 @@ public class ModuleService(IDataCoordinator dataCoordinator, IMapper mapper) : S
         return mappedActivity;
     }
 
-    public async Task PatchModule(ModuleToPatchDto moduleToPatchDto)
+    public async Task<ActivityDto> GetActivityByIdAsync(int id)
     {
-        var module = await _dc
-            .Modules.GetByConditionAsync(module => module.Id == moduleToPatchDto.Id)
-            .FirstOrDefaultAsync();
-
-        if (module == null)
-        {
-            NotFound($"Module with the ID {moduleToPatchDto.Id} was not found in the database.");
-        }
-
-        _mapper.Map(moduleToPatchDto, module);
-
-        await _dc.CompleteAsync();
+        var activity = await _dc.Modules.GetActivityByIdAsync(id);
+        var activityDto = _mapper.Map<ActivityDto>(activity);
+        return activityDto;
     }
+
+    /* DEPRECATED
+     * *****************************************************************************/
+
 
     public async Task PatchActivity(ActivityDto activityDto)
     {
@@ -99,10 +96,19 @@ public class ModuleService(IDataCoordinator dataCoordinator, IMapper mapper) : S
         await _dc.CompleteAsync();
     }
 
-    public async Task<ActivityDto> GetActivityByIdAsync(int id)
+    public async Task PatchModule(ModuleToPatchDto moduleToPatchDto)
     {
-        var activity = await _dc.Modules.GetActivityByIdAsync(id);
-        var activityDto = _mapper.Map<ActivityDto>(activity);
-        return activityDto;
+        var module = await _dc
+            .Modules.GetByConditionAsync(module => module.Id == moduleToPatchDto.Id)
+            .FirstOrDefaultAsync();
+
+        if (module == null)
+        {
+            NotFound($"Module with the ID {moduleToPatchDto.Id} was not found in the database.");
+        }
+
+        _mapper.Map(moduleToPatchDto, module);
+
+        await _dc.CompleteAsync();
     }
 }

@@ -44,7 +44,7 @@ public static class SeedData
             await GenerateRolesAsync([StudentRole, TeacherRole]);
             await context.SaveChangesAsync();
 
-            await GenerateUsersAsync(50, courses);
+            await GenerateUsersAsync(500, courses);
             await context.SaveChangesAsync();
 
             var testUsers = GenerateTestUsers(courses);

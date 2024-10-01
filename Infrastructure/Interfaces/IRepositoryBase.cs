@@ -9,9 +9,8 @@ public interface IRepositoryBase<T>
 {
     IQueryable<T> GetQuery(
         IEnumerable<Expression<Func<T, bool>>>? filters = null,
-        ICollection<SortParams>? sorting = null,
-        PageParams? paging = null,
-        IEnumerable<Expression<Func<T, object>>>? includes = null
+        IEnumerable<SortParams>? sorting = null,
+        PageParams? paging = null
     );
     IQueryable<T> GetByConditionAsync(Expression<Func<T, bool>> expression);
     EntityEntry<T> Update(T entity);
