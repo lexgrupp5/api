@@ -1,128 +1,144 @@
 ﻿using System.Linq.Expressions;
+using Application.DTOs;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Constants;
 using Domain.DTOs;
 using Domain.Entities;
-using Domain.Validations;
 using Infrastructure.Interfaces;
-using Infrastructure.Models;
-using Infrastructure.Persistence;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
+using Shared.Extensions;
 
-namespace Application.Services
+namespace Application.Services;
+
+public class CourseService : ServiceBase<Course>, ICourseService
 {
-    public class CourseService : ServiceBase<Course>, ICourseService
+    private readonly IDataCoordinator _data;
+    private readonly IMapper _mapper;
+
+    public CourseService(IDataCoordinator dataCoordinator, IMapper mapper)
     {
-        //UoW
-        private readonly IDataCoordinator _data;
+        _data = dataCoordinator;
+        _mapper = mapper;
+    }
 
-        //Mapper
-        private readonly IMapper _mapper;
+    /*
+     *
+     ****/
+    public async Task<IEnumerable<CourseDto>?> GetAllAsync(
+        QueryParams? queryParams = null,
+        string? searchString = null,
+        DateParams? dateParams = null
+    )
+    {
+        var filters = new List<Expression<Func<Course, bool>>>();
 
-        // TODO: Remove when done testing
-        private readonly UserManager<User> _userManager;
-        private readonly AppDbContext _context;
+        var (sorting, paging) = ParseQueryParams(queryParams);
 
-        public CourseService(
-            IDataCoordinator dataCoordinator,
-            IMapper mapper,
-            UserManager<User> userManager,
-            AppDbContext context
-        )
+        if (searchString != null)
+            filters.AddNotNull(CreateSearchFilter(searchString, c => c.Name, c => c.Description));
+
+        if (dateParams != null)
+            filters.AddNotNull(CreateDateRangeFilter(dateParams.StartDate, dateParams.EndDate));
+
+        return await _mapper
+            .ProjectTo<CourseDto>(_data.Courses.GetQuery(filters, sorting, paging))
+            .ToListAsync();
+    }
+
+    /*
+     *
+     ****/
+    public async Task<CourseDto?> FindAsync(int id)
+    {
+        var query = _data.Courses.GetQueryById(id);
+        return await _mapper.ProjectTo<CourseDto>(query).FirstOrDefaultAsync();
+    }
+
+    /*
+     *
+     ****/
+    public async Task<ICollection<UserDto>?> GetStudentsByIdAsync(int id, QueryParams queryParams)
+    {
+        var (sorting, paging) = ParseQueryParams(queryParams);
+        var query = _data.Users.GetQueryUsersInRole(
+            UserRoles.Student,
+            [u => u.CourseId == id],
+            sorting,
+            paging
+        );
+
+        return await _mapper.ProjectTo<UserDto>(query).ToListAsync();
+    }
+
+    /*
+     *
+     ****/
+    public async Task<ICollection<ModuleDto>?> GetModulesByIdAsync(int id, QueryParams queryParams)
+    {
+        var (sorting, paging) = ParseQueryParams(queryParams);
+        var query = _data.Modules.GetQuery([m => m.CourseId == id], sorting, paging);
+
+        return await _mapper.ProjectTo<ModuleDto>(query).ToListAsync();
+    }
+
+    /*
+     *
+     ****/
+    public async Task<CourseDto?> Update(CourseUpdateDto dto)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+
+        var current = await _data.Courses.GetQueryById(dto.Id).FirstOrDefaultAsync();
+        if (current == null)
+            NotFound();
+
+        _mapper.Map(dto, current);
+        await _data.CompleteAsync();
+        return _mapper.Map<CourseDto>(current);
+    }
+
+    /* DEPRECATED
+     ***************************************************************************/
+
+    public async Task<CourseDto> CreateCourse(CourseCreateDto course)
+    {
+        var courseEntity = _mapper.Map<Course>(course);
+        await _data.Courses.CreateAsync(courseEntity);
+        await _data.CompleteAsync();
+        return _mapper.Map<CourseDto>(courseEntity);
+    }
+
+    public async Task PatchCourse(CourseDto courseDto)
+    {
+        var course = await _data
+            .Courses.GetByConditionAsync(course => course.Id == courseDto.Id)
+            .FirstOrDefaultAsync();
+
+        if (course == null)
         {
-            _data = dataCoordinator;
-            _mapper = mapper;
-
-            // TODO: Remove when done testing
-            _userManager = userManager;
-            _context = context;
+            NotFound($"Course with the ID {courseDto.Id} was not found in the database.");
         }
 
-        //GET all courses
-        public async Task<IEnumerable<CourseDto?>> GetCoursesAsync()
-        {
-            return await _data.Courses.GetCoursesAsync();
-        }
+        _mapper.Map(courseDto, course);
 
-        public async Task<IEnumerable<CourseDto?>> GetCoursesAsync(SearchFilterDTO searchFilterDTO)
-        {
-            var isValidDateCombination = EndDateValidationAttribute.IsValidDateCombination(
-                searchFilterDTO.StartDate,
-                searchFilterDTO.EndDate
-            );
+        await _data.CompleteAsync();
+    }
 
-            return isValidDateCombination
-                ? await _data.Courses.GetCoursesAsync(searchFilterDTO)
-                : ([]);
-        }
+    /* Private Helpers
+     ***************************************************************************/
 
-        //GET single course (id)
-        public async Task<CourseDto> GetCourseByIdAsync(int id)
-        {
-            var course = await _data.Courses.GetCourseByIdAsync(id);
-            if (course == null)
-            {
-                NotFound($"Course with the ID {id} was not found in the database.");
-            }
-            var courseDto = _mapper.Map<CourseDto>(course);
-            return courseDto;
-        }
+    private static Expression<Func<Course, bool>>? CreateDateRangeFilter(
+        DateTime? startDate,
+        DateTime? endDate
+    )
+    {
+        if (startDate is null || endDate is null)
+            return null;
 
-        public async Task<CourseDto> CreateCourse(CourseCreateDto course)
-        {
-            var courseEntity = _mapper.Map<Course>(course);
-            await _data.Courses.CreateAsync(courseEntity);
-            await _data.CompleteAsync();
-            return _mapper.Map<CourseDto>(courseEntity);
-        }
+        if (!(startDate > DateTime.MinValue) || !(endDate > DateTime.MinValue))
+            return null;
 
-        public async Task<IEnumerable<UserDto>> GetCourseStudentsAsync(
-            int courseId,
-            List<SortParams>? sorting = null,
-            PageParams? paging = null
-        )
-        {
-            List<SortParams> testSorting = [new() { Field = "Name", Descending = false }];
-            PageParams testPaging = new() { Page = 1, Size = 500 };
-            return await _mapper
-                .ProjectTo<UserDto>(
-                    _data.Users.GetQueryUsersInRole(
-                        UserRoles.Student,
-                        [u => u.CourseId == courseId],
-                        testSorting,
-                        testPaging
-                    )
-                )
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<ModuleDto?>> GetCourseModulesAsync(
-            int id,
-            SearchFilterDTO searchFilterDto
-        )
-        {
-            var modules = await _data.Courses.GetModulesOfCourseAsync(id, searchFilterDto);
-            var moduleDtos = _mapper.Map<IEnumerable<ModuleDto>>(modules);
-            return moduleDtos;
-        }
-
-        public async Task PatchCourse(CourseDto courseDto)
-        {
-            var course = await _data
-                .Courses.GetByConditionAsync(course => course.Id == courseDto.Id)
-                .FirstOrDefaultAsync();
-
-            if (course == null)
-            {
-                NotFound($"Course with the ID {courseDto.Id} was not found in the database.");
-            }
-
-            _mapper.Map(courseDto, course);
-
-            await _data.CompleteAsync();
-        }
+        return course => course.StartDate >= startDate && course.EndDate <= endDate;
     }
 }

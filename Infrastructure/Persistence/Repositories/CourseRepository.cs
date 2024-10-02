@@ -7,42 +7,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class CourseRepository(AppDbContext context, IMapper mapper)
-    : RepositoryBase<Course>(context),
-        ICourseRepository
+public class CourseRepository : RepositoryBase<Course>, ICourseRepository
 {
-    private readonly IMapper _mapper = mapper;
+    private readonly IMapper _mapper;
 
-    public async Task<IEnumerable<CourseDto>> GetCoursesAsync() =>
-        await _db
-            .Courses.Include(c => c.Modules)
-            .ProjectTo<CourseDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
-
-    public async Task<IEnumerable<CourseDto?>> GetCoursesAsync(SearchFilterDTO searchFilterDTO)
+    public CourseRepository(AppDbContext context, IMapper autoMapper)
+        : base(context)
     {
-        var emptySearchText = searchFilterDTO.SearchText == string.Empty;
-
-        var query = GetByConditionAsync(course =>
-            course.StartDate >= searchFilterDTO.StartDate
-            && course.EndDate <= searchFilterDTO.EndDate
-        );
-
-        if (!emptySearchText)
-        {
-            query = query.Where(course =>
-                course.Name.Contains(searchFilterDTO.SearchText)
-                || course.Description.Contains(searchFilterDTO.SearchText)
-            );
-        }
-
-        return await query.ProjectTo<CourseDto>(_mapper.ConfigurationProvider).ToListAsync();
+        _mapper = autoMapper;
     }
-    
-    public async Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id, SearchFilterDTO searchFilterDto)
+
+    public async Task<ICollection<Module>?> GetModulesOfCourseAsync(
+        int id,
+        SearchFilterDTO searchFilterDto
+    )
     {
-        IQueryable<Module> query = _db.Courses
-            .Where(c => c.Id == id)
+        IQueryable<Module> query = _db
+            .Courses.Where(c => c.Id == id)
             .Include(c => c.Modules)
             .ThenInclude(m => m.Activities)
             .ThenInclude(a => a.ActivityType)
@@ -73,5 +54,34 @@ public class CourseRepository(AppDbContext context, IMapper mapper)
     public async Task<bool> CheckCourseExistsAsync(Course course)
     {
         return await _db.Courses.AnyAsync(c => c.Name == course.Name);
+    }
+
+    /* DEPRECATED
+     **********************************************************************/
+
+    public async Task<ICollection<CourseDto>?> GetCoursesAsync() =>
+        await _db
+            .Courses.Include(c => c.Modules)
+            .ProjectTo<CourseDto>(_mapper.ConfigurationProvider)
+            .ToListAsync();
+
+    public async Task<ICollection<CourseDto>?> GetCoursesAsync(SearchFilterDTO searchFilterDTO)
+    {
+        var emptySearchText = searchFilterDTO.SearchText == string.Empty;
+
+        var query = GetByConditionAsync(course =>
+            course.StartDate >= searchFilterDTO.StartDate
+            && course.EndDate <= searchFilterDTO.EndDate
+        );
+
+        if (!emptySearchText)
+        {
+            query = query.Where(course =>
+                course.Name.Contains(searchFilterDTO.SearchText)
+                || course.Description.Contains(searchFilterDTO.SearchText)
+            );
+        }
+
+        return await query.ProjectTo<CourseDto>(_mapper.ConfigurationProvider).ToListAsync();
     }
 }

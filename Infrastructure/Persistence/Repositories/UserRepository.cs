@@ -40,27 +40,27 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         return await _db.Users.AnyAsync(u => u.Name == user.Name);
     }
 
-/*     public IQueryable<User> UsersInRole(IQueryable<User> query, string roleName)
-    {
-        return query.Where(u =>
-            _db.UserRoles.Any(ur =>
-                ur.RoleId
-                == _db.Roles.Where(r => r.Name == roleName).Select(r => r.Id).SingleOrDefault()
-            )
-        );
-    } */
-
-/*     public IQueryable<User> QueryUsersInRole(string roleName)
-    {
-        return _db
-            .Users.Where(u =>
+    /*     public IQueryable<User> UsersInRole(IQueryable<User> query, string roleName)
+        {
+            return query.Where(u =>
                 _db.UserRoles.Any(ur =>
                     ur.RoleId
                     == _db.Roles.Where(r => r.Name == roleName).Select(r => r.Id).SingleOrDefault()
                 )
-            )
-            .AsQueryable();
-    } */
+            );
+        } */
+
+    /*     public IQueryable<User> QueryUsersInRole(string roleName)
+        {
+            return _db
+                .Users.Where(u =>
+                    _db.UserRoles.Any(ur =>
+                        ur.RoleId
+                        == _db.Roles.Where(r => r.Name == roleName).Select(r => r.Id).SingleOrDefault()
+                    )
+                )
+                .AsQueryable();
+        } */
 
     public IQueryable<User> GetQueryUsersInRole(
         string roleName,
@@ -112,4 +112,7 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
      ****/
     public EntityEntry<UserSession> RemoveUserSession(UserSession session) =>
         _db.UserSession.Remove(session);
+
+    /* DEPRECATED
+     **********************************************************************/
 }

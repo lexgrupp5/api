@@ -5,11 +5,10 @@ namespace Infrastructure.Interfaces;
 
 public interface ICourseRepository : IRepositoryBase<Course>
 {
-    Task<IEnumerable<CourseDto>> GetCoursesAsync();
+    Task<ICollection<CourseDto>?> GetCoursesAsync();
     Task<Course?> GetCourseByIdAsync(int id);
     Task<bool> CheckCourseExistsAsync(Course course);
-    Task<IEnumerable<CourseDto?>> GetCoursesAsync(SearchFilterDTO searchFilterDTO);
+    Task<ICollection<CourseDto>?> GetCoursesAsync(SearchFilterDTO searchFilterDTO);
     
-    Task<IEnumerable<Module?>?> GetModulesOfCourseAsync(int id, SearchFilterDTO searchFilterDto);
-
+    Task<ICollection<Module>?> GetModulesOfCourseAsync(int id, SearchFilterDTO searchFilterDto);
 }

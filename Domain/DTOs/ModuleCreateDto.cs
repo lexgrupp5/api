@@ -1,12 +1,10 @@
-namespace Domain.Entities;
+namespace Domain.DTOs;
 
 #nullable disable
 
-public class ActivityType
+public record ModuleCreateDto
 {
-    public int Id { get; set; }
-
     public string Name { get; set; }
-
+    public int CourseId { get; set; }
     public string Description { get; set; }
 }

@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Reflection;
 using Infrastructure.Interfaces;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +23,30 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
         IEnumerable<Expression<Func<T, bool>>>? filters = null,
         IEnumerable<SortParams>? sorting = null,
         PageParams? paging = null
-    ) => BuildQuery(_db.Set<T>().AsQueryable(), filters, sorting, paging);
+    )
+    {
+        return _db.Set<T>()
+            .AsQueryable()
+            .ApplyFilters(filters)
+            .ApplySorting(sorting)
+            .ApplyPagination(paging);
+    }
+
+    /*
+     *
+     ****/
+    public IQueryable<T> GetQueryById(params object?[]? keyValues)
+    {
+        return _db.Set<T>().AsQueryable().Where(FindByIdFilter(keyValues));
+    }
+
+    /*
+     *
+     ****/
+    public async Task<bool> ExistsAsync(params object?[]? keyValues)
+    {
+        return await _db.Set<T>().AnyAsync(FindByIdFilter(keyValues));
+    }
 
     /*
      *
@@ -67,69 +89,32 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
         PageParams? paging = null
     )
     {
-        if (filters != null)
-            query = ApplyFilters(query, filters);
-
-        if (sorting != null)
-            query = ApplySorting(query, sorting);
-
-        if (paging != null)
-            query = ApplyPagination(query, paging);
-
-        return query;
+        return query.ApplyFilters(filters).ApplySorting(sorting).ApplyPagination(paging);
     }
 
-    /*
-     *
-     ****/
-    protected IQueryable<T> ApplyFilters(
-        IQueryable<T> query,
-        IEnumerable<Expression<Func<T, bool>>>? filters
-    ) => filters?.Aggregate(query, (cur, filter) => cur.Where(filter)) ?? query;
-
-    /*
-     *
-     ****/
-    protected IQueryable<T> ApplySorting(IQueryable<T> query, IEnumerable<SortParams>? sorting)
+    protected Expression<Func<T, bool>> FindByIdFilter(params object?[]? keyValues)
     {
-        if (sorting is null || !sorting.Any())
-            return query;
+        ArgumentNullException.ThrowIfNull(keyValues);
 
-        foreach (var sort in sorting)
-        {
-            var propInfo = typeof(T).GetProperty(
-                sort.Field,
-                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
-            );
-            if (propInfo == null)
-                continue;
+        var entityType = _db.Model.FindEntityType(typeof(T));
+        var primaryKeys = entityType?.FindPrimaryKey();
 
-            var parameter = Expression.Parameter(typeof(T), propInfo.Name);
-            var propertyAccess = Expression.MakeMemberAccess(parameter, propInfo);
-            var lambda =
-                (Expression<Func<T, object>>)
-                    Expression.Lambda(
-                        typeof(Func<,>).MakeGenericType(typeof(T), typeof(object)),
-                        propertyAccess,
-                        parameter
-                    );
-            query = query.SmartOrderBy(lambda, sort.Descending);
-        }
+        ArgumentNullException.ThrowIfNull(primaryKeys);
 
-        return query;
-    }
+        if (primaryKeys.Properties.Count != keyValues.Length)
+            throw new ArgumentException("keyValues count does not match primaryKeys");
 
-    /*
-     *
-     ****/
-    protected IQueryable<T> ApplyPagination(IQueryable<T> query, PageParams? pagination)
-    {
-        if (pagination == null)
-            return query;
+        var parameter = Expression.Parameter(typeof(T), nameof(T));
+        var body = primaryKeys
+            .Properties.Select(
+                (p, i) =>
+                    Expression.Equal(
+                        Expression.Property(parameter, p.Name),
+                        Expression.Constant(keyValues[i])
+                    )
+            )
+            .Aggregate(Expression.AndAlso);
 
-        pagination.Page = Math.Max(pagination.Page, 1);
-        pagination.Size = pagination.Size > 0 ? pagination.Size : 10;
-
-        return query.Skip((pagination.Page - 1) * pagination.Size).Take(pagination.Size);
+        return Expression.Lambda<Func<T, bool>>(body, parameter);
     }
 }
