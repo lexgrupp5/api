@@ -11,16 +11,10 @@ using Shared.Extensions;
 
 namespace Application.Services;
 
-public class CourseService : ServiceBase<Course>, ICourseService
+public class CourseService : ServiceBase<Course, CourseDto>, ICourseService
 {
-    private readonly IDataCoordinator _data;
-    private readonly IMapper _mapper;
-
     public CourseService(IDataCoordinator dataCoordinator, IMapper mapper)
-    {
-        _data = dataCoordinator;
-        _mapper = mapper;
-    }
+        : base(dataCoordinator, mapper) { }
 
     /*
      *
@@ -104,7 +98,7 @@ public class CourseService : ServiceBase<Course>, ICourseService
     public async Task<CourseDto> CreateCourse(CourseCreateDto course)
     {
         var courseEntity = _mapper.Map<Course>(course);
-        await _data.Courses.CreateAsync(courseEntity);
+        await _data.Courses.AddAsync(courseEntity);
         await _data.CompleteAsync();
         return _mapper.Map<CourseDto>(courseEntity);
     }

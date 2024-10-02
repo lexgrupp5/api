@@ -10,15 +10,15 @@ namespace Presentation.Controllers;
 
 [Route("api/courses")]
 [ApiController]
-[Produces("application/json")]
 [ValidateInput]
+[Produces("application/json")]
 public class CourseController : ApiBaseController
 {
     private readonly IServiceCoordinator _services;
 
-    public CourseController(IServiceCoordinator serviceCoordinator)
+    public CourseController(IServiceCoordinator services)
     {
-        _services = serviceCoordinator;
+        _services = services;
     }
 
     /*
@@ -82,18 +82,18 @@ public class CourseController : ApiBaseController
         return Ok(createdCourse);
     }
 
-    // TODO: Implement update for course
     /*
      * PUT: Course by ID
      *******************/
     [Authorize(Roles = "Teacher")]
     [HttpPut("{id}")]
-    public Task<ActionResult<CourseDto>> UpdateCourse(int id, [FromBody] CourseUpdateDto course)
+    public async Task<ActionResult<CourseDto>> UpdateCourse(
+        int id,
+        [FromBody] CourseUpdateDto course
+    )
     {
-        throw new NotImplementedException();
-
-        /* var updatedCourse = await _services.Course.UpdateCourse(course);
-        return Ok(updatedCourse); */
+        var result = await _services.Course.UpdateAsync(id, course);
+        return result != null ? Ok(result) : NotFound();
     }
 
     /*
@@ -101,27 +101,30 @@ public class CourseController : ApiBaseController
      ***********************/
     [Authorize(Roles = "Teacher")]
     [HttpDelete("{id}")]
-    public Task<ActionResult> DeleteCourse(int id, [FromBody] CourseDto course)
+    public async Task<ActionResult> DeleteCourse(int id, [FromBody] CourseDto course)
     {
-        throw new NotImplementedException();
+        var result = await _services.Course.DeleteAsync(id, course);
+        return result ? NoContent() : NotFound();
     }
 
     /* DEPRECATED
-     **************/
+     **********************************************************************/
 
     /* [SkipValidation] */
     [HttpPatch("{id}")]
     public async Task<IActionResult> PatchCourse(
         [FromRoute] int id,
-        [FromBody] JsonPatchDocument<CourseDto> coursePatchDocument
+        [FromBody] JsonPatchDocument<CourseDto> patchDocument
     )
     {
-        var courseToPatchWith = await _services.Course.FindAsync(id);
+        var courseDto = await _services.Course.FindAsync(id);
+        if (courseDto == null)
+            return NotFound();
 
         if (
             !TryValidateAndApplyPatch(
-                coursePatchDocument,
-                courseToPatchWith,
+                patchDocument,
+                courseDto,
                 out IActionResult errorResponse
             )
         )
@@ -129,7 +132,7 @@ public class CourseController : ApiBaseController
             return errorResponse;
         }
 
-        await _services.Course.PatchCourse(courseToPatchWith);
+        await _services.Course.PatchCourse(courseDto);
         return Ok(NoContent());
     }
 }

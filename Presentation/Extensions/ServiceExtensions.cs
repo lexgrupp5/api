@@ -17,7 +17,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-
 using Presentation.Filters;
 
 namespace Presentation.Extensions;
@@ -146,12 +145,12 @@ public static class ServiceExtensions
     public static void ConfigureRepositories(this IServiceCollection services)
     {
         //REPOSITORIES GO HERE
-        services.AddScoped<IDataCoordinator, DataCoordinator>();
         services.AddScoped<IActivityRepository, ActivityRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IModuleRepository, ModuleRepository>();
-        services.AddScoped<IDocumentRepository, DocumentRepository>();
         services.AddScoped<ICourseRepository, CourseRepository>();
+        services.AddScoped<IDataCoordinator, DataCoordinator>();
+        services.AddScoped<IDocumentRepository, DocumentRepository>();
+        services.AddScoped<IModuleRepository, ModuleRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
         // Lazy
         services.AddScoped(provider => new Lazy<IActivityRepository>(
@@ -174,15 +173,20 @@ public static class ServiceExtensions
     public static void ConfigureServices(this IServiceCollection services)
     {
         //SERVICES GO HERE
+        services.AddScoped<IActivityService, ActivityService>();
         services.AddScoped<IServiceCoordinator, ServiceCoordinator>();
         services.AddScoped<ICourseService, CourseService>();
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IModuleService, ModuleService>();
         services.AddScoped<IUserService, UserService>();
-        services.AddScoped<UserManager<User>, UserManager<User>>();
         services.AddSingleton<ITokenService, TokenService>();
+        
+        services.AddScoped<UserManager<User>, UserManager<User>>();
 
         // Lazy
+        services.AddScoped(provider => new Lazy<IActivityService>(
+            () => provider.GetRequiredService<IActivityService>()
+        ));
         services.AddScoped(provider => new Lazy<ICourseService>(
             () => provider.GetRequiredService<ICourseService>()
         ));

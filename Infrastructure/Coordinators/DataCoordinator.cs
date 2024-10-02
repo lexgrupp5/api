@@ -32,6 +32,11 @@ public class DataCoordinator : IDataCoordinator, IDisposable, IAsyncDisposable
         _userRepository = userRepository;
     }
 
+    public DbSet<T> Set<T>()
+        where T : class => _db.Set<T>();
+
+    public DbContext Context => _db;
+
     public async Task<int> CompleteAsync()
     {
         return await _db.SaveChangesAsync();

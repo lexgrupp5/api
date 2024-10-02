@@ -9,16 +9,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class ActivityService : ServiceBase<Activity>, IActivityService
+public class ActivityService : ServiceBase<Activity, ActivityDto>, IActivityService
 {
-    private readonly IDataCoordinator _dc;
-    private readonly IMapper _mapper;
-
     public ActivityService(IDataCoordinator dataCoordinator, IMapper autoMapper)
-    {
-        _dc = dataCoordinator;
-        _mapper = autoMapper;
-    }
+        : base(dataCoordinator, autoMapper) { }
 
     /*
      *
@@ -30,7 +24,7 @@ public class ActivityService : ServiceBase<Activity>, IActivityService
     )
     {
         return await _mapper
-            .ProjectTo<ActivityDto>(_dc.Activities.GetQuery(filters, sorting, paging))
+            .ProjectTo<ActivityDto>(_data.Activities.GetQuery(filters, sorting, paging))
             .ToListAsync();
     }
 
@@ -40,7 +34,21 @@ public class ActivityService : ServiceBase<Activity>, IActivityService
     public async Task<ActivityDto?> GetActivityByIdAsync<TDto>(int id)
     {
         return await _mapper
-            .ProjectTo<ActivityDto>(_dc.Activities.GetQuery([a => a.Id == id]))
+            .ProjectTo<ActivityDto>(_data.Activities.GetQuery([a => a.Id == id]))
             .FirstOrDefaultAsync();
+    }
+
+    /* DEPRECATED
+     **********************************************************************/
+
+    public async Task<ActivityDto> PatchActivity(ActivityDto dto)
+    {
+        var current = await _data.Modules.GetActivityByIdAsync(dto.Id);
+        if (current == null)
+            NotFound($"Activity with the ID {dto.Id} was not found in the database.");
+
+        _mapper.Map(dto, current);
+        await _data.CompleteAsync();
+        return _mapper.Map<ActivityDto>(current);
     }
 }

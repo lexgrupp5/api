@@ -1,45 +1,27 @@
-using System.Linq.Expressions;
 using Application.Interfaces;
 using Application.Models;
 using AutoMapper;
-using Domain.Configuration;
 using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Interfaces;
-using Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class UserService : ServiceBase<User>, IUserService
+public class UserService : ServiceBase<User, UserDto>, IUserService
 {
-    private readonly IDataCoordinator _data;
-    private readonly IMapper _mapper;
-    private readonly UserManager<User> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly TokenConfig _tokenOptions;
-    private readonly ITokenService _tokenService;
+    public UserService(IDataCoordinator dataCoordinator, IMapper mapper)
+        : base(dataCoordinator, mapper) { }
 
-    public UserService(
-        UserManager<User> userManager,
-        RoleManager<IdentityRole> roleManager,
-        ITokenService tokenService,
-        TokenConfig tokenOptions,
-        IDataCoordinator dataCoordinator,
-        IMapper mapper
-    )
+    public async Task<IEnumerable<UserDto>?> GetUsersAsync()
     {
-        _data = dataCoordinator;
-        _mapper = mapper;
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _tokenOptions = tokenOptions;
-        _tokenService = tokenService;
+        var users = await _data.Users.GetAllAsync();
+        return _mapper.Map<IEnumerable<UserDto>>(users);
     }
 
-    public async Task<UserDto?> UpdateAsync(UserForUpdateDto dto)
+    public async Task<UserDto?> UpdateAsync(UserUpdateDto dto)
     {
         var current = await FindUserAsync(dto.Username);
         if (current == null)
@@ -50,10 +32,43 @@ public class UserService : ServiceBase<User>, IUserService
         return _mapper.Map<UserDto>(current);
     }
 
-    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+    /* PRIVATE HELPERS
+     **********************************************************************/
+
+    private async Task<User?> FindUserAsync(string username) => await FindUserAsync<User>(username);
+
+    private async Task<T?> FindUserAsync<T>(string username) =>
+        await _mapper
+            .ProjectTo<T>(_data.Users.GetQuery([u => u.UserName == username]))
+            .FirstOrDefaultAsync();
+
+    /* DEPRECATED
+     **********************************************************************/
+
+    public async Task<UserDto?> PatchUser(
+        string username,
+        JsonPatchDocument<UserForUpdateDto> patchDocument
+    )
     {
-        var users = await _data.Users.GetAllAsync();
-        return _mapper.Map<IEnumerable<UserDto>>(users);
+        var currentUser = await _data
+            .Users.GetQuery([u => u.UserName == username])
+            .FirstOrDefaultAsync();
+        if (currentUser == null)
+        {
+            return null;
+        }
+
+        var userToPatch = _mapper.Map<UserForUpdateDto>(currentUser);
+        patchDocument.ApplyTo(userToPatch);
+
+        currentUser.Name = userToPatch.Name;
+        currentUser.Email = userToPatch.Email;
+        currentUser.UserName = userToPatch.Username;
+        currentUser.Course = userToPatch.Course;
+        await _data.CompleteAsync();
+
+        var updatedUser = _mapper.Map<UserDto>(currentUser);
+        return updatedUser;
     }
 
     public async Task<UserDto?> CreateNewUserAsync(
@@ -83,69 +98,4 @@ public class UserService : ServiceBase<User>, IUserService
         var finalDto = _mapper.Map<UserDto>(finalUser);
         return finalDto;
     }
-
-    private async Task<User?> FindUserAsync(string username) => await FindUserAsync<User>(username);
-
-    private async Task<T?> FindUserAsync<T>(string username) =>
-        await _mapper
-            .ProjectTo<T>(_data.Users.GetQuery([u => u.UserName == username]))
-            .FirstOrDefaultAsync();
-
-    // OLD REMOVE EVENTUALLY
-
-    public async Task<UserDto?> PatchUser(
-        string username,
-        JsonPatchDocument<UserForUpdateDto> patchDocument
-    )
-    {
-        var userToBeUpdated = await GetUserByUsername(username);
-        if (userToBeUpdated == null)
-        {
-            return null;
-        }
-
-        var userToPatch = _mapper.Map<UserForUpdateDto>(userToBeUpdated);
-        patchDocument.ApplyTo(userToPatch);
-
-        userToBeUpdated.Name = userToPatch.Name;
-        userToBeUpdated.Email = userToPatch.Email;
-        userToBeUpdated.UserName = userToPatch.Username;
-        userToBeUpdated.Course = userToPatch.Course;
-        await _data.CompleteAsync();
-
-        var updatedUser = _mapper.Map<UserDto>(userToBeUpdated);
-        return updatedUser;
-    }
-
-    public async Task<IEnumerable<UserDto>> TestUserQuery()
-    {
-        // Setup filters i/e where clauses
-        List<Expression<Func<User, bool>>> filters =
-        [
-            u => u.UserName!.ToLower().Contains("test".ToLower())
-        ];
-
-        // Setup property/column sorting, order matters
-        List<SortParams> sorting = [new() { Field = "Name", Descending = false }];
-
-        // Pagination offset and size of set.
-        PageParams pagination = new() { Page = 1, Size = 10 };
-
-        // Get the queryable with filters, sorting and pagination
-        var query = _data.Users.GetQuery(filters, sorting, pagination);
-
-        // Use automapper for projection and eager loading
-        return await _mapper.ProjectTo<UserDto>(query).ToListAsync();
-    }
-
-    public async Task<IEnumerable<UserDto?>> GetUsersOfCourseByIdAsync(int courseId)
-    {
-        var users = await _data.Users.GetUsersFromCourseByIdAsync(courseId);
-        var userDtos = _mapper.Map<IEnumerable<UserDto>>(users); 
-
-        return userDtos;
-    }
-
-    public async Task<User?> GetUserByUsername(string name) =>
-        await _userManager.FindByNameAsync(name);
 }

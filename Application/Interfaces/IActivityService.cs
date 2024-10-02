@@ -5,7 +5,7 @@ using Infrastructure.Models;
 
 namespace Application.Interfaces;
 
-public interface IActivityService
+public interface IActivityService : IServiceBase<Activity, ActivityDto>
 {
     Task<IEnumerable<ActivityDto?>> GetActivitiesAsync(
         ICollection<Expression<Func<Activity, bool>>>? filters = null,
@@ -13,4 +13,9 @@ public interface IActivityService
         PageParams? paging = null
     );
     Task<ActivityDto?> GetActivityByIdAsync<TDto>(int id);
+
+    /* DEPRECATED
+     **********************************************************************/
+
+     Task<ActivityDto> PatchActivity(ActivityDto dto);
 }

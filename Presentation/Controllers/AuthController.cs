@@ -2,7 +2,6 @@ using Application.Interfaces;
 using Application.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using Presentation.Filters;
 
 namespace Presentation.Controllers;
@@ -11,9 +10,14 @@ namespace Presentation.Controllers;
 [ApiController]
 [Authorize]
 [ValidateInput]
-public class AuthController(IServiceCoordinator serviceCoordinator) : ControllerBase
+public class AuthController : ApiBaseController
 {
-    private readonly IServiceCoordinator _services = serviceCoordinator;
+    private readonly IServiceCoordinator _services;
+
+    public AuthController(IServiceCoordinator services)
+    {
+        _services = services;
+    }
 
     /*
      *
@@ -25,9 +29,9 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
     {
         /* return BadRequest("test"); */
         var (access, cookie) = await _services.Identity.AuthenticateAsync(userDto);
-        
+
         HttpContext.Response.Cookies.Append(cookie.Key, cookie.Token, cookie.Options);
-        
+
         return access == null ? BadRequest() : Ok(access);
     }
 

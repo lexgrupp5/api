@@ -7,59 +7,45 @@ using Presentation.Filters;
 
 namespace Presentation.Controllers;
 
-[Route("api/User")]
+[Route("api/users")]
 [ApiController]
-[Produces("application/json")]
-//[Authorize(Roles = "Teacher")]
 [ValidateInput]
-public class UserController : ControllerBase
+[Produces("application/json")]
+public class UserController : ApiBaseController
 {
     private readonly IServiceCoordinator _services;
 
-    public UserController(IServiceCoordinator serviceCoordinator)
+    public UserController(IServiceCoordinator services)
     {
-        _services = serviceCoordinator;
+        _services = services;
     }
 
     /*
      *
      ****/
-    /* [SkipValidation] */
     [Authorize(Roles = "Teacher")]
     [HttpGet(Name = "GetAllStudents")]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
+    public Task<ActionResult<IEnumerable<UserDto>?>> GetAllStudents()
     {
-        var users = await _services.UserService.GetAllUsersAsync();
-        return users == null ? NotFound("No users found in the database.") : Ok(users);
+        throw new NotImplementedException();
     }
 
     /*
-     * POST: Create new user
+     *
      ****/
-    /* [SkipValidation] */
-    [HttpPost]
-    public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
+    // TODO: implement
+    private Task<ActionResult<UserDto>> CreateNewUserAsync(UserCreateDto dto)
     {
-        var userToBeCreated = await _services.UserService.CreateNewUserAsync(
-            newUser,
-            _services.User,
-            _services.Identity
-        );
-        if (userToBeCreated == null)
-        {
-            return BadRequest("The return body of the function call is 'null'");
-        }
-        return Ok(userToBeCreated);
+        throw new NotImplementedException();
     }
 
-    // TODO: Implement update for user
+    /*
+     *
+     ****/
     [HttpPut("{id}")]
     public Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UserForUpdateDto user)
     {
         throw new NotImplementedException();
-
-        /* var updatedUser = await _services.UserService.UpdateUser(user);
-        return Ok(updatedUser); */
     }
 
     /*
@@ -74,7 +60,7 @@ public class UserController : ControllerBase
         [FromBody] JsonPatchDocument<UserForUpdateDto> patchDocument
     )
     {
-        var result = await _services.UserService.PatchUser(username, patchDocument);
+        var result = await _services.User.PatchUser(username, patchDocument);
         if (result == null)
         {
             BadRequest("User failed to get updated");
@@ -82,39 +68,21 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-    //GET: Course from UserName
-    /* [SkipValidation] */
-    [HttpGet("{username}")]
-    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourseOfUser(string username)
+    /*
+     * POST: Create new user
+     ****/
+    [HttpPost]
+    public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
     {
-        var user = await _services.UserService.GetUserByUsername(username);
-        if (user == null)
+        var userToBeCreated = await _services.User.CreateNewUserAsync(
+            newUser,
+            _services.UserManager,
+            _services.Identity
+        );
+        if (userToBeCreated == null)
         {
-            return BadRequest(
-                $"A user with the username {username} could not be found in the database."
-            );
+            return BadRequest("The return body of the function call is 'null'");
         }
-        var usersCourseId = user.CourseId;
-        if (usersCourseId == null)
-        {
-            return BadRequest($"{username} is not assigned to a course");
-        }
-        var courseId = usersCourseId.GetValueOrDefault();
-        var course = await _services.Course.FindAsync(courseId);
-        return Ok(course);
-    }
-
-    //GET: Course participants by Course ID
-    /* [SkipValidation] */
-    [HttpGet("course/{id}")]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersOfCourse(int id)
-    {
-        var users = await _services.UserService.GetUsersOfCourseByIdAsync(id);
-        if (users == null)
-        {
-            return NotFound($"Users of course with ID {id} were not found in the database.");
-        }
-
-        return Ok(users);
+        return Ok(userToBeCreated);
     }
 }

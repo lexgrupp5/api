@@ -1,16 +1,16 @@
 using Application.Interfaces;
-using Application.Models;
 using Domain.DTOs;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Filters;
 
 namespace Presentation.Controllers;
 
-[ApiController]
 [Route("api/activities")]
+[ApiController]
 [ValidateInput]
 [Produces("application/json")]
-public class ActivityController : ControllerBase
+public class ActivityController : ApiBaseController
 {
     private readonly IServiceCoordinator _services;
 
@@ -19,33 +19,64 @@ public class ActivityController : ControllerBase
         _services = services;
     }
 
-    [HttpGet]
-    public Task<ActionResult<IEnumerable<ActivityDto>>> GetActivities()
-    {
-        throw new NotImplementedException();
-    }
-
     [HttpGet("{id}")]
-    public Task<ActionResult<ActivityDto>> GetActivityById(int id)
+    public async Task<ActionResult<ActivityDto>> GetActivityById(int id)
     {
-        throw new NotImplementedException();
+        var result = await _services.Activity.FindAsync(id);
+        return result != null ? Ok(result) : NotFound();
     }
 
     [HttpPost]
-    public Task<ActionResult<ActivityDto>> CreateActivity([FromBody] ActivityCreateModel activity)
+    public async Task<ActionResult<ActivityDto>> CreateActivity([FromBody] ActivityCreateDto dto)
     {
-        throw new NotImplementedException();
+        var result = await _services.Activity.CreateAsync(dto);
+        return result != null ? Ok(result) : NotFound();
     }
 
     [HttpPut("{id}")]
-    public Task<ActionResult<ActivityDto>> UpdateActivity(int id, [FromBody] ActivityDto activity)
+    public async Task<ActionResult<ActivityDto>> UpdateActivity(
+        int id,
+        [FromBody] ActivityUpdateDto dto
+    )
     {
-        throw new NotImplementedException();
+        var result = await _services.Activity.UpdateAsync(id, dto);
+        return result != null ? Ok(result) : NotFound();
     }
 
     [HttpDelete("{id}")]
-    public Task<ActionResult> DeleteActivity(int id)
+    public async Task<ActionResult> DeleteActivity(int id, [FromBody] ActivityDto dto)
     {
-        throw new NotImplementedException();
+        var result = await _services.Activity.DeleteAsync(id, dto);
+        return result ? NoContent() : NotFound();
+    }
+
+    /* DEPRECATED
+     **********************************************************************/
+
+    /*
+     *
+     ****/
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<ActivityDto>> PatchActivity(
+        [FromRoute] int id,
+        [FromBody] JsonPatchDocument<ActivityDto> patchDocument
+    )
+    {
+        var activityToPatch = await _services.Activity.FindAsync(id);
+        if (activityToPatch == null)
+            return NotFound();
+
+        if (
+            !TryValidateAndApplyPatch(
+                patchDocument,
+                activityToPatch,
+                out IActionResult errorResponse
+            )
+        )
+        {
+            return BadRequest(errorResponse);
+        }
+
+        return Ok(await _services.Activity.PatchActivity(activityToPatch));
     }
 }

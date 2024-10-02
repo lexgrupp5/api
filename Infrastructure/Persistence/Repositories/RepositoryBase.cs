@@ -16,6 +16,8 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
         _db = context;
     }
 
+    public DbContext Context => _db;
+
     /*
      *
      ****/
@@ -35,23 +37,20 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
     /*
      *
      ****/
-    public IQueryable<T> GetQueryById(params object?[]? keyValues)
-    {
-        return _db.Set<T>().AsQueryable().Where(FindByIdFilter(keyValues));
-    }
+    public IQueryable<T> GetQueryById(params object?[]? keyValues) =>
+        _db.Set<T>().AsQueryable().Where(FindByIdFilter(keyValues));
 
     /*
      *
      ****/
-    public async Task<bool> ExistsAsync(params object?[]? keyValues)
-    {
-        return await _db.Set<T>().AnyAsync(FindByIdFilter(keyValues));
-    }
+    public async Task<T?> FindAsync(params object?[]? keyValues) =>
+        await _db.Set<T>().FindAsync(keyValues);
 
     /*
      *
      ****/
-    public IEnumerable<T> GetAll() => [.. _db.Set<T>()];
+    public async Task<bool> ExistsAsync(params object?[]? keyValues) =>
+        await _db.Set<T>().AnyAsync(FindByIdFilter(keyValues));
 
     /*
      *
@@ -67,7 +66,7 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
     /*
      *
      ****/
-    public async Task<EntityEntry<T>> CreateAsync(T entity) => await _db.Set<T>().AddAsync(entity);
+    public async Task<EntityEntry<T>> AddAsync(T entity) => await _db.Set<T>().AddAsync(entity);
 
     /*
      *

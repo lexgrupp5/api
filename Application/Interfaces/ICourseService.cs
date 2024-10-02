@@ -1,10 +1,10 @@
 ﻿using Application.DTOs;
 using Domain.DTOs;
-using Infrastructure.Models;
+using Domain.Entities;
 
 namespace Application.Interfaces;
 
-public interface ICourseService
+public interface ICourseService : IServiceBase<Course, CourseDto>
 {
     Task<CourseDto?> FindAsync(int id);
     Task<ICollection<UserDto>?> GetStudentsByIdAsync(int id, QueryParams queryParams);

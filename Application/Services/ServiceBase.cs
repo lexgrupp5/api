@@ -3,17 +3,114 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using Application.DTOs;
 using Application.Interfaces;
+using AutoMapper;
 using Domain.Exceptions;
+using Infrastructure.Interfaces;
 using Infrastructure.Models;
 
 namespace Application.Services;
 
-public abstract class ServiceBase<T> : IServiceBase<T>
+public abstract class ServiceBase<TEntity, TDto> : IServiceBase<TEntity, TDto>
+    where TEntity : class
+    where TDto : class
 {
+    protected readonly IDataCoordinator _data;
+    protected readonly IMapper _mapper;
+
+    protected ServiceBase(IDataCoordinator dataCoordinator, IMapper mapper)
+    {
+        _data = dataCoordinator;
+        _mapper = mapper;
+    }
+
     /*
      *
      ****/
-    protected static bool TryValidateDto<TDto>(TDto dto, out ICollection<ValidationResult> results)
+    public virtual async Task<TDto?> FindAsync(params object?[]? keyValues) =>
+        _mapper.Map<TDto>(await _data.Set<TEntity>().FindAsync(keyValues));
+
+    /*
+     *
+     ****/
+    public virtual async Task<TDto?> CreateAsync<TCreateDto>(TCreateDto createDto)
+    {
+        ArgumentNullException.ThrowIfNull(createDto);
+
+        var newEntity = _mapper.Map<TEntity>(createDto);
+        await _data.Set<TEntity>().AddAsync(newEntity);
+        await _data.CompleteAsync();
+
+        return _mapper.Map<TDto>(newEntity);
+    }
+
+    /*
+     *
+     ****/
+    public virtual async Task<TDto> UpdateAsync<TUpdateDto>(object id, TUpdateDto updateDto)
+    {
+        ArgumentNullException.ThrowIfNull(updateDto);
+
+        var idValue = typeof(TUpdateDto).GetProperty("Id")?.GetValue(updateDto);
+        if (idValue == null)
+            throw new ArgumentException($"{nameof(TUpdateDto)} does not contain an Id property.");
+
+        if (id != idValue)
+            BadRequest("Id missmatch");
+
+        var currentEntity = await _data.Set<TEntity>().FindAsync(idValue);
+        if (currentEntity == null)
+            NotFound();
+
+        _mapper.Map(updateDto, currentEntity);
+        await _data.CompleteAsync();
+
+        return _mapper.Map<TDto>(currentEntity);
+    }
+
+    /*
+     *
+     ****/
+    public virtual async Task<bool> DeleteAsync(object id, TDto entityDto) =>
+        await DeleteAsync<TDto>(id, entityDto);
+
+    /*
+     *
+     ****/
+    public virtual async Task<bool> DeleteAsync<T>(object id, T entityDto)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+
+        var idValue = typeof(T).GetProperty("Id")?.GetValue(entityDto);
+        if (idValue == null)
+            throw new ArgumentException($"{nameof(T)} does not contain an Id property.");
+
+        if (id != idValue)
+            BadRequest("Id missmatch");
+
+        var entity = await _data.Set<TEntity>().FindAsync(idValue);
+        if (entity == null)
+            NotFound();
+
+        return await DeleteAsync(entity);
+    }
+
+    /* PROTECTED HELPERS
+     ************************************************************************/
+
+    /*
+     *
+     ****/
+    protected virtual async Task<bool> DeleteAsync(TEntity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        _data.Set<TEntity>().Remove(entity);
+        return await _data.CompleteAsync() > 0;
+    }
+
+    /*
+     *
+     ****/
+    protected static bool TryValidateDto(TDto dto, out ICollection<ValidationResult> results)
     {
         results = [];
         if (dto is null)
@@ -26,16 +123,16 @@ public abstract class ServiceBase<T> : IServiceBase<T>
     /*
      *
      ****/
-    protected Expression<Func<T, bool>>? CreateSearchFilter(
+    protected virtual Expression<Func<TEntity, bool>>? CreateSearchFilter(
         string searchString,
-        params Expression<Func<T, string>>[] properties
+        params Expression<Func<TEntity, string>>[] properties
     )
     {
         if (string.IsNullOrEmpty(searchString))
             return null;
 
         var lowerSearchString = searchString.ToLowerInvariant();
-        var parameter = Expression.Parameter(typeof(T), "x");
+        var parameter = Expression.Parameter(typeof(TEntity), "x");
         var containsMethod = typeof(string).GetMethod("Contains", [typeof(string)])!;
 
         Expression? searchExpressions = null;
@@ -53,13 +150,13 @@ public abstract class ServiceBase<T> : IServiceBase<T>
                     : Expression.OrElse(searchExpressions, expression);
         }
 
-        return Expression.Lambda<Func<T, bool>>(searchExpressions!, parameter);
+        return Expression.Lambda<Func<TEntity, bool>>(searchExpressions!, parameter);
     }
 
     /*
      *
      ****/
-    protected static (ICollection<SortParams>?, PageParams?) ParseQueryParams(
+    protected virtual (ICollection<SortParams>?, PageParams?) ParseQueryParams(
         QueryParams? queryParams
     )
     {
@@ -72,6 +169,8 @@ public abstract class ServiceBase<T> : IServiceBase<T>
         );
     }
 
+    /* Exceptions
+     ************************************************************************/
     [DoesNotReturn]
     protected static void NotFound(
         string detail = "Entity not found",
