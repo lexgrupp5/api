@@ -2,6 +2,7 @@ namespace Infrastructure.Interfaces;
 
 public interface IDataCoordinator
 {
+    IActivityRepository Activities { get; }
     ICourseRepository Courses { get; }
     IModuleRepository Modules { get; }
     IUserRepository Users { get; }

@@ -3,24 +3,23 @@ using AutoMapper;
 using Domain.DTOs;
 using Domain.Entities;
 
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
 namespace Application.Mapper;
 
 public class MapperProfile : Profile
 {
     public MapperProfile()
     {
-        // Course -> CourseDTO
-        CreateMap<Course, CourseDto>()
-            //.ForMember(dest => dest.ModuleNames, opt => opt.MapFrom(src => src.Modules.Select(m => m.Name).ToArray()))
-            .ConstructUsing(src => new CourseDto(
-                src.Id,
-                src.Name,
-                src.Description,
-                src.StartDate,
-                src.EndDate,
-                src.Modules.Select(m => m.Name).ToArray()
-                ))
+
+        // Course
+        CreateMap<Course, CourseDto>();
+        CreateMap<Course, CourseCompleteDto>()
+            .ForMember(dest => dest.Modules, opt => opt.MapFrom(src => src.Modules))
+            .ForMember(dest => dest.Students, opt => opt.MapFrom(src => src.Users))
             .ReverseMap();
+        CreateMap<CourseCreateDto, Course>();
+        CreateMap<CourseUpdateDto, Course>();
 
         //Activity -> ActivityDTO
         CreateMap<Activity, ActivityDto>()
@@ -60,7 +59,6 @@ public class MapperProfile : Profile
         CreateMap<UserCreateModel, UserForCreationDto>().ReverseMap();
         CreateMap<User, UserForUpdateDto>().ReverseMap();
         CreateMap<User, UserDto>().ReverseMap();
-        CreateMap<Course, CourseCreateDto>().ReverseMap();
 
         CreateMap<ActivityCreateModel, Activity>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

@@ -1,6 +1,5 @@
 using Application.Interfaces;
 using Domain.DTOs;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -101,7 +100,7 @@ public class UserController : ControllerBase
             return BadRequest($"{username} is not assigned to a course");
         }
         var courseId = usersCourseId.GetValueOrDefault();
-        var course = await _services.Course.GetCourseByIdAsync(courseId);
+        var course = await _services.Course.FindAsync(courseId);
         return Ok(course);
     }
 

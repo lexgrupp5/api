@@ -1,5 +1,7 @@
+using Application.DTOs;
 using Application.Interfaces;
 using Domain.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Filters;
@@ -10,50 +12,69 @@ namespace Presentation.Controllers;
 [ApiController]
 [Produces("application/json")]
 [ValidateInput]
-public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseController
+public class CourseController : ApiBaseController
 {
-    private readonly IServiceCoordinator _services = serviceCoordinator;
+    private readonly IServiceCoordinator _services;
 
-    //GET: All courses
-    /* [SkipValidation] */
+    public CourseController(IServiceCoordinator serviceCoordinator)
+    {
+        _services = serviceCoordinator;
+    }
+
+    /*
+     * GET: All courses
+     *******************/
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetAllCourses(
-        [FromQuery] SearchFilterDTO searchFilterDTO
+        [FromQuery] string? search,
+        [FromQuery] DateParams? dateParams,
+        [FromQuery] QueryParams? queryParams
     )
     {
-        var courses =
-            Request.Query.Count != 0
-                ? await _services.Course.GetCoursesAsync(searchFilterDTO)
-                : await _services.Course.GetCoursesAsync();
-
-        return Ok(courses);
+        var courses = await _services.Course.GetAllAsync(queryParams, search, dateParams);
+        return courses != null ? Ok(courses) : NotFound();
     }
 
-    //GET: Course by ID
-    /* [SkipValidation] */
+    /*
+     * GET: Course by ID
+     *******************/
     [HttpGet("{id}")]
-    public async Task<ActionResult<CourseDto?>> GetCourseById(int id)
+    public async Task<ActionResult<CourseDto>> GetCourseById(int id)
     {
-        return await _services.Course.GetCourseByIdAsync(id);
+        var course = await _services.Course.FindAsync(id);
+        return course != null ? Ok(course) : NotFound();
     }
 
-    // TODO: Implement update for course
-    [HttpPut("{id}")]
-    public Task<ActionResult<CourseDto>> UpdateCourse(int id, [FromBody] CourseDto course)
+    /*
+     * GET: Students by Course ID
+     *****************************/
+    [HttpGet("{id}/students")]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetCourseStudents(
+        int id,
+        [FromQuery] QueryParams queryParams
+    )
     {
-        throw new NotImplementedException();
-
-        /* var updatedCourse = await _services.Course.UpdateCourse(course);
-        return Ok(updatedCourse); */
+        var users = await _services.Course.GetStudentsByIdAsync(id, queryParams);
+        return users != null ? Ok(users) : NotFound();
     }
 
-    [HttpDelete("{id}")]
-    public Task<ActionResult> DeleteCourse(int id)
+    /*
+     * GET: Modules by Course ID
+     ****************************/
+    [HttpGet("{id}/modules")]
+    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetCourseModules(
+        int id,
+        [FromQuery] QueryParams queryParams
+    )
     {
-        throw new NotImplementedException();
+        var modules = await _services.Course.GetModulesByIdAsync(id, queryParams);
+        return modules != null ? Ok(modules) : NotFound();
     }
 
-    /* [SkipValidation] */
+    /*
+     * POST: Create a new course
+     ****************************/
+    [Authorize(Roles = "Teacher")]
     [HttpPost]
     public async Task<ActionResult<CourseDto>> CreateCourse([FromBody] CourseCreateDto course)
     {
@@ -61,31 +82,28 @@ public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         return Ok(createdCourse);
     }
 
-    [HttpGet("{id}/students")]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetCourseStudents(int id)
+    // TODO: Implement update for course
+    /*
+     * PUT: Course by ID
+     *******************/
+    [Authorize(Roles = "Teacher")]
+    [HttpPut("{id}")]
+    public Task<ActionResult<CourseDto>> UpdateCourse(int id, [FromBody] CourseUpdateDto course)
     {
-        var users = await _services.Course.GetCourseStudentsAsync(id);
+        throw new NotImplementedException();
 
-        return Ok(users);
+        /* var updatedCourse = await _services.Course.UpdateCourse(course);
+        return Ok(updatedCourse); */
     }
 
-    //GET: Modules by Course ID
-    [HttpGet("{id}/modules")]
-    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetCourseModules(
-        int id,
-        [FromQuery] SearchFilterDTO searchFilterDTO
-    )
+    /*
+     * DELETE: Course by ID
+     ***********************/
+    [Authorize(Roles = "Teacher")]
+    [HttpDelete("{id}")]
+    public Task<ActionResult> DeleteCourse(int id, [FromBody] CourseDto course)
     {
-        var modules = await _services.Course.GetCourseModulesAsync(id, searchFilterDTO);
-
-        if (modules == null)
-        {
-            return NotFound(
-                "No modules found. Either course ID was bad or course contains no modules."
-            );
-        }
-
-        return Ok(modules);
+        throw new NotImplementedException();
     }
 
     /* DEPRECATED
@@ -98,7 +116,7 @@ public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseC
         [FromBody] JsonPatchDocument<CourseDto> coursePatchDocument
     )
     {
-        var courseToPatchWith = await _services.Course.GetCourseByIdAsync(id);
+        var courseToPatchWith = await _services.Course.FindAsync(id);
 
         if (
             !TryValidateAndApplyPatch(

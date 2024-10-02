@@ -12,10 +12,16 @@ public interface IRepositoryBase<T>
         IEnumerable<SortParams>? sorting = null,
         PageParams? paging = null
     );
-    IQueryable<T> GetByConditionAsync(Expression<Func<T, bool>> expression);
+    IQueryable<T> GetQueryById(params object?[]? keyValues);
+    Task<bool> ExistsAsync(params object?[]? keyValues);
     EntityEntry<T> Update(T entity);
     EntityEntry<T> Delete(T entity);
     Task<EntityEntry<T>> CreateAsync(T entity);
+
+    // Maybe remove
     IEnumerable<T> GetAll();
     Task<IEnumerable<T>> GetAllAsync();
+
+    //DEPRECATED
+    IQueryable<T> GetByConditionAsync(Expression<Func<T, bool>> expression);
 }
