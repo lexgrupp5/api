@@ -17,7 +17,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-
 using Presentation.Filters;
 
 namespace Presentation.Extensions;
@@ -72,6 +71,8 @@ public static class ServiceExtensions
                     ValidateAudience = true,
                     ValidAudience = accessConfig.Audience,
                     ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero,
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(accessConfig.Secret)
                     ),
@@ -79,7 +80,7 @@ public static class ServiceExtensions
             );
 
         services
-            .AddIdentity<User, IdentityRole>(opt =>
+            .AddIdentityCore<User>(opt =>
             {
                 opt.Password.RequireDigit = true;
                 opt.Password.RequiredLength = 8;
