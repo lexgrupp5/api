@@ -105,10 +105,11 @@ public class IdentityService(
         return userSession;
     }
 
-    private async Task<User?> FindUserByPrincipalAsync(ClaimsPrincipal principal) =>
-        await _userManager.FindByNameAsync(
-            principal.FindFirst(ClaimTypes.NameIdentifier)?.ToString() ?? string.Empty
+    private async Task<User?> FindUserByPrincipalAsync(ClaimsPrincipal principal) => 
+       await _userManager.FindByIdAsync(
+            principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty
         );
+    
 
     private async Task<User> ValidateUser(UserAuthModel userDto)
     {

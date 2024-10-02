@@ -6,19 +6,29 @@ public static class CORSExtension
 
     private static readonly string _prod = "prod";
 
-    public static void AddCORS(this WebApplicationBuilder builder)
+    public static void AddCORS(
+        this WebApplicationBuilder builder,
+        ConfigurationManager config)
     {
+        var origins = config.GetSection("CORS:AllowedOrigins").Get<string[]>()
+            ?? throw new InvalidOperationException("CORS origins 'CORS:AllowedOrigins' not found."
+        );
+
         builder.Services.AddCors(options =>
-            options.AddPolicy(
-                _dev,
-                builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+            options.AddPolicy(_dev, builder => builder
+                .WithOrigins(origins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
             )
         );
 
         builder.Services.AddCors(options =>
-            options.AddPolicy(
-                _prod,
-                builder => builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader()
+            options.AddPolicy(_prod, builder => builder
+                .WithOrigins(origins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
             )
         );
     }

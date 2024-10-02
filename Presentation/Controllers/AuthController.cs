@@ -1,7 +1,11 @@
 using Application.Interfaces;
 using Application.Models;
+using Domain.DTOs;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+using Newtonsoft.Json.Linq;
 
 using Presentation.Filters;
 
@@ -25,9 +29,11 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
     {
         /* return BadRequest("test"); */
         var (access, cookie) = await _services.Identity.AuthenticateAsync(userDto);
-        
+
+        cookie.Options.Path = Url.Action(nameof(RefreshToken));
         HttpContext.Response.Cookies.Append(cookie.Key, cookie.Token, cookie.Options);
         
+
         return access == null ? BadRequest() : Ok(access);
     }
 
@@ -37,7 +43,7 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
     /* [SkipValidation] */
     [AllowAnonymous]
     [HttpPost("logout")]
-    public async Task<ActionResult> Logout([FromHeader] string access)
+    public async Task<ActionResult> Logout([FromBody] TokenDto token)
     {
         var refresh = HttpContext.Request.Cookies["RefreshToken"];
         if (refresh == null)
@@ -45,7 +51,7 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
 
         HttpContext.Response.Cookies.Delete("RefreshToken");
 
-        await _services.Identity.RevokeAsync(access, refresh);
+        await _services.Identity.RevokeAsync(token.AccessToken, refresh);
         return NoContent();
     }
 
@@ -55,14 +61,15 @@ public class AuthController(IServiceCoordinator serviceCoordinator) : Controller
     /* [SkipValidation] */
     [AllowAnonymous]
     [HttpPost("refresh")]
-    public async Task<ActionResult<string>> RefreshToken([FromHeader] string access)
+    public async Task<ActionResult<string>> RefreshToken([FromBody] TokenDto token)
     {
-        var refresh = HttpContext.Request.Cookies["RefreshToken"];
+            var refresh = HttpContext.Request.Cookies["RefreshToken"];
         if (refresh == null)
             return BadRequest();
 
-        var (newAccess, cookie) = await _services.Identity.RefreshTokensAsync(access, refresh);
+        var (newAccess, cookie) = await _services.Identity.RefreshTokensAsync(token.AccessToken, refresh);
 
+        cookie.Options.Path = Url.Action(nameof(RefreshToken));
         HttpContext.Response.Cookies.Append(cookie.Key, cookie.Token, cookie.Options);
 
         return newAccess == null ? BadRequest() : Ok(newAccess);
