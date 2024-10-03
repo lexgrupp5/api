@@ -4,8 +4,8 @@ namespace Domain.DTOs;
 
 public class ActivityUpdateDto
 {
-    public int Id { get; set; }
-    public string Description { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
+    public int Id { get; init; }
+    public string Description { get; init; }
+    public DateTime? StartDate { get; init; } = null;
+    public DateTime? EndDate { get; init; } = null;
 }

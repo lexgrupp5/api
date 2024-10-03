@@ -4,13 +4,16 @@ namespace Domain.DTOs;
 
 public class CourseCompleteDto
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public string TeacherId { get; set; }
+    public int Id { get; init; }
+    public string Name { get; init; }
+    public string Description { get; init; }
+    public DateTime StartDate { get; init; }
+    public DateTime EndDate { get; init; }
+    public string TeacherId { get; init; }
 
-    public ICollection<ModuleDto> Modules { get; set; }
-    public ICollection<UserDto> Students { get; set; }
+    // Module
+    public ICollection<ModuleDto> Modules { get; init; }
+
+    // User
+    public ICollection<UserDto> Students { get; init; }
 }

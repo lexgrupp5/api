@@ -1,10 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Domain.DTOs;
 
 #nullable disable
 
 public record ModuleCreateDto
 {
-    public string Name { get; set; }
-    public int CourseId { get; set; }
-    public string Description { get; set; }
+    [Required]
+    public string Name { get; init; }
+    
+    [Required]
+    public string Description { get; init; }
+
+    [Required]
+    public int CourseId { get; init; }
 }

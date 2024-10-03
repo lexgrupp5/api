@@ -1,16 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace Domain.DTOs;
 
 #nullable disable
 
-public class UserCreateDto
+public record UserCreateDto
 {
-    public string Name { get; set; }
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public string Password { get; set; }
+    [Required]
+    public string Name { get; init; }
+
+    [Required]
+    public string Username { get; init; }
+
+    [Required]
+    public string Email { get; init; }
+
+    [Required]
+    public string Password { get; init; }
 }

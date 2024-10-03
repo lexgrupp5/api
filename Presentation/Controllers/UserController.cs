@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.Interfaces;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -24,8 +25,11 @@ public class UserController : ApiBaseController
      *
      ****/
     [Authorize(Roles = "Teacher")]
-    [HttpGet(Name = "GetAllStudents")]
-    public Task<ActionResult<IEnumerable<UserDto>?>> GetAllStudents()
+    [HttpGet(Name = "GetUsers")]
+    public Task<ActionResult<IEnumerable<UserDto>?>> GetUsers(
+        [FromQuery] string? role,
+        [FromQuery] QueryParams? queryParams
+    )
     {
         throw new NotImplementedException();
     }
@@ -34,7 +38,8 @@ public class UserController : ApiBaseController
      *
      ****/
     // TODO: implement
-    private Task<ActionResult<UserDto>> CreateNewUserAsync(UserCreateDto dto)
+    [HttpPost]
+    public Task<ActionResult<UserDto>> CreateUser([FromBody] UserCreateDto dto)
     {
         throw new NotImplementedException();
     }
@@ -43,7 +48,7 @@ public class UserController : ApiBaseController
      *
      ****/
     [HttpPut("{id}")]
-    public Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UserForUpdateDto user)
+    public Task<ActionResult<UserDto>> UpdateUser([FromRoute] int id, [FromBody] UserUpdateDto dto)
     {
         throw new NotImplementedException();
     }
@@ -71,7 +76,7 @@ public class UserController : ApiBaseController
     /*
      * POST: Create new user
      ****/
-    [HttpPost]
+    /* [HttpPost]
     public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
     {
         var userToBeCreated = await _services.User.CreateNewUserAsync(
@@ -84,5 +89,5 @@ public class UserController : ApiBaseController
             return BadRequest("The return body of the function call is 'null'");
         }
         return Ok(userToBeCreated);
-    }
+    } */
 }
