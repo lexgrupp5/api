@@ -46,6 +46,8 @@ public class MapperProfile : Profile
         CreateMap<User, UserDto>().ReverseMap();
         CreateMap<Course, CourseCreateDto>().ReverseMap();
 
+        CreateMap<UserCreateModel, User>();
+        
         CreateMap<ActivityCreateModel, Activity>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Module, opt => opt.Ignore())

@@ -16,13 +16,11 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-
 // Context
         builder.Services.ConfigureSql(builder.Configuration);
         builder.Services.AddRouting(opt => opt.LowercaseUrls = true);
 
         builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
-
         builder
             .Services.AddControllers(options =>
             {
@@ -46,8 +44,12 @@ public class Program
         builder.Services.AddDataProtection();
         builder.Services.ConfigureIdenttity(builder.Configuration);
 
+// OpenAPI
         builder.Services.ConfigureOpenApi();
-        builder.AddCORS();
+
+// CORS
+        builder.AddCORS(builder.Configuration);
+
         var app = builder.Build();
 
         app.UseMiddleware<JsonValidMiddleware>();

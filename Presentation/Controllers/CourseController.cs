@@ -1,5 +1,9 @@
 using Application.Interfaces;
+
+using Domain.Constants;
 using Domain.DTOs;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +21,7 @@ public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseC
 
     //GET: All courses
     /* [SkipValidation] */
+    [Authorize(Roles = UserRoles.Teacher)]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(
         [FromQuery] SearchFilterDTO searchFilterDTO
