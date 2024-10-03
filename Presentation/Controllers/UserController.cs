@@ -5,59 +5,52 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Filters;
 
-using Presentation.Filters;
-
 namespace Presentation.Controllers;
 
-[Route("api/User")]
+[Route("api/users")]
 [ApiController]
-[Produces("application/json")]
-//[Authorize(Roles = "Teacher")]
 [ValidateInput]
-public class UserController : ControllerBase
+[Produces("application/json")]
+public class UserController : ApiBaseController
 {
-    private readonly IServiceCoordinator _serviceCoordinator;
+    private readonly IServiceCoordinator _services;
 
-    public UserController(IServiceCoordinator serviceCoordinator)
+    public UserController(IServiceCoordinator services)
     {
-        _serviceCoordinator = serviceCoordinator;
+        _services = services;
     }
 
-    //GET: Course participants by Course ID
-    /* [SkipValidation] */
-    [HttpGet("course/{id}")]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersOfCourse(int id)
+    /*
+     *
+     ****/
+    [Authorize(Roles = "Teacher")]
+    [HttpGet(Name = "GetAllStudents")]
+    public Task<ActionResult<IEnumerable<UserDto>?>> GetAllStudents()
     {
-        var users = await _serviceCoordinator.UserService.GetUsersOfCourseByIdAsync(id);
-        if (users == null)
-        {
-            return NotFound($"Users of course with ID {id} were not found in the database.");
-        }
-
-        return Ok(users);
+        throw new NotImplementedException();
     }
 
-    //GET: Course from UserName
-    /* [SkipValidation] */
-    [HttpGet("{username}")]
-    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourseOfUser(string username)
+    /*
+     *
+     ****/
+    // TODO: implement
+    private Task<ActionResult<UserDto>> CreateNewUserAsync(UserCreateDto dto)
     {
-        var user = await _serviceCoordinator.UserService.GetUserByUsername(username);
-        if (user == null)
-        {
-            return BadRequest(
-                $"A user with the username {username} could not be found in the database."
-            );
-        }
-        var usersCourseId = user.CourseId;
-        if (usersCourseId == null)
-        {
-            return BadRequest($"{username} is not assigned to a course");
-        }
-        var courseId = usersCourseId.GetValueOrDefault();
-        var course = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(courseId);
-        return Ok(course);
+        throw new NotImplementedException();
     }
+
+    /*
+     *
+     ****/
+    [HttpPut("{id}")]
+    public Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UserForUpdateDto user)
+    {
+        throw new NotImplementedException();
+    }
+
+    /*
+     * DEPRECATED
+     ************/
 
     //PATCH: Existing User by User ID
     /* [SkipValidation] */
@@ -67,7 +60,7 @@ public class UserController : ControllerBase
         [FromBody] JsonPatchDocument<UserForUpdateDto> patchDocument
     )
     {
-        var result = await _serviceCoordinator.UserService.PatchUser(username, patchDocument);
+        var result = await _services.User.PatchUser(username, patchDocument);
         if (result == null)
         {
             BadRequest("User failed to get updated");
@@ -76,29 +69,15 @@ public class UserController : ControllerBase
     }
 
     /*
-     *
-     ****/
-    /* [SkipValidation] */
-    [HttpGet(Name = "GetAllStudents")]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
-    {
-        var users = await _serviceCoordinator.UserService.GetAllUsersAsync();
-        return users == null
-            ? NotFound("No users found in the database.")
-            : Ok(users);
-    }
-
-    /*
      * POST: Create new user
      ****/
-    /* [SkipValidation] */
     [HttpPost]
     public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
     {
-        var userToBeCreated = await _serviceCoordinator.UserService.CreateNewUserAsync(
+        var userToBeCreated = await _services.User.CreateNewUserAsync(
             newUser,
-            _serviceCoordinator.User,
-            _serviceCoordinator.Identity
+            _services.UserManager,
+            _services.Identity
         );
         if (userToBeCreated == null)
         {
@@ -106,5 +85,4 @@ public class UserController : ControllerBase
         }
         return Ok(userToBeCreated);
     }
-    
 }

@@ -25,5 +25,11 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole, string>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<Course>().
+            HasOne(c => c.Teacher)
+            .WithMany()
+            .HasForeignKey(c => c.TeacherId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

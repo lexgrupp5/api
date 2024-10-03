@@ -3,4 +3,11 @@ using Infrastructure.Interfaces;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class ActivityRepository(AppDbContext context) : RepositoryBase<Activity>(context), IActivityRepository;
+public class ActivityRepository : RepositoryBase<Activity>, IActivityRepository
+{
+    public ActivityRepository(AppDbContext context) : base(context)
+    {
+    }
+
+    
+}

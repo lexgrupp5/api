@@ -1,15 +1,22 @@
-﻿using Domain.DTOs;
+﻿using Application.DTOs;
+using Domain.DTOs;
+using Domain.Entities;
 
 namespace Application.Interfaces;
 
-public interface ICourseService
+public interface ICourseService : IServiceBase<Course, CourseDto>
 {
-    Task<IEnumerable<CourseDto?>> GetCoursesAsync();
-    Task<CourseDto> GetCourseDtoByIdAsync(int id);
-    Task<IEnumerable<CourseDto?>> GetCoursesAsync(SearchFilterDTO searchFilterDTO);
+    Task<CourseDto?> FindAsync(int id);
+    Task<ICollection<UserDto>?> GetStudentsByIdAsync(int id, QueryParams queryParams);
+    Task<ICollection<ModuleDto>?> GetModulesByIdAsync(int id, QueryParams queryParams);
+    Task<IEnumerable<CourseDto>?> GetAllAsync(
+        QueryParams? queryParams = null,
+        string? searchString = null,
+        DateParams? dateParams = null
+    );
+
+    /* DEPRECATED
+     ***************************************************************************/
     Task<CourseDto> CreateCourse(CourseCreateDto course);
     Task PatchCourse(CourseDto courseDto);
-    
-    Task<IEnumerable<ModuleDto?>> GetModulesOfCourseIdAsync(int id, SearchFilterDTO searchFilterDto);
-
 }
