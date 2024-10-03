@@ -11,13 +11,15 @@ public class MapperProfile : Profile
         /*
          * COURSE
          ***********/
-        CreateMap<Course, CourseDto>();
+        CreateMap<Course, CourseDto>()
+            .ReverseMap();
         CreateMap<Course, CourseCompleteDto>()
             .ForMember(dest => dest.Modules, opt => opt.MapFrom(src => src.Modules))
             .ForMember(dest => dest.Students, opt => opt.MapFrom(src => src.Users))
             .ReverseMap();
+
         CreateMap<CourseCreateDto, Course>();
-        CreateMap<CourseUpdateDto, Course>();
+        CreateMap<CourseUpdateDto, Course>(); 
 
         /*
          * MODULE
@@ -27,6 +29,7 @@ public class MapperProfile : Profile
             .ReverseMap();
 
         CreateMap<ModuleCreateDto, Module>();
+        CreateMap<ModuleUpdateDto, Module>();
 
         /*
          * ACTIVITY
@@ -41,9 +44,6 @@ public class MapperProfile : Profile
          * USER
          ***********/
         CreateMap<User, UserDto>()
-        //Module -> ModuleDTO
-        CreateMap<Module, ModuleDto>()
-            .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.Activities))
             .ReverseMap();
 
         CreateMap<UserCreateDto, User>();
