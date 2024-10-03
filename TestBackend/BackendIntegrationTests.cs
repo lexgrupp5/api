@@ -24,7 +24,7 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
         var expectedContentType = "application/json";
 
         //Act
-        using var response = await _httpClient.GetAsync("/api/User");
+        using var response = await _httpClient.GetAsync("/api/users");
         response.EnsureSuccessStatusCode();
         string responseBody = await response.Content.ReadAsStringAsync();
 
@@ -46,7 +46,7 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
         //Act
         var jsonData = JsonConvert.SerializeObject(newUser);
         using var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-        using var response = await _httpClient.PostAsync("/api/user", content);
+        using var response = await _httpClient.PostAsync("/api/users", content);
          response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadAsStringAsync();
