@@ -1,4 +1,3 @@
-﻿
 namespace Domain.DTOs;
 
 public interface ICourseDto

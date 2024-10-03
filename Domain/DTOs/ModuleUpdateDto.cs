@@ -1,12 +1,8 @@
-namespace Domain.Entities;
 
-#nullable disable
 
-public class ActivityType
+public class ModuleUpdateDto
 {
     public int Id { get; set; }
-
     public string Name { get; set; }
-
     public string Description { get; set; }
 }

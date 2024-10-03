@@ -1,69 +1,132 @@
+using Application.DTOs;
 using Application.Interfaces;
 
 using Domain.Constants;
 using Domain.DTOs;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-
 using Presentation.Filters;
 
 namespace Presentation.Controllers;
 
 [Route("api/courses")]
 [ApiController]
-[Produces("application/json")]
 [ValidateInput]
-public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseController
+[Produces("application/json")]
+public class CourseController : ApiBaseController
 {
-    private readonly IServiceCoordinator _serviceCoordinator = serviceCoordinator;
+    private readonly IServiceCoordinator _services;
 
-    //GET: All courses
-    /* [SkipValidation] */
-    [Authorize(Roles = UserRoles.Teacher)]
+    public CourseController(IServiceCoordinator services)
+    {
+        _services = services;
+    }
+
+    /*
+     * GET: All courses
+     *******************/
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(
-        [FromQuery] SearchFilterDTO searchFilterDTO
+    public async Task<ActionResult<IEnumerable<CourseDto>>> GetAllCourses(
+        [FromQuery] string? search,
+        [FromQuery] DateParams? dateParams,
+        [FromQuery] QueryParams? queryParams
     )
     {
-        var courses =
-            Request.Query.Count != 0
-                ? await _serviceCoordinator.Course.GetCoursesAsync(searchFilterDTO)
-                : await _serviceCoordinator.Course.GetCoursesAsync();
-
-        return Ok(courses);
+        var courses = await _services.Course.GetAllAsync(queryParams, search, dateParams);
+        return courses != null ? Ok(courses) : NotFound();
     }
 
-    //GET: Course by ID
-    /* [SkipValidation] */
-    [HttpGet("{id}", Name = "GetCourse")]
-    public async Task<ActionResult<CourseDto?>> GetCourseDtoById(int id)
+    /*
+     * GET: Course by ID
+     *******************/
+    [HttpGet("{id}")]
+    public async Task<ActionResult<CourseDto>> GetCourseById(int id)
     {
-        return await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
+        var course = await _services.Course.FindAsync(id);
+        return course != null ? Ok(course) : NotFound();
     }
 
-    /* [SkipValidation] */
-    [HttpPost(Name = "CreateCourse")]
+    /*
+     * GET: Students by Course ID
+     *****************************/
+    [HttpGet("{id}/students")]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetCourseStudents(
+        int id,
+        [FromQuery] QueryParams queryParams
+    )
+    {
+        var users = await _services.Course.GetStudentsByIdAsync(id, queryParams);
+        return users != null ? Ok(users) : NotFound();
+    }
+
+    /*
+     * GET: Modules by Course ID
+     ****************************/
+    [HttpGet("{id}/modules")]
+    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetCourseModules(
+        int id,
+        [FromQuery] QueryParams queryParams
+    )
+    {
+        var modules = await _services.Course.GetModulesByIdAsync(id, queryParams);
+        return modules != null ? Ok(modules) : NotFound();
+    }
+
+    /*
+     * POST: Create a new course
+     ****************************/
+    [Authorize(Roles = "Teacher")]
+    [HttpPost]
     public async Task<ActionResult<CourseDto>> CreateCourse([FromBody] CourseCreateDto course)
     {
-        var createdCourse = await _serviceCoordinator.Course.CreateCourse(course);
+        var createdCourse = await _services.Course.CreateCourse(course);
         return Ok(createdCourse);
     }
+
+    /*
+     * PUT: Course by ID
+     *******************/
+    [Authorize(Roles = "Teacher")]
+    [HttpPut("{id}")]
+    public async Task<ActionResult<CourseDto>> UpdateCourse(
+        int id,
+        [FromBody] CourseUpdateDto course
+    )
+    {
+        var result = await _services.Course.UpdateAsync(id, course);
+        return result != null ? Ok(result) : NotFound();
+    }
+
+    /*
+     * DELETE: Course by ID
+     ***********************/
+    [Authorize(Roles = "Teacher")]
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteCourse(int id, [FromBody] CourseDto course)
+    {
+        var result = await _services.Course.DeleteAsync(id, course);
+        return result ? NoContent() : NotFound();
+    }
+
+    /* DEPRECATED
+     **********************************************************************/
 
     /* [SkipValidation] */
     [HttpPatch("{id}")]
     public async Task<IActionResult> PatchCourse(
         [FromRoute] int id,
-        [FromBody] JsonPatchDocument<CourseDto> coursePatchDocument
+        [FromBody] JsonPatchDocument<CourseDto> patchDocument
     )
     {
-        var courseToPatchWith = await _serviceCoordinator.Course.GetCourseDtoByIdAsync(id);
+        var courseDto = await _services.Course.FindAsync(id);
+        if (courseDto == null)
+            return NotFound();
 
         if (
             !TryValidateAndApplyPatch(
-                coursePatchDocument,
-                courseToPatchWith,
+                patchDocument,
+                courseDto,
                 out IActionResult errorResponse
             )
         )
@@ -71,22 +134,7 @@ public class CourseController(IServiceCoordinator serviceCoordinator) : ApiBaseC
             return errorResponse;
         }
 
-        await _serviceCoordinator.Course.PatchCourse(courseToPatchWith);
+        await _services.Course.PatchCourse(courseDto);
         return Ok(NoContent());
-    }
-    //GET: Modules by Course ID
-    [HttpGet("modules/{id}")]
-    public async Task<ActionResult<IEnumerable<ModuleDto>>> GetModulesOfCourse(int id,  [FromQuery] SearchFilterDTO searchFilterDTO)
-    {
-        var modules = await _serviceCoordinator.Course.GetModulesOfCourseIdAsync(id, searchFilterDTO);
-        
-        if (modules == null)
-        {
-            return NotFound(
-                "No modules found. Either course ID was bad or course contains no modules."
-            );
-        }
-
-        return Ok(modules);
     }
 }

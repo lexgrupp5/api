@@ -15,9 +15,14 @@ namespace Presentation.Controllers;
 [ApiController]
 [Authorize]
 [ValidateInput]
-public class AuthController(IServiceCoordinator serviceCoordinator) : ControllerBase
+public class AuthController : ApiBaseController
 {
-    private readonly IServiceCoordinator _services = serviceCoordinator;
+    private readonly IServiceCoordinator _services;
+
+    public AuthController(IServiceCoordinator services)
+    {
+        _services = services;
+    }
 
     /*
      *

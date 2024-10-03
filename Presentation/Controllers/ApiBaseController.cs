@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
-public class ApiBaseController : ControllerBase
+public abstract class ApiBaseController : ControllerBase
 {
     /// <summary>
     /// A reusable validation method that can be used to validate

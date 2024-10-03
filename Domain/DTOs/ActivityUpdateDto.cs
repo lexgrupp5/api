@@ -1,9 +1,10 @@
-﻿namespace Domain.DTOs;
+namespace Domain.DTOs;
 
-public record ModuleForCreationDto
+#nullable disable
+
+public class ActivityUpdateDto
 {
-    public string Name { get; set; }
-    public int CourseId { get; set; }
+    public int Id { get; set; }
     public string Description { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }

@@ -1,21 +1,24 @@
-using Application.Models;
-
 using Domain.DTOs;
+using Domain.Entities;
 
 namespace Application.Interfaces;
 
-public interface IModuleService
+public interface IModuleService : IServiceBase<Module, ModuleDto>
 {
+    Task<IEnumerable<ActivityDto>?> GetActivitiesByModuleIdAsync(int id);
+    Task<ModuleDto?> FindAsync(int id);
+    Task<ModuleDto?> CreateAsync(ModuleCreateDto dto);
+    Task<ModuleDto?> UpdateAsync(int id, ModuleUpdateDto dto);
 
-    Task<ModuleDto?> GetModuleByIdWithActivitiesAsync(int id);
+    /* DEPRECATED
+     ********************************************************/
+    Task<ModuleDto> PatchModule(ModuleDto dto);
 
-    Task<ModuleToPatchDto> GetModule(int id);
-
-    Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel module);
-
-    Task<ActivityForCreationDto> CreateActivityAsync(ActivityCreateModel activityCreate);
+    //Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel module);
+    /* Task<ActivityForCreationDto> CreateActivityAsync(ActivityCreateDto activityCreate);
     Task<ActivityDto> GetActivityByIdAsync(int id);
+    Task PatchModule(ModuleDto moduleToPatchDto);
     Task PatchActivity(ActivityDto activityDto);
-    Task PatchModule(ModuleToPatchDto moduleToPatchDto);
     Task<TDto?> GetModuleByIdAsync<TDto>(int id);
+    Task<ModuleDto?> GetModuleByIdWithActivitiesAsync(int id); */
 }

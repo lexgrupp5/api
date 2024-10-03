@@ -22,15 +22,16 @@ public class BackendTests
     {
         _mockUserService = new Mock<IUserService>();
         _mockServiceCoordinator = new Mock<IServiceCoordinator>();
-        _mockServiceCoordinator.Setup(s => s.UserService).Returns(_mockUserService.Object);
+        _mockServiceCoordinator.Setup(s => s.User).Returns(_mockUserService.Object);
     }
     
     [Fact]
     public async Task CreateNewUserAsync_ReturnsOkResult_WithCreatedUser()
     {
         //Arrange
+        var testCourseDto = new CourseDto {Description = "Test-desc", Name = "Test-name", StartDate = DateTime.Today, EndDate = DateTime.Today, TeacherId = "1", Id = 1};
         var newUser = new UserForCreationDto { Name = "Tom", Email = "tom@mail.com" , Username = "Test"};
-        var expectedUser = new UserDto(newUser.Name, newUser.Email, newUser.Username);
+        var expectedUser = new UserDto(newUser.Name, newUser.Email, newUser.Username, 1, testCourseDto );
         
         _mockUserService.Setup(u => u.CreateNewUserAsync(It.IsAny<UserForCreationDto>(),
             It.IsAny<UserManager<User>>(),

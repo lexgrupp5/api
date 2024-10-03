@@ -1,8 +1,6 @@
 ﻿using System.Net;
 using System.Text;
-
 using Domain.DTOs;
-using Infrastructure.Persistence;
 
 using Newtonsoft.Json;
 
@@ -11,13 +9,11 @@ namespace TestBackend;
 public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _httpClient;
-    private AppDbContext _context;
 
     public BackendIntegrationTests(CustomWebApplicationFactory clientFactory)
     {
         clientFactory.ClientOptions.BaseAddress = new Uri("https://localhost:5144");
         _httpClient = clientFactory.CreateClient();
-        _context = clientFactory.Context;
     }
 
     [Fact]
