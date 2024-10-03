@@ -71,6 +71,8 @@ public static class ServiceExtensions
                     ValidateAudience = true,
                     ValidAudience = accessConfig.Audience,
                     ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero,
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(accessConfig.Secret)
                     ),
@@ -78,7 +80,7 @@ public static class ServiceExtensions
             );
 
         services
-            .AddIdentity<User, IdentityRole>(opt =>
+            .AddIdentityCore<User>(opt =>
             {
                 opt.Password.RequireDigit = true;
                 opt.Password.RequiredLength = 8;

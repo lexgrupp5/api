@@ -38,8 +38,12 @@ builder.Services.ConfigureRepositories();
 builder.Services.AddDataProtection();
 builder.Services.ConfigureIdenttity(builder.Configuration);
 
+// OpenAPI
 builder.Services.ConfigureOpenApi();
-builder.AddCORS();
+
+// CORS
+builder.AddCORS(builder.Configuration);
+
 var app = builder.Build();
 
 app.UseMiddleware<JsonValidMiddleware>();

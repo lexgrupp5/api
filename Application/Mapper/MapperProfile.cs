@@ -41,6 +41,9 @@ public class MapperProfile : Profile
          * USER
          ***********/
         CreateMap<User, UserDto>()
+        //Module -> ModuleDTO
+        CreateMap<Module, ModuleDto>()
+            .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.Activities))
             .ReverseMap();
 
         CreateMap<UserCreateDto, User>();
