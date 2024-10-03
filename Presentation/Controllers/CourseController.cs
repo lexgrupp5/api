@@ -1,5 +1,6 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Domain.Constants;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
@@ -15,15 +16,12 @@ namespace Presentation.Controllers;
 public class CourseController : ApiBaseController
 {
     private readonly IServiceCoordinator _services;
-
+    
     public CourseController(IServiceCoordinator serviceCoordinator)
     {
         _services = serviceCoordinator;
     }
-
-    /*
-     * GET: All courses
-     *******************/
+    
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CourseDto>>> GetAllCourses(
         [FromQuery] string? search,
