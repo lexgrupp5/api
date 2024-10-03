@@ -32,8 +32,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             var scope = services.BuildServiceProvider().CreateScope();
             AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             
-            context.SaveChanges();
-            
             Context = context;
         });
     }
