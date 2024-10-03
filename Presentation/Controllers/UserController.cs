@@ -62,7 +62,7 @@ public class UserController : ApiBaseController
     [HttpPatch("{username}")]
     public async Task<ActionResult> PatchUserByUsername(
         string username,
-        [FromBody] JsonPatchDocument<UserForUpdateDto> patchDocument
+        [FromBody] JsonPatchDocument<UserUpdateDto> patchDocument
     )
     {
         var result = await _services.User.PatchUser(username, patchDocument);

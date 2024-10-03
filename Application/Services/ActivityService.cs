@@ -43,7 +43,7 @@ public class ActivityService : ServiceBase<Activity, ActivityDto>, IActivityServ
 
     public async Task<ActivityDto> PatchActivity(ActivityDto dto)
     {
-        var current = await _data.Modules.GetActivityByIdAsync(dto.Id);
+        var current = await _data.Activities.FindAsync(dto.Id);
         if (current == null)
             NotFound($"Activity with the ID {dto.Id} was not found in the database.");
 
