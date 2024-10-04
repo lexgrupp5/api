@@ -38,7 +38,7 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
 
     
     [Fact]
-    public async Task CreateNewUserAsync_ReturnsOkResult()
+    public async Task CreateUserAsync_ReturnsValidUserDto()
     {
         //Arrange
         var newUser = new UserCreateDto{ Name = "Test", Email = "test@test.com", Username = "test" };
@@ -62,7 +62,7 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
     }
 
     [Fact]
-    public async Task GetModuleWithIdAsync_ReturnsOkResult()
+    public async Task GetModuleWithIdAsync_ReturnsOkResultAndNotNullResult()
     {
         //Arrange
         int id = 1;
@@ -75,5 +75,37 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
         //Assert
         Assert.NotNull(result);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(1, 200)]
+    [InlineData(2, 200)]
+    [InlineData(3, 200)]
+    public async Task GetCoursesAsync_ReturnsOkResultAndNotNullResult(int id, int expectedStatusCode)
+    {
+        //Arrange & Act
+        using var response = await _httpClient.GetAsync($"/api/courses/{id}");
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadAsStringAsync();
+
+        
+        //Assert
+        Assert.Equal(expectedStatusCode, (int)response.StatusCode);
+        Assert.NotNull(result);
+    }   
+    [Fact]
+    public async Task GetActivitiesAsync_ReturnsOkResult()
+    {
+        //Arrange
+        int id = 1;
+        HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+        
+        // Act
+        using var response = await _httpClient.GetAsync($"/api/activities/{id}");
+        response.EnsureSuccessStatusCode();
+        
+        //Assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+
     }
 }
