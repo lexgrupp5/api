@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
@@ -54,7 +55,7 @@ public abstract class ServiceBase<TEntity, TDto> : IServiceBase<TEntity, TDto>
         if (idValue == null)
             throw new ArgumentException($"{nameof(TUpdateDto)} does not contain an Id property.");
 
-        if (id != idValue)
+        if (id.ToString() != idValue.ToString())
             BadRequest("Id missmatch");
 
         var currentEntity = await _data.Set<TEntity>().FindAsync(idValue);
@@ -84,7 +85,7 @@ public abstract class ServiceBase<TEntity, TDto> : IServiceBase<TEntity, TDto>
         if (idValue == null)
             throw new ArgumentException($"{nameof(T)} does not contain an Id property.");
 
-        if (id != idValue)
+        if (id.ToString() != idValue.ToString())
             BadRequest("Id missmatch");
 
         var entity = await _data.Set<TEntity>().FindAsync(idValue);
