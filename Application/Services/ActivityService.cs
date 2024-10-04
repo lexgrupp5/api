@@ -50,7 +50,6 @@ public class ActivityService : ServiceBase<Activity, ActivityDto>, IActivityServ
             NotFound($"Module with the ID {createDto.ModuleId} was not found in the database.");
 
         var newActivity = _mapper.Map<Activity>(createDto);
-        newActivity.Module = module;
 
         ValidateActivityDates(
             newActivity,
