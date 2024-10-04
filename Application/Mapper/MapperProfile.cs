@@ -1,5 +1,4 @@
 using AutoMapper;
-
 using Domain.DTOs;
 using Domain.Entities;
 
@@ -12,19 +11,20 @@ public class MapperProfile : Profile
         /*
          * COURSE
          ***********/
-        CreateMap<Course, CourseDto>()
-            .ReverseMap();
+        CreateMap<Course, Course>();
+        CreateMap<Course, CourseDto>().ReverseMap();
         CreateMap<Course, CourseCompleteDto>()
             .ForMember(dest => dest.Modules, opt => opt.MapFrom(src => src.Modules))
             .ForMember(dest => dest.Students, opt => opt.MapFrom(src => src.Users))
             .ReverseMap();
 
         CreateMap<CourseCreateDto, Course>();
-        CreateMap<CourseUpdateDto, Course>(); 
+        CreateMap<CourseUpdateDto, Course>();
 
         /*
          * MODULE
          ***********/
+        CreateMap<Module, Module>();
         CreateMap<Module, ModuleDto>()
             .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.Activities))
             .ReverseMap();
@@ -35,8 +35,8 @@ public class MapperProfile : Profile
         /*
          * ACTIVITY
          ***********/
-        CreateMap<Activity, ActivityDto>()
-            .ReverseMap();
+        CreateMap<Activity, Activity>();
+        CreateMap<Activity, ActivityDto>().ReverseMap();
 
         CreateMap<ActivityCreateDto, Activity>();
         CreateMap<ActivityUpdateDto, Activity>();
@@ -44,8 +44,8 @@ public class MapperProfile : Profile
         /*
          * USER
          ***********/
-        CreateMap<User, UserDto>()
-            .ReverseMap();
+        CreateMap<User, User>();
+        CreateMap<User, UserDto>().ReverseMap();
 
         CreateMap<UserCreateDto, User>();
         CreateMap<UserUpdateDto, User>();
