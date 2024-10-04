@@ -1,4 +1,6 @@
-﻿namespace Domain.DTOs;
+﻿using System.Security.Cryptography.X509Certificates;
+
+namespace Domain.DTOs;
 
 #nullable disable
 
