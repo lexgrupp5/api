@@ -17,22 +17,19 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
     }
 
     [Fact]
-    public async Task GetUsersAsync_ReturnsOkResult()
+    public async Task GetNotExistingUsernameAsync_ReturnsBadResultAndNull()
     {
         //Arrange
-        var expectedStatusCode = HttpStatusCode.OK;
-        var expectedContentType = "application/json";
+        var expectedStatusCode = HttpStatusCode.BadRequest;
+        string userName = "testUser";
 
         //Act
-        using var response = await _httpClient.GetAsync("/api/users");
-        response.EnsureSuccessStatusCode();
-        string responseBody = await response.Content.ReadAsStringAsync();
+        using var response = await _httpClient.GetAsync($"/api/users/{userName}");
+        var errorMessage = await response.Content.ReadAsStringAsync();
 
         //Assert
-        Assert.IsType<string>(responseBody);
-        Assert.NotEqual(string.Empty, responseBody);
         Assert.Equal(expectedStatusCode, response.StatusCode);
-        Assert.Contains(expectedContentType, response.Content.Headers.ContentType.ToString());
+        Assert.Contains("A user with that username was not able to be found.", errorMessage);
         
     }
 
