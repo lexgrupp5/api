@@ -1,8 +1,12 @@
 using Application.Interfaces;
+
 using AutoMapper;
+
 using Domain.DTOs;
 using Domain.Entities;
+
 using Infrastructure.Interfaces;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
@@ -69,58 +73,48 @@ public class ModuleService : ServiceBase<Module, ModuleDto>, IModuleService
         return _mapper.Map<ModuleDto>(current);
     }
 
-    /* public async Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel moduleToCreate)
-    {
-        var createdModule = await _data.Modules.CreateModuleAsync(
-            _mapper.Map<ModuleForCreationDto>(moduleToCreate)
-        );
-        var mappedModule = new ModuleForCreationDto
-        {
-            Name = createdModule.Name,
-            CourseId = createdModule.CourseId,
-            Description = createdModule.Description,
-            StartDate = createdModule.StartDate,
-            EndDate = createdModule.EndDate
-        };
+    //public async Task<ModuleForCreationDto> CreateModuleAsync(ModuleCreateModel moduleToCreate)
+    //{
+    //    var createdModule = await _dc.Modules.CreateModuleAsync(
+    //        _mapper.Map<ModuleForCreationDto>(moduleToCreate)
+    //    );
+    //    var mappedModule = new ModuleForCreationDto
+    //    {
+    //        Name = createdModule.Name,
+    //        CourseId = createdModule.CourseId,
+    //        Description = createdModule.Description,
+    //        StartDate = createdModule.StartDate,
+    //        EndDate = createdModule.EndDate
+    //    };
 
-        return mappedModule;
-    }
+    //    return mappedModule;
+    //}
 
-    public async Task<TDto?> GetModuleByIdAsync<TDto>(int id)
-    {
-        return await _mapper.ProjectTo<TDto>(_data.Modules.QueryModuleById(id)).FirstAsync();
-    }
+    //public async Task<ActivityForCreationDto> CreateActivityAsync(
+    //    ActivityCreateModel activityCreate
+    //)
+    //{
+    //    var createdActivity = await _data.Modules.CreateActivityAsync(
+    //        (_mapper.Map<ActivityForCreationDto>(activityCreate))
+    //    );
+    //    var mappedActivity = new ActivityForCreationDto
+    //    {
+    //        ModuleId = createdActivity.ModuleId,
+    //        Description = createdActivity.Description,
+    //        StartDate = createdActivity.StartDate,
+    //        EndDate = createdActivity.EndDate
+    //    };
+    //    return mappedActivity;
+    //}
 
-    public async Task<ModuleDto?> GetModuleByIdWithActivitiesAsync(int id)
-    {
-        var modules = await _data.Modules.GetModuleByIdWithActivitiesAsync(id);
-        var moduleDto = _mapper.Map<ModuleDto>(modules);
-        return moduleDto;
-    }
-
-    public async Task<ActivityForCreationDto> CreateActivityAsync(ActivityCreateDto activityCreate)
-    {
-        var createdActivity = await _data.Modules.CreateActivityAsync(
-            (_mapper.Map<ActivityForCreationDto>(activityCreate))
-        );
-        var mappedActivity = new ActivityForCreationDto
-        {
-            ModuleId = createdActivity.ModuleId,
-            Description = createdActivity.Description,
-            StartDate = createdActivity.StartDate,
-            EndDate = createdActivity.EndDate
-        };
-        return mappedActivity;
-    }
-
-    public async Task<ActivityDto> GetActivityByIdAsync(int id)
-    {
-        var activity = await _data.Modules.GetActivityByIdAsync(id);
-        var activityDto = _mapper.Map<ActivityDto>(activity);
-        return activityDto;
-    }
+    //public async Task<ActivityDto> GetActivityByIdAsync(int id)
+    //{
+    //    var activity = await _data.Modules.GetActivityByIdAsync(id);
+    //    var activityDto = _mapper.Map<ActivityDto>(activity);
+    //    return activityDto;
+    //}
 
     
 
-     */
+    // */
 }

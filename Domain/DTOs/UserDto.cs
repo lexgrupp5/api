@@ -1,9 +1,14 @@
 ﻿namespace Domain.DTOs;
 
-public record UserDto(
-    string Name,
-    string Username,
-    string Email,
-    int CourseId,
-    CourseDto Course
-);
+#nullable disable
+
+public record UserDto
+{
+    public string Name { get; init; }
+    public string Username { get; init; }
+    public string Email { get; init; }
+    public int CourseId { get; init; }
+
+    // Course
+    public CourseDto Course { get; init; }
+};

@@ -76,7 +76,7 @@ public class CourseController : ApiBaseController
     /*
      * POST: Create a new course
      ****************************/
-    [Authorize(Roles = "Teacher")]
+    [Authorize(Roles = UserRoles.Teacher)]
     [HttpPost]
     public async Task<ActionResult<CourseDto>> CreateCourse([FromBody] CourseCreateDto course)
     {
@@ -87,7 +87,7 @@ public class CourseController : ApiBaseController
     /*
      * PUT: Course by ID
      *******************/
-    [Authorize(Roles = "Teacher")]
+    [Authorize(Roles = UserRoles.Teacher)]
     [HttpPut("{id}")]
     public async Task<ActionResult<CourseDto>> UpdateCourse(
         int id,
@@ -101,7 +101,7 @@ public class CourseController : ApiBaseController
     /*
      * DELETE: Course by ID
      ***********************/
-    [Authorize(Roles = "Teacher")]
+    [Authorize(Roles = UserRoles.Teacher)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteCourse(int id, [FromBody] CourseDto course)
     {

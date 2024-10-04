@@ -23,31 +23,31 @@ public class UserService : ServiceBase<User, UserDto>, IUserService
 
     public async Task<UserDto?> UpdateAsync(UserUpdateDto dto)
     {
-        var current = await FindUserAsync(dto.Username);
-        if (current == null)
+        var currentUser = await _data.Users.FindAsync(dto.Id);
+        if (currentUser == null)
             NotFound();
 
-        _mapper.Map(dto, current);
+        _mapper.Map(dto, currentUser);
         await _data.CompleteAsync();
-        return _mapper.Map<UserDto>(current);
+        return _mapper.Map<UserDto>(currentUser);
     }
+    public async Task<T?> FindUserAsync<T>(string username) =>
+        await _mapper
+            .ProjectTo<T>(_data.Users.GetQuery([u => u.UserName == username]))
+            .FirstOrDefaultAsync();
 
     /* PRIVATE HELPERS
      **********************************************************************/
 
     private async Task<User?> FindUserAsync(string username) => await FindUserAsync<User>(username);
 
-    private async Task<T?> FindUserAsync<T>(string username) =>
-        await _mapper
-            .ProjectTo<T>(_data.Users.GetQuery([u => u.UserName == username]))
-            .FirstOrDefaultAsync();
 
     /* DEPRECATED
      **********************************************************************/
 
     public async Task<UserDto?> PatchUser(
         string username,
-        JsonPatchDocument<UserForUpdateDto> patchDocument
+        JsonPatchDocument<UserUpdateDto> patchDocument
     )
     {
         var currentUser = await _data
@@ -58,13 +58,12 @@ public class UserService : ServiceBase<User, UserDto>, IUserService
             return null;
         }
 
-        var userToPatch = _mapper.Map<UserForUpdateDto>(currentUser);
+        var userToPatch = _mapper.Map<UserUpdateDto>(currentUser);
         patchDocument.ApplyTo(userToPatch);
 
         currentUser.Name = userToPatch.Name;
         currentUser.Email = userToPatch.Email;
         currentUser.UserName = userToPatch.Username;
-        currentUser.Course = userToPatch.Course;
         await _data.CompleteAsync();
 
         var updatedUser = _mapper.Map<UserDto>(currentUser);
@@ -72,25 +71,19 @@ public class UserService : ServiceBase<User, UserDto>, IUserService
     }
 
     public async Task<UserDto?> CreateNewUserAsync(
-        UserForCreationDto newUser,
+        UserCreateDto newUser,
         UserManager<User> userManager,
         IIdentityService identityService
     )
     {
-        UserCreateModel userCreateModel = new UserCreateModel(
-            newUser.Name,
-            newUser.Username,
-            newUser.Email,
-            "Qwerty1234"
-        );
-
-        var user = _mapper.Map<User>(userCreateModel);
+        var user = _mapper.Map<User>(newUser);
         var result = await userManager.CreateAsync(user);
 
         if (!result.Succeeded)
         {
             throw new Exception(string.Join("\n", result.Errors));
         }
+
         var createdUser = await _data
             .Users.GetByConditionAsync(u => u.Name == newUser.Name)
             .FirstAsync();

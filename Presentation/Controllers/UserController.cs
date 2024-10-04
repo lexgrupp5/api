@@ -1,8 +1,11 @@
+using Application.DTOs;
 using Application.Interfaces;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
+
 using Presentation.Filters;
 
 namespace Presentation.Controllers;
@@ -20,12 +23,34 @@ public class UserController : ApiBaseController
         _services = services;
     }
 
+    //GET: A UserDto, fetched using their username
+    [HttpGet("{username}")]
+    public async Task<ActionResult<UserDto>> GetUserWithUsername(string username)
+    {
+        var result = await _services.User.FindUserAsync<UserDto>(username);
+        if (result == null) { return BadRequest("A user with that username was not able to be found."); }
+        return Ok(result);
+    }
+
+    //GET: A users CourseDto, fetched using their username
+    [HttpGet("{username}/course")]
+    public async Task<ActionResult<CourseDto>> GetUsersCourseWithUsername(string username)
+    {
+        var user = await _services.User.FindUserAsync<UserDto>(username);
+        if (user == null) { return BadRequest("A user with that username was not able to be found."); }
+        var result = user.Course;
+        if (result == null) { return BadRequest("That user is not registered to a course"); }
+        return Ok(result);
+    }
     /*
      *
      ****/
     [Authorize(Roles = "Teacher")]
-    [HttpGet(Name = "GetAllStudents")]
-    public Task<ActionResult<IEnumerable<UserDto>?>> GetAllStudents()
+    [HttpGet(Name = "GetUsers")]
+    public Task<ActionResult<IEnumerable<UserDto>?>> GetUsers(
+        [FromQuery] string? role,
+        [FromQuery] QueryParams? queryParams
+    )
     {
         throw new NotImplementedException();
     }
@@ -34,16 +59,17 @@ public class UserController : ApiBaseController
      *
      ****/
     // TODO: implement
-    private Task<ActionResult<UserDto>> CreateNewUserAsync(UserCreateDto dto)
-    {
-        throw new NotImplementedException();
-    }
+    //[HttpPost]
+    //public Task<ActionResult<UserDto>> CreateUser([FromBody] UserCreateDto dto)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
     /*
      *
      ****/
     [HttpPut("{id}")]
-    public Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UserForUpdateDto user)
+    public Task<ActionResult<UserDto>> UpdateUser([FromRoute] int id, [FromBody] UserUpdateDto dto)
     {
         throw new NotImplementedException();
     }
@@ -57,7 +83,7 @@ public class UserController : ApiBaseController
     [HttpPatch("{username}")]
     public async Task<ActionResult> PatchUserByUsername(
         string username,
-        [FromBody] JsonPatchDocument<UserForUpdateDto> patchDocument
+        [FromBody] JsonPatchDocument<UserUpdateDto> patchDocument
     )
     {
         var result = await _services.User.PatchUser(username, patchDocument);
@@ -67,12 +93,24 @@ public class UserController : ApiBaseController
         }
         return NoContent();
     }
+ 
+    //POST: Create new user
+    /* [SkipValidation] */
+    //[HttpGet(Name = "GetAllStudents")]
+    //public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
+    //{
+    //    var users = await _services.User.GetUsersAsync();
+    //    return users == null
+    //        ? NotFound("No users found in the database.")
+    //        : Ok(users);
+    //}
 
     /*
      * POST: Create new user
      ****/
+    /* [SkipValidation] */
     [HttpPost]
-    public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
+    public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserCreateDto newUser)
     {
         var userToBeCreated = await _services.User.CreateNewUserAsync(
             newUser,

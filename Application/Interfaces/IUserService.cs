@@ -11,10 +11,10 @@ public interface IUserService
 
     /* DEPRECATED
      **********************************************************************/
-
-    Task<UserDto?> PatchUser(string username, JsonPatchDocument<UserForUpdateDto> patchDocument);
+    Task<T?> FindUserAsync<T>(string username);
+    Task<UserDto?> PatchUser(string username, JsonPatchDocument<UserUpdateDto> patchDocument);
     Task<UserDto?> CreateNewUserAsync(
-        UserForCreationDto newUser,
+        UserCreateDto newUser,
         UserManager<User> userManager,
         IIdentityService identityService
     );
