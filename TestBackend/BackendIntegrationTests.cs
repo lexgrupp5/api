@@ -17,7 +17,7 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
     }
 
     [Fact]
-    public async Task GetNotExistingUsernameAsync_ReturnsBadResultAndNull()
+    public async Task GetNotExistingUsernameAsync_ReturnsBadResultAndErrorMessage()
     {
         //Arrange
         var expectedStatusCode = HttpStatusCode.BadRequest;
