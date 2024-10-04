@@ -1,8 +1,12 @@
 using Application.Interfaces;
+
 using AutoMapper;
+
 using Domain.DTOs;
 using Domain.Entities;
+
 using Infrastructure.Interfaces;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;

@@ -3,9 +3,11 @@ using Application.Interfaces;
 
 using Domain.Constants;
 using Domain.DTOs;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+
 using Presentation.Filters;
 
 namespace Presentation.Controllers;
@@ -76,7 +78,7 @@ public class CourseController : ApiBaseController
     /*
      * POST: Create a new course
      ****************************/
-    [Authorize(Roles = "Teacher")]
+    [Authorize(Roles = UserRoles.Teacher)]
     [HttpPost]
     public async Task<ActionResult<CourseDto>> CreateCourse([FromBody] CourseCreateDto course)
     {
@@ -87,7 +89,7 @@ public class CourseController : ApiBaseController
     /*
      * PUT: Course by ID
      *******************/
-    [Authorize(Roles = "Teacher")]
+    [Authorize(Roles = UserRoles.Teacher)]
     [HttpPut("{id}")]
     public async Task<ActionResult<CourseDto>> UpdateCourse(
         int id,
@@ -101,7 +103,7 @@ public class CourseController : ApiBaseController
     /*
      * DELETE: Course by ID
      ***********************/
-    [Authorize(Roles = "Teacher")]
+    [Authorize(Roles = UserRoles.Teacher)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteCourse(int id, [FromBody] CourseDto course)
     {
@@ -113,6 +115,7 @@ public class CourseController : ApiBaseController
      **********************************************************************/
 
     /* [SkipValidation] */
+    [Authorize(Roles = UserRoles.Teacher)]
     [HttpPatch("{id}")]
     public async Task<IActionResult> PatchCourse(
         [FromRoute] int id,

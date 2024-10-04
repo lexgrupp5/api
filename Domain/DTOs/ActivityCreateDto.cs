@@ -2,15 +2,15 @@ namespace Domain.DTOs;
 
 #nullable disable
 
-public class ActivityCreateDto
+public record ActivityCreateDto
 {
-    public string Description { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
+    public string Description { get; init; }
+    public DateTime StartDate { get; init; }
+    public DateTime EndDate { get; init; }
 
     // Module
-    public int ModuleId { get; set; }
+    public int ModuleId { get; init; }
 
     // Activity Type
-    public string ActivityTypeName { get; set; }
+    public string ActivityTypeName { get; init; }
 }

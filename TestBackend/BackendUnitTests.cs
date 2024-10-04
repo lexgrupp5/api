@@ -30,10 +30,10 @@ public class BackendTests
     {
         //Arrange
         var testCourseDto = new CourseDto {Description = "Test-desc", Name = "Test-name", StartDate = DateTime.Today, EndDate = DateTime.Today, TeacherId = "1", Id = 1};
-        var newUser = new UserForCreationDto { Name = "Tom", Email = "tom@mail.com" , Username = "Test"};
-        var expectedUser = new UserDto(newUser.Name, newUser.Email, newUser.Username, 1, testCourseDto );
+        var newUser = new UserCreateDto{ Name = "Tom", Email = "tom@mail.com" , Username = "Test"};
+        var expectedUser = new UserDto {Course = testCourseDto, CourseId = 1, Email = newUser.Email, Name = newUser.Name, Username = newUser.Username};
         
-        _mockUserService.Setup(u => u.CreateNewUserAsync(It.IsAny<UserForCreationDto>(),
+        _mockUserService.Setup(u => u.CreateNewUserAsync(It.IsAny<UserCreateDto>(),
             It.IsAny<UserManager<User>>(),
             It.IsAny<IIdentityService>()))
             .ReturnsAsync(expectedUser);
@@ -42,7 +42,7 @@ public class BackendTests
         var controller = new UserController(_mockServiceCoordinator.Object);
 
         //Act
-        var result = await controller.CreateNewUserAsync(newUser);
+        var result = await controller.CreateUser(newUser);
 
         // Assert
         Assert.IsType<OkObjectResult>(result.Result);
@@ -67,7 +67,7 @@ public class BackendTests
         }
 
         //Verify service call
-        _mockUserService.Verify(u => u.CreateNewUserAsync(It.IsAny<UserForCreationDto>(), 
+        _mockUserService.Verify(u => u.CreateNewUserAsync(It.IsAny<UserCreateDto>(), 
             It.IsAny<UserManager<User>>(), 
             It.IsAny<IIdentityService>()), Times.Once());
    

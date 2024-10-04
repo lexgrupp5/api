@@ -41,7 +41,7 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
     public async Task CreateNewUserAsync_ReturnsOkResult()
     {
         //Arrange
-        var newUser = new UserForCreationDto { Name = "Test", Email = "test@test.com", Username = "test" };
+        var newUser = new UserCreateDto{ Name = "Test", Email = "test@test.com", Username = "test" };
 
         //Act
         var jsonData = JsonConvert.SerializeObject(newUser);

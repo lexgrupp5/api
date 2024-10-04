@@ -19,6 +19,9 @@ public class ActivityController : ApiBaseController
         _services = services;
     }
 
+    /*
+     *
+     ****/
     [HttpGet("{id}")]
     public async Task<ActionResult<ActivityDto>> GetActivityById(int id)
     {
@@ -26,23 +29,34 @@ public class ActivityController : ApiBaseController
         return result != null ? Ok(result) : NotFound();
     }
 
+    /*
+     *
+     ****/
     [HttpPost]
-    public async Task<ActionResult<ActivityDto>> CreateActivity([FromBody] ActivityCreateDto dto)
+    public async Task<ActionResult<ActivityDto>> CreateActivity(
+        [FromBody] ActivityCreateDto createDto
+    )
     {
-        var result = await _services.Activity.CreateAsync(dto);
+        var result = await _services.Activity.CreateAsync(createDto);
         return result != null ? Ok(result) : NotFound();
     }
 
+    /*
+     *
+     ****/
     [HttpPut("{id}")]
     public async Task<ActionResult<ActivityDto>> UpdateActivity(
         int id,
-        [FromBody] ActivityUpdateDto dto
+        [FromBody] ActivityUpdateDto updateDto
     )
     {
-        var result = await _services.Activity.UpdateAsync(id, dto);
+        var result = await _services.Activity.UpdateAsync(id, updateDto);
         return result != null ? Ok(result) : NotFound();
     }
 
+    /*
+     *
+     ****/
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteActivity(int id, [FromBody] ActivityDto dto)
     {
