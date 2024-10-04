@@ -430,7 +430,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.User", "Teacher")
                         .WithMany()
                         .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Teacher");
                 });
