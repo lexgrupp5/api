@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using System.Text;
+using System.Net.Http.Json;
 using Domain.DTOs;
 
 using Newtonsoft.Json;
@@ -41,12 +41,10 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
     public async Task CreateUserAsync_ReturnsValidUserDto()
     {
         //Arrange
-        var newUser = new UserCreateDto{ Name = "Test", Email = "test@test.com", Username = "test" };
+        var newUser = new UserCreateDto{ Name = "Test", Email = "test@test.com", Username = "test", Password = "Test"};
 
         //Act
-        var jsonData = JsonConvert.SerializeObject(newUser);
-        using var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-        using var response = await _httpClient.PostAsync("/api/users", content);
+        using var response = await _httpClient.PostAsJsonAsync("/api/users", newUser);
          response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadAsStringAsync();
