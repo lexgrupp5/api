@@ -60,4 +60,20 @@ public class BackendIntegrationTests : IClassFixture<CustomWebApplicationFactory
         Assert.Equal(newUser.Username, deserializedResult.Username);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetModuleWithIdAsync_ReturnsOkResult()
+    {
+        //Arrange
+        int id = 1;
+        
+        //Act
+        using var response = await _httpClient.GetAsync($"/api/modules/{id}");
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadAsStringAsync();
+        
+        //Assert
+        Assert.NotNull(result);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
 }
