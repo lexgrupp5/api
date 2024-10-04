@@ -21,6 +21,26 @@ public class UserController : ApiBaseController
         _services = services;
     }
 
+    //GET: A UserDto, fetched using their username
+    [HttpGet("{username}")]
+    public async Task<ActionResult<UserDto>> GetUserWithUsername(string username)
+    {
+        var result = await _services.User.FindUserAsync<UserDto>(username);
+        if (result == null) { return BadRequest("A user with that username was not able to be found."); }
+        return Ok(result);
+    }
+
+    //GET: A users CourseDto, fetched using their username
+    [HttpGet("{username}/course")]
+    public async Task<ActionResult<CourseDto>> GetUsersCourseWithUsername(string username)
+    {
+        var user = await _services.User.FindUserAsync<UserDto>(username);
+        if (user == null) { return BadRequest("A user with that username was not able to be found."); }
+        var result = user.Course;
+        if (result == null) { return BadRequest("That user is not registered to a course"); }
+        return Ok(result);
+    }
+
     /*
      *
      ****/
@@ -38,11 +58,11 @@ public class UserController : ApiBaseController
      *
      ****/
     // TODO: implement
-    [HttpPost]
-    public Task<ActionResult<UserDto>> CreateUser([FromBody] UserCreateDto dto)
-    {
-        throw new NotImplementedException();
-    }
+    //[HttpPost]
+    //public Task<ActionResult<UserDto>> CreateUser([FromBody] UserCreateDto dto)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
     /*
      *
@@ -73,11 +93,10 @@ public class UserController : ApiBaseController
         return NoContent();
     }
 
-    /*
-     * POST: Create new user
-     ****/
-    /* [HttpPost]
-    public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserForCreationDto newUser)
+ 
+    //POST: Create new user
+    [HttpPost]
+    public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserCreateDto newUser)
     {
         var userToBeCreated = await _services.User.CreateNewUserAsync(
             newUser,
@@ -89,5 +108,5 @@ public class UserController : ApiBaseController
             return BadRequest("The return body of the function call is 'null'");
         }
         return Ok(userToBeCreated);
-    } */
+    }
 }
