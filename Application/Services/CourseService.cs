@@ -1,15 +1,12 @@
 ﻿using System.Linq.Expressions;
-
 using Application.DTOs;
 using Application.Interfaces;
-
 using AutoMapper;
-
 using Domain.Constants;
 using Domain.DTOs;
 using Domain.Entities;
 
-using Infrastructure.Interfaces;
+namespace Application.Services;
 
 using Microsoft.EntityFrameworkCore;
 

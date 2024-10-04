@@ -29,7 +29,7 @@ public class UserController : ApiBaseController
         if (result == null) { return BadRequest("A user with that username was not able to be found."); }
         return Ok(result);
     }
-
+        }
     //GET: A users CourseDto, fetched using their username
     [HttpGet("{username}/course")]
     public async Task<ActionResult<CourseDto>> GetUsersCourseWithUsername(string username)
@@ -39,8 +39,8 @@ public class UserController : ApiBaseController
         var result = user.Course;
         if (result == null) { return BadRequest("That user is not registered to a course"); }
         return Ok(result);
+        return Ok(users);
     }
-
     /*
      *
      ****/
@@ -71,6 +71,7 @@ public class UserController : ApiBaseController
     public Task<ActionResult<UserDto>> UpdateUser([FromRoute] int id, [FromBody] UserUpdateDto dto)
     {
         throw new NotImplementedException();
+        return Ok(course);
     }
 
     /*
@@ -92,9 +93,23 @@ public class UserController : ApiBaseController
         }
         return NoContent();
     }
-
  
     //POST: Create new user
+     ****/
+    /* [SkipValidation] */
+    [HttpGet(Name = "GetAllStudents")]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllStudents()
+    {
+        var users = await _serviceCoordinator.UserService.GetAllUsersAsync();
+        return users == null
+            ? NotFound("No users found in the database.")
+            : Ok(users);
+    }
+
+    /*
+     * POST: Create new user
+     ****/
+    /* [SkipValidation] */
     [HttpPost]
     public async Task<ActionResult<UserDto?>> CreateNewUserAsync(UserCreateDto newUser)
     {

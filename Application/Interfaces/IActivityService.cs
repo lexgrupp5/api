@@ -20,5 +20,5 @@ public interface IActivityService : IServiceBase<Activity, ActivityDto>
     /* DEPRECATED
      **********************************************************************/
 
-    Task<ActivityDto> PatchActivity(ActivityDto dto);
+     Task<ActivityDto> PatchActivity(ActivityDto dto);
 }
