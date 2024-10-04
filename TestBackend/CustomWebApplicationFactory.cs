@@ -22,13 +22,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
             if (dbContextOptions != null)
                 services.Remove(dbContextOptions);
-
             
             services.AddDbContext<AppDbContext>(options =>
             {
                 options.UseInMemoryDatabase("TestDatabase");
             });
-            
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");   
             var scope = services.BuildServiceProvider().CreateScope();
             AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             

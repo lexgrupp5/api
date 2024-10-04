@@ -7,6 +7,9 @@
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
+        <Configurations>Debug;Release;Testing</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        
     </PropertyGroup>
 
     <ItemGroup>

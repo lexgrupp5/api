@@ -57,19 +57,31 @@ public class Program
         app.UseMiddleware<ApiExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
+        
+        var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? builder.Environment.EnvironmentName;
+        if (environmentName.Equals("Development"))
         {
             app.UseDevCORS();
             app.UseSwagger();
             app.UseSwaggerUI();
             await app.SeedDataAsync();
         }
-
-        app.UseAuthentication();
-        app.UseAuthorization();
+        else if (environmentName.Equals("Testing"))
+        {
+            app.UseTestCORS();
+            app.UseSwagger();
+            app.UseSwaggerUI();
+            await app.SeedDataAsync();
+        }
+        else
+        {
+            //Default configuration for other environments
+            app.UseAuthentication();
+            app.UseAuthorization();
+        }
 
         app.MapControllers();
 
-        app.Run();
+        await app.RunAsync();
     }
 }
