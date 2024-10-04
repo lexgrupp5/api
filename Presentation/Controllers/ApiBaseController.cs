@@ -38,4 +38,22 @@ public abstract class ApiBaseController : ControllerBase
 
         return true;
     }
+
+    protected string? GetControllerPath ()
+    {
+        string? path = Url.Action();
+
+        if (string.IsNullOrEmpty(path))
+        {
+            return null;
+        }
+
+        int lastSlashIndex = path.LastIndexOf('/');
+        if (lastSlashIndex > 0)
+        {
+            path = path.Substring(0, lastSlashIndex);
+        }
+        return path;
+
+    }
 }
