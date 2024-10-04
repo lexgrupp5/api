@@ -182,17 +182,10 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-<<<<<<<< HEAD:Infrastructure/Migrations/20241004085547_Init.cs
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-========
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
->>>>>>>> dev:Infrastructure/Migrations/20241002132728_Init.cs
                     TeacherId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
@@ -235,13 +228,8 @@ namespace Infrastructure.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CourseId = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-<<<<<<<< HEAD:Infrastructure/Migrations/20241004085547_Init.cs
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true)
-========
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false)
->>>>>>>> dev:Infrastructure/Migrations/20241002132728_Init.cs
                 },
                 constraints: table =>
                 {

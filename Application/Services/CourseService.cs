@@ -5,14 +5,10 @@ using AutoMapper;
 using Domain.Constants;
 using Domain.DTOs;
 using Domain.Entities;
-
 namespace Application.Services;
-
+using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
-
 using Shared.Extensions;
-
-namespace Application.Services;
 
 public class CourseService : ServiceBase<Course, CourseDto>, ICourseService
 {
