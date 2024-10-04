@@ -42,7 +42,7 @@ public class BackendTests
         var controller = new UserController(_mockServiceCoordinator.Object);
 
         //Act
-        var result = await controller.CreateUser(newUser);
+        var result = await controller.CreateNewUserAsync(newUser);
 
         // Assert
         Assert.IsType<OkObjectResult>(result.Result);
