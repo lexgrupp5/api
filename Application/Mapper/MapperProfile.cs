@@ -39,7 +39,15 @@ public class MapperProfile : Profile
         CreateMap<Activity, ActivityDto>().ReverseMap();
 
         CreateMap<ActivityCreateDto, Activity>();
-        CreateMap<ActivityUpdateDto, Activity>();
+        CreateMap<ActivityUpdateDto, Activity>()
+            .ForMember(dest => dest.StartDate, opt => opt.Condition(src => src.StartDate.HasValue))
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+            .ForMember(dest => dest.EndDate, opt => opt.Condition(src => src.EndDate.HasValue))
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate));
+        //.ForMember(dest => dest.StartDate, opt => opt.MapFrom((src, dest) => src == null ? dest.StartDate : src.StartDate));
+        /* .ForMember(dest => dest.StartDate, opt => opt.Condition(src => src.StartDate != default(DateTime)))
+        .ForMember(dest => dest.EndDate, opt => opt.Condition(src => src.EndDate != null))
+        .ForAllMembers(opt => opt.Condition((src, dest, member) => member != null)); */
 
         /*
          * USER
