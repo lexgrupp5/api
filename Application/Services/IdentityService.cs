@@ -7,6 +7,8 @@ using Domain.Configuration;
 using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Interfaces;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace Application.Services;
@@ -32,7 +34,7 @@ public class IdentityService : ServiceBase<User, UserDto>, IIdentityService
     }
 
     // TODO: refactor
-    public async Task<TokenResult> AuthenticateAsync(UserAuthModel userDto)
+    public async Task<TokenResult> AuthenticateAsync(UserAuthModel userDto, string? refreshCookiePath)
     {
         var user = await ValidateUser(userDto);
         var userRoles = await _userManager.GetRolesAsync(user);
@@ -46,7 +48,7 @@ public class IdentityService : ServiceBase<User, UserDto>, IIdentityService
             User = user
         };
 
-        var cookieParam = CreateRefreshCookieParameter(refresh);
+        var cookieParam = CreateRefreshCookieParameter(refresh, refreshCookiePath);
 
         _data.Users.AddUserSession(userSession);
         await _data.CompleteAsync();
@@ -55,14 +57,15 @@ public class IdentityService : ServiceBase<User, UserDto>, IIdentityService
     }
 
     // TODO: refactor
-    public async Task<TokenResult> RefreshTokensAsync(string oldAccess, string oldRefresh)
+    public async Task<TokenResult> RefreshTokensAsync(
+        string oldAccess, string oldRefresh, string? refreshCookiePath)
     {
         var user = await GetUserFromAccessTokenAsync(oldAccess);
         var userRoles = await _userManager.GetRolesAsync(user);
         var userSession = await GetUserSession(oldRefresh, user);
         var newAccess = _tService.GenerateAccessToken(user, userRoles);
         var newRefresh = _tService.GenerateRefreshToken();
-        var newCookieParam = CreateRefreshCookieParameter(newRefresh);
+        var newCookieParam = CreateRefreshCookieParameter(newRefresh, refreshCookiePath);
         userSession.RefreshToken = newRefresh;
         await _data.CompleteAsync();
 
@@ -120,11 +123,11 @@ public class IdentityService : ServiceBase<User, UserDto>, IIdentityService
     }
 
     // TODO: refactor
-    private async Task<User?> FindUserByPrincipalAsync(ClaimsPrincipal principal) => 
+    private async Task<User?> FindUserByPrincipalAsync(ClaimsPrincipal principal) =>
        await _userManager.FindByIdAsync(
             principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty
         );
-    
+
 
     // TODO: refactor
     private async Task<User> ValidateUser(UserAuthModel userDto)
@@ -141,15 +144,22 @@ public class IdentityService : ServiceBase<User, UserDto>, IIdentityService
     }
 
     // TODO: refactor
-    private RefreshCookieParameter CreateRefreshCookieParameter(string refreshToken) =>
+    private RefreshCookieParameter CreateRefreshCookieParameter(
+        string refreshToken, string? refreshCookiePath) =>
         new(
             refreshToken,
-            new()
-            {
-                HttpOnly = _tConfig.Refresh.HttpOnly,
-                SameSite = _tConfig.Refresh.SameSite,
-                Secure = _tConfig.Refresh.Secure,
-                Expires = DateTime.UtcNow.AddMinutes(_tConfig.Refresh.ExpirationInMinutes)
-            }
+            RefreshCookieBaseOptions(refreshCookiePath)
         );
+
+    public CookieOptions RefreshCookieBaseOptions (string? refreshCookiePath)
+    {
+        return new CookieOptions
+        {
+            HttpOnly = _tConfig.Refresh.HttpOnly,
+            SameSite = _tConfig.Refresh.SameSite,
+            Secure = _tConfig.Refresh.Secure,
+            Expires = DateTime.UtcNow.AddMinutes(_tConfig.Refresh.ExpirationInMinutes),
+            Path = refreshCookiePath
+        };
+    }
 }

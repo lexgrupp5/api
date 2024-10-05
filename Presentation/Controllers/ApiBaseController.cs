@@ -39,7 +39,7 @@ public abstract class ApiBaseController : ControllerBase
         return true;
     }
 
-    protected string? GetControllerPath ()
+    protected string? GetControllerPath()
     {
         string? path = Url.Action();
 
