@@ -44,7 +44,7 @@ public class IdentityService : ServiceBase<User, UserDto>, IIdentityService
         var userSession = new UserSession()
         {
             RefreshToken = refresh,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(_tConfig.Access.ExpirationInMinutes),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_tConfig.Refresh.ExpirationInMinutes),
             User = user
         };
 
