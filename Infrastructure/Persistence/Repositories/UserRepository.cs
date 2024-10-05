@@ -50,7 +50,6 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         var query = BuildQuery(_db.Users.AsQueryable(), filters, sorting, paging);
         var roleId = _db.Roles.Where(r => r.Name == roleName).Select(r => r.Id).SingleOrDefault();
         return query.Where(u => _db.UserRoles.Any(ur => ur.RoleId == roleId));
-        throw new NotImplementedException();
     }
 
     // UserSession
