@@ -35,7 +35,7 @@ public class AuthController : ApiBaseController
         /* return BadRequest("test"); */
         var (access, cookie) = await _services.Identity.AuthenticateAsync(userDto);
 
-        cookie.Options.Path = Url.Action(nameof(RefreshToken));
+        cookie.Options.Path = GetControllerPath();
         HttpContext.Response.Cookies.Append(cookie.Key, cookie.Token, cookie.Options);
         
 
@@ -74,7 +74,7 @@ public class AuthController : ApiBaseController
 
         var (newAccess, cookie) = await _services.Identity.RefreshTokensAsync(token.AccessToken, refresh);
 
-        cookie.Options.Path = Url.Action(nameof(RefreshToken));
+        cookie.Options.Path = GetControllerPath();
         HttpContext.Response.Cookies.Append(cookie.Key, cookie.Token, cookie.Options);
 
         return newAccess == null ? BadRequest() : Ok(newAccess);

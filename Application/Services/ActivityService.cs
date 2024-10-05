@@ -38,6 +38,9 @@ public class ActivityService : ServiceBase<Activity, ActivityDto>, IActivityServ
             .FirstOrDefaultAsync();
     }
 
+    /*
+     *
+     ****/
     public async Task<ActivityDto> CreateAsync(ActivityCreateDto createDto)
     {
         if (createDto.StartDate > createDto.EndDate)
@@ -50,7 +53,6 @@ public class ActivityService : ServiceBase<Activity, ActivityDto>, IActivityServ
             NotFound($"Module with the ID {createDto.ModuleId} was not found in the database.");
 
         var newActivity = _mapper.Map<Activity>(createDto);
-        newActivity.Module = module;
 
         ValidateActivityDates(
             newActivity,
@@ -64,24 +66,43 @@ public class ActivityService : ServiceBase<Activity, ActivityDto>, IActivityServ
         return _mapper.Map<ActivityDto>(newActivity);
     }
 
+    /*
+     *
+     ****/
     public async Task<ActivityDto> UpdateAsync(int id, ActivityUpdateDto updateDto)
     {
         if (updateDto.Id != id)
             BadRequest("Id missmatch");
 
-        var current = await _mapper
-            .ProjectTo<Activity>(_data.Activities.GetQueryById(id))
+        var current = await _data
+            .Activities.GetQueryById(id)
+            .Include(a => a.Module)
+            .ThenInclude(m => m.Activities)
+            .Include(a => a.Module)
+            .ThenInclude(m => m.Course)
+            .ThenInclude(m => m.Modules)
             .FirstOrDefaultAsync();
         if (current == null)
             NotFound();
 
+        var currentStartDate = current.StartDate;
+        var currentEndDate = current.EndDate;
+
         _mapper.Map(updateDto, current);
-        ValidateActivityDates(
-            current,
-            current.Module,
-            [.. current.Module.Activities],
-            [.. current.Module.Course.Modules]
-        );
+
+        var isStartChanged = current.StartDate != currentStartDate;
+        var isEndChanged = current.EndDate != currentEndDate;
+
+        if (isStartChanged || isEndChanged)
+        {
+            ValidateActivityDates(
+                current,
+                current.Module,
+                [.. current.Module.Activities],
+                [.. current.Module.Course.Modules]
+            );
+        }
+
         await _data.CompleteAsync();
         return _mapper.Map<ActivityDto>(current);
     }
@@ -89,61 +110,78 @@ public class ActivityService : ServiceBase<Activity, ActivityDto>, IActivityServ
     /* PRIVATE HELPERS
      **********************************************************************/
 
+    /*
+     *
+     ****/
     private static bool ValidateActivityDates(
         Activity activity,
         Module module,
-        List<Activity> moduleActivities,
-        List<Module> courseModules
+        List<Activity> activities,
+        List<Module> modules
     )
     {
-        var isModuleStartOlder = module.StartDate > activity.StartDate;
-        var isModuleEndNewer = module.EndDate < activity.EndDate;
-
-        if (isModuleStartOlder || isModuleEndNewer)
+        if (!(modules.Count <= 1))
         {
-            if (courseModules.Count > 1)
+            var isModuleStartOlder = module.StartDate > activity.StartDate;
+            var isModuleEndNewer = module.EndDate < activity.EndDate;
+            var sortedModules = modules.OrderBy(m => m.StartDate).ToList();
+
+            if (isModuleStartOlder || isModuleEndNewer)
             {
-                var moduleIndex = courseModules.IndexOf(module);
-                if (isModuleStartOlder && moduleIndex > 1)
+                if (sortedModules.Count > 1)
                 {
-                    if (courseModules[moduleIndex - 1].EndDate > activity.StartDate)
+                    var moduleIndex = sortedModules.IndexOf(module);
+                    if (isModuleStartOlder && moduleIndex > 1)
                     {
-                        BadRequest("Module start date conflict");
+                        if (sortedModules[moduleIndex - 1].EndDate > activity.StartDate)
+                        {
+                            BadRequest("Module start date conflict");
+                        }
                     }
-                }
-                if (isModuleEndNewer && moduleIndex < courseModules.Count - 1)
-                {
-                    if (courseModules[moduleIndex + 1].StartDate < activity.EndDate)
+                    if (isModuleEndNewer && moduleIndex < sortedModules.Count - 1)
                     {
-                        BadRequest("Module end date conflict");
+                        if (sortedModules[moduleIndex + 1].StartDate < activity.EndDate)
+                        {
+                            BadRequest("Module end date conflict");
+                        }
                     }
                 }
             }
         }
 
-        var activities = moduleActivities.OrderBy(a => a.EndDate).ToList();
+        if (activities.Count <= 1)
+            return true;
 
-        if (activities.Count > 0)
+        var sortedActivities = activities
+            .Where(a => a.Id != activity.Id)
+            .OrderBy(a => a.StartDate)
+            .ToList();
+
+        var index = sortedActivities.FindIndex(a => a.EndDate < activity.StartDate);
+        if (index >= 0 && index < sortedActivities.Count - 1)
         {
-            var isBeforeFirst = activities.First().StartDate > activity.EndDate;
-            var isAfterLast = activities.Last().EndDate < activity.StartDate;
-
-            if (!isBeforeFirst && !isAfterLast)
+            if (sortedActivities[index + 1].StartDate < activity.EndDate)
             {
-                var index = activities.FindIndex(a => a.EndDate < activity.StartDate);
-                if ((index > 0) && (activities[index + 1].StartDate > activity.EndDate)) { }
-                else
-                {
-                    BadRequest("Activity date range overlap conflict");
-                }
+                BadRequest("Activity end date conflict");
             }
         }
+        else
+        {
+            if (sortedActivities.First().StartDate < activity.EndDate)
+            {
+                BadRequest("Activity end date conflict");
+            }
+        }
+
         return true;
     }
 
     /* DEPRECATED
      **********************************************************************/
 
+    /*
+     *
+     ****/
     public async Task<ActivityDto> PatchActivity(ActivityDto dto)
     {
         var current = await _data.Activities.FindAsync(dto.Id);

@@ -113,6 +113,7 @@ public class CourseController : ApiBaseController
      **********************************************************************/
 
     /* [SkipValidation] */
+    [Authorize(Roles = UserRoles.Teacher)]
     [HttpPatch("{id}")]
     public async Task<IActionResult> PatchCourse(
         [FromRoute] int id,
