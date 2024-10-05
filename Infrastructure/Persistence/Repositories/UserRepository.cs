@@ -40,28 +40,6 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         return await _db.Users.AnyAsync(u => u.Name == user.Name);
     }
 
-    /*     public IQueryable<User> UsersInRole(IQueryable<User> query, string roleName)
-        {
-            return query.Where(u =>
-                _db.UserRoles.Any(ur =>
-                    ur.RoleId
-                    == _db.Roles.Where(r => r.Name == roleName).Select(r => r.Id).SingleOrDefault()
-                )
-            );
-        } */
-
-    /*     public IQueryable<User> QueryUsersInRole(string roleName)
-        {
-            return _db
-                .Users.Where(u =>
-                    _db.UserRoles.Any(ur =>
-                        ur.RoleId
-                        == _db.Roles.Where(r => r.Name == roleName).Select(r => r.Id).SingleOrDefault()
-                    )
-                )
-                .AsQueryable();
-        } */
-
     public IQueryable<User> GetQueryUsersInRole(
         string roleName,
         IEnumerable<Expression<Func<User, bool>>> filters,
@@ -72,6 +50,7 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         var query = BuildQuery(_db.Users.AsQueryable(), filters, sorting, paging);
         var roleId = _db.Roles.Where(r => r.Name == roleName).Select(r => r.Id).SingleOrDefault();
         return query.Where(u => _db.UserRoles.Any(ur => ur.RoleId == roleId));
+        throw new NotImplementedException();
     }
 
     // UserSession

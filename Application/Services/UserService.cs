@@ -31,16 +31,16 @@ public class UserService : ServiceBase<User, UserDto>, IUserService
         await _data.CompleteAsync();
         return _mapper.Map<UserDto>(currentUser);
     }
+    public async Task<T?> FindUserAsync<T>(string username) =>
+        await _mapper
+            .ProjectTo<T>(_data.Users.GetQuery([u => u.UserName == username]))
+            .FirstOrDefaultAsync();
 
     /* PRIVATE HELPERS
      **********************************************************************/
 
     private async Task<User?> FindUserAsync(string username) => await FindUserAsync<User>(username);
 
-    private async Task<T?> FindUserAsync<T>(string username) =>
-        await _mapper
-            .ProjectTo<T>(_data.Users.GetQuery([u => u.UserName == username]))
-            .FirstOrDefaultAsync();
 
     /* DEPRECATED
      **********************************************************************/
@@ -76,20 +76,14 @@ public class UserService : ServiceBase<User, UserDto>, IUserService
         IIdentityService identityService
     )
     {
-        UserCreateModel userCreateModel = new UserCreateModel(
-            newUser.Name,
-            newUser.Username,
-            newUser.Email,
-            "Qwerty1234"
-        );
-
-        var user = _mapper.Map<User>(userCreateModel);
+        var user = _mapper.Map<User>(newUser);
         var result = await userManager.CreateAsync(user);
 
         if (!result.Succeeded)
         {
             throw new Exception(string.Join("\n", result.Errors));
         }
+
         var createdUser = await _data
             .Users.GetByConditionAsync(u => u.Name == newUser.Name)
             .FirstAsync();

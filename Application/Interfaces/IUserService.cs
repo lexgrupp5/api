@@ -11,7 +11,7 @@ public interface IUserService
 
     /* DEPRECATED
      **********************************************************************/
-
+    Task<T?> FindUserAsync<T>(string username);
     Task<UserDto?> PatchUser(string username, JsonPatchDocument<UserUpdateDto> patchDocument);
     Task<UserDto?> CreateNewUserAsync(
         UserCreateDto newUser,
