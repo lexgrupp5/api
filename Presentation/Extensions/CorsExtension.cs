@@ -5,6 +5,8 @@ public static class CORSExtension
     private static readonly string _dev = "dev";
 
     private static readonly string _prod = "prod";
+    
+    private static readonly string _test = "Testing";
 
     public static void AddCORS(
         this WebApplicationBuilder builder,
@@ -13,7 +15,6 @@ public static class CORSExtension
         var origins = config.GetSection("CORS:AllowedOrigins").Get<string[]>()
             ?? throw new InvalidOperationException("CORS origins 'CORS:AllowedOrigins' not found."
         );
-
         builder.Services.AddCors(options =>
             options.AddPolicy(_dev, builder => builder
                 .WithOrigins(origins)
@@ -30,6 +31,13 @@ public static class CORSExtension
                 .AllowAnyHeader()
                 .AllowCredentials()
             )
+        );     
+        builder.Services.AddCors(options =>
+            options.AddPolicy(_test, builder => builder
+                .WithOrigins(origins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+            )
         );
     }
 
@@ -41,5 +49,9 @@ public static class CORSExtension
     public static void UseProdCORS(this WebApplication application)
     {
         application.UseCors(_prod);
+    }   
+    public static void UseTestCORS(this WebApplication application)
+    {
+        application.UseCors(_test);
     }
 }
