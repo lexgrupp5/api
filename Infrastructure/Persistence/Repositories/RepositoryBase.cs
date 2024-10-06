@@ -40,16 +40,16 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
         PageParams? paging = null
     )
     {
-        var dbSet = _db.Set<T>();
-        var totalItemCount = dbSet.Count();
+        var dbQuery = _db.Set<T>()
+            .AsQueryable()
+            .ApplyFilters(filters)
+            .ApplySorting(sorting);
+        
+        var totalItemCount = dbQuery.Count();
 
-        return (
-            dbSet
-                .AsQueryable()
-                .ApplyFilters(filters)
-                .ApplySorting(sorting)
-                .ApplyPagination(paging),
-            totalItemCount);
+        var paginatedQuery = dbQuery.ApplyPagination(paging);
+
+        return (paginatedQuery, totalItemCount);
     }
 
     /*
