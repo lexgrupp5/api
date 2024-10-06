@@ -16,6 +16,12 @@ public interface IRepositoryBase<T>
         PageParams? paging = null
     );
 
+    (IQueryable<T>, int) GetQueryWithTotalItemCount(
+        IEnumerable<Expression<Func<T, bool>>>? filters = null,
+        IEnumerable<SortParams>? sorting = null,
+        PageParams? paging = null
+    );
+
     IQueryable<T> GetQueryById(params object?[]? keyValues);
 
     Task<bool> ExistsAsync(params object?[]? keyValues);

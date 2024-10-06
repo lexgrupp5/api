@@ -6,6 +6,8 @@ using Domain.Constants;
 using Domain.DTOs;
 using Domain.Entities;
 namespace Application.Services;
+using Application.Models;
+
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Shared.Extensions;
@@ -15,10 +17,14 @@ public class CourseService : ServiceBase<Course, CourseDto>, ICourseService
     public CourseService(IDataCoordinator dataCoordinator, IMapper mapper)
         : base(dataCoordinator, mapper) { }
 
+    //Task<(IEnumerable<CourseDto>? Courses, int TotalItemCount)> ICourseService.GetAllAsync(QueryParams? queryParams, string? searchString, DateParams? dateParams)
+    //{
+    //    throw new NotImplementedException();
+    //}
     /*
      *
      ****/
-    public async Task<IEnumerable<CourseDto>?> GetAllAsync(
+    public async Task<(IEnumerable<CourseDto>? Courses, int TotalItemCount)> GetAllAsync(
         QueryParams? queryParams = null,
         string? searchString = null,
         DateParams? dateParams = null
@@ -34,9 +40,12 @@ public class CourseService : ServiceBase<Course, CourseDto>, ICourseService
         if (dateParams != null)
             filters.AddNotNull(CreateDateRangeFilter(dateParams.StartDate, dateParams.EndDate));
 
-        return await _mapper
-            .ProjectTo<CourseDto>(_data.Courses.GetQuery(filters, sorting, paging))
-            .ToListAsync();
+        var (courses, totalItemCount) = _data.Courses.GetQueryWithTotalItemCount(filters, sorting, paging);
+
+        return (
+            Courses: await _mapper.ProjectTo<CourseDto>(courses).ToListAsync(),
+            TotalItemCount: totalItemCount
+        );
     }
 
     /*
