@@ -1,5 +1,8 @@
+using System.Text.Json;
+
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Models;
 
 using Domain.Constants;
 using Domain.DTOs;
@@ -8,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
+using Presentation.Constants;
 using Presentation.Filters;
 
 namespace Presentation.Controllers;
@@ -35,7 +39,18 @@ public class CourseController : ApiBaseController
         [FromQuery] QueryParams? queryParams
     )
     {
-        var courses = await _services.Course.GetAllAsync(queryParams, search, dateParams);
+        var ( courses, totalItemCount ) = await _services.Course.GetAllAsync(queryParams, search, dateParams);
+        if (queryParams?.Limit is int size)
+        {
+            Response.Headers.Append(
+                CustomHeader.Pagination,
+                JsonSerializer.Serialize(new PaginationMeta
+                {
+                    PageSize = size,
+                    TotalItemCount = totalItemCount
+                })
+            );
+        }
         return courses != null ? Ok(courses) : NotFound();
     }
 

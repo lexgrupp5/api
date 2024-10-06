@@ -1,4 +1,8 @@
-﻿namespace Presentation.Extensions;
+﻿using Microsoft.AspNetCore.Cors.Infrastructure;
+
+using Presentation.Constants;
+
+namespace Presentation.Extensions;
 
 public static class CORSExtension
 {
@@ -15,30 +19,28 @@ public static class CORSExtension
         var origins = config.GetSection("CORS:AllowedOrigins").Get<string[]>()
             ?? throw new InvalidOperationException("CORS origins 'CORS:AllowedOrigins' not found."
         );
-        builder.Services.AddCors(options =>
-            options.AddPolicy(_dev, builder => builder
-                .WithOrigins(origins)
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials()
-            )
-        );
+        
+        void AddCorsPolicy(string policyName, bool allowCredentials)
+        {
+            builder.Services.AddCors(options =>
+                options.AddPolicy(policyName, builder => builder
+                    .WithOrigins(origins)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .WithExposedHeaders(CustomHeader.Pagination)
+                    .SetCredentials(allowCredentials)
+                )
+            );
+        }
 
-        builder.Services.AddCors(options =>
-            options.AddPolicy(_prod, builder => builder
-                .WithOrigins(origins)
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials()
-            )
-        );     
-        builder.Services.AddCors(options =>
-            options.AddPolicy(_test, builder => builder
-                .WithOrigins(origins)
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-            )
-        );
+        AddCorsPolicy(_dev, true);
+        AddCorsPolicy(_prod, true);
+        AddCorsPolicy(_test, false);
+    }
+
+    private static CorsPolicyBuilder SetCredentials(this CorsPolicyBuilder builder, bool allowCredentials)
+    {
+        return allowCredentials ? builder.AllowCredentials() : builder;
     }
 
     public static void UseDevCORS(this WebApplication application)

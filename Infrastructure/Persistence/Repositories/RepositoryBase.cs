@@ -34,6 +34,24 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T>
             .ApplyPagination(paging);
     }
 
+    public (IQueryable<T>, int) GetQueryWithTotalItemCount(
+        IEnumerable<Expression<Func<T, bool>>>? filters = null,
+        IEnumerable<SortParams>? sorting = null,
+        PageParams? paging = null
+    )
+    {
+        var dbSet = _db.Set<T>();
+        var totalItemCount = dbSet.Count();
+
+        return (
+            dbSet
+                .AsQueryable()
+                .ApplyFilters(filters)
+                .ApplySorting(sorting)
+                .ApplyPagination(paging),
+            totalItemCount);
+    }
+
     /*
      *
      ****/
