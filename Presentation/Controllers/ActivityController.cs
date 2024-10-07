@@ -26,6 +26,7 @@ public class ActivityController : ApiBaseController
     public async Task<ActionResult<ActivityDto>> GetActivityById(int id)
     {
         var result = await _services.Activity.FindAsync(id);
+        Console.WriteLine(result);
         return result != null ? Ok(result) : NotFound();
     }
 

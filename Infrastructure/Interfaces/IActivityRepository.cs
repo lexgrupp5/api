@@ -2,4 +2,8 @@
 
 namespace Infrastructure.Interfaces;
 
-public interface IActivityRepository : IRepositoryBase<Activity>;
+public interface IActivityRepository : IRepositoryBase<Activity>
+{
+    IQueryable<ActivityType> QueryActivityTypeByName(string name);
+    IQueryable<ActivityType> QueryActivityTypeById(int id);
+}
