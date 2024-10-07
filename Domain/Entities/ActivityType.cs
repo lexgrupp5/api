@@ -9,4 +9,7 @@ public class ActivityType
     public string Name { get; set; }
 
     public string Description { get; set; }
+
+    // Navigation
+    public ICollection<Activity> Activities { get; } = [];
 }

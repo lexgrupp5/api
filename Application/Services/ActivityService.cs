@@ -28,6 +28,20 @@ public class ActivityService : ServiceBase<Activity, ActivityDto>, IActivityServ
             .ToListAsync();
     }
 
+    public async Task<ActivityDto> FindAsync(int id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+
+        var query = await _mapper
+            .ProjectTo<ActivityDto>(_data.Activities.GetQueryById(id))
+            .FirstOrDefaultAsync();
+        if (query == null)
+            NotFound();
+
+        Console.WriteLine(query);
+        return query;
+    }
+
     /*
      *
      ****/
@@ -53,6 +67,16 @@ public class ActivityService : ServiceBase<Activity, ActivityDto>, IActivityServ
             NotFound($"Module with the ID {createDto.ModuleId} was not found in the database.");
 
         var newActivity = _mapper.Map<Activity>(createDto);
+
+        var activityType = await _data
+            .Activities.QueryActivityTypeByName(createDto.ActivityTypeName)
+            .FirstOrDefaultAsync();
+        if (activityType == null)
+            NotFound(
+                $"Activity type with the name {createDto.ActivityTypeName} was not found in the database."
+            );
+
+        newActivity.ActivityType = activityType;
 
         ValidateActivityDates(
             newActivity,

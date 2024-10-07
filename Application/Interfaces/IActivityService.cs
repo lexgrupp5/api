@@ -17,6 +17,8 @@ public interface IActivityService : IServiceBase<Activity, ActivityDto>
     Task<ActivityDto> CreateAsync(ActivityCreateDto createDto);
     Task<ActivityDto> UpdateAsync(int id, ActivityUpdateDto updateDto);
 
+    Task<ActivityDto> FindAsync(int id);
+
     /* DEPRECATED
      **********************************************************************/
 
