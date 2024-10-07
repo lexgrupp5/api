@@ -1,29 +1,40 @@
 using System.Security.Claims;
+using Application.DTOs;
 using Application.Interfaces;
 using Application.Models;
+using AutoMapper;
 using Domain.Configuration;
+using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Interfaces;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Application.DTOs;
 
 namespace Application.Services;
 
-public class IdentityService(
-    IDataCoordinator dataCoordinator,
-    UserManager<User> userManager,
-    RoleManager<IdentityRole> roleManager,
-    ITokenService tokenService,
-    TokenConfig tokenConfiguration
-) : ServiceBase<User>, IIdentityService
+public class IdentityService : ServiceBase<User, UserDto>, IIdentityService
 {
-    private readonly IDataCoordinator _dc = dataCoordinator;
-    private readonly UserManager<User> _userManager = userManager;
-    private readonly RoleManager<IdentityRole> _roleManager = roleManager;
-    private readonly ITokenService _tService = tokenService;
-    private readonly TokenConfig _tConfig = tokenConfiguration;
+    private readonly UserManager<User> _userManager;
+    private readonly ITokenService _tService;
+    private readonly TokenConfig _tConfig;
 
-    public async Task<TokenResult> AuthenticateAsync(UserAuthModel userDto)
+    public IdentityService(
+        IMapper autoMapper,
+        IDataCoordinator dataCoordinator,
+        UserManager<User> userManager,
+        ITokenService tokenService,
+        TokenConfig tokenConfiguration
+    )
+        : base(dataCoordinator, autoMapper)
+    {
+        _userManager = userManager;
+        _tService = tokenService;
+        _tConfig = tokenConfiguration;
+    }
+
+    // TODO: refactor
+    public async Task<TokenResult> AuthenticateAsync(UserAuthModel userDto, string? refreshCookiePath)
     {
         var user = await ValidateUser(userDto);
         var userRoles = await _userManager.GetRolesAsync(user);
@@ -33,47 +44,52 @@ public class IdentityService(
         var userSession = new UserSession()
         {
             RefreshToken = refresh,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(_tConfig.Access.ExpirationInMinutes),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_tConfig.Refresh.ExpirationInMinutes),
             User = user
         };
 
-        var cookieParam = CreateRefreshCookieParameter(refresh);
+        var cookieParam = CreateRefreshCookieParameter(refresh, refreshCookiePath);
 
-        _dc.Users.AddUserSession(userSession);
-        await _dc.CompleteAsync();
+        _data.Users.AddUserSession(userSession);
+        await _data.CompleteAsync();
 
         return new(access, cookieParam);
     }
 
-    public async Task<TokenResult> RefreshTokensAsync(string oldAccess, string oldRefresh)
+    // TODO: refactor
+    public async Task<TokenResult> RefreshTokensAsync(
+        string oldAccess, string oldRefresh, string? refreshCookiePath)
     {
-        var user = await GetUserFromAccessToken(oldAccess);
+        var user = await GetUserFromAccessTokenAsync(oldAccess);
         var userRoles = await _userManager.GetRolesAsync(user);
         var userSession = await GetUserSession(oldRefresh, user);
         var newAccess = _tService.GenerateAccessToken(user, userRoles);
         var newRefresh = _tService.GenerateRefreshToken();
-        var newCookieParam = CreateRefreshCookieParameter(newRefresh);
+        var newCookieParam = CreateRefreshCookieParameter(newRefresh, refreshCookiePath);
         userSession.RefreshToken = newRefresh;
-        await _dc.CompleteAsync();
+        await _data.CompleteAsync();
 
         return new(newAccess, newCookieParam);
     }
 
+    // TODO: refactor
     public async Task<bool> RevokeAsync(string access, string refresh)
     {
-        var userSession = await _dc.Users.GetUserSessionAsync(refresh);
+        var userSession = await _data.Users.GetUserSessionAsync(refresh);
         if (userSession == null)
             NotFound();
 
-        _dc.Users.RemoveUserSession(userSession);
-        await _dc.CompleteAsync();
+        _data.Users.RemoveUserSession(userSession);
+        await _data.CompleteAsync();
 
         return true;
     }
 
+    // TODO: refactor
     public Task<bool> RevokeAllAsync(User user) => throw new NotImplementedException();
 
-    private async Task<User> GetUserFromAccessToken(string token)
+    // TODO: refactor
+    private async Task<User> GetUserFromAccessTokenAsync(string token)
     {
         var principal = _tService.GetPrincipalFromExpiredToken(token, _tConfig.Access.Secret);
         if (principal == null)
@@ -86,16 +102,17 @@ public class IdentityService(
         return user;
     }
 
+    // TODO: refactor
     private async Task<UserSession> GetUserSession(string refreshToken, User user)
     {
-        var userSession = await _dc.Users.GetUserSessionAsync(refreshToken);
+        var userSession = await _data.Users.GetUserSessionAsync(refreshToken);
         if (userSession == null)
             NotFound();
 
         if (userSession.ExpiresAt < DateTime.UtcNow)
         {
-            _dc.Users.RemoveUserSession(userSession);
-            await _dc.CompleteAsync();
+            _data.Users.RemoveUserSession(userSession);
+            await _data.CompleteAsync();
             Unauthorized("Refresh token has expired");
         }
 
@@ -105,11 +122,14 @@ public class IdentityService(
         return userSession;
     }
 
+    // TODO: refactor
     private async Task<User?> FindUserByPrincipalAsync(ClaimsPrincipal principal) =>
-        await _userManager.FindByNameAsync(
-            principal.FindFirst(ClaimTypes.NameIdentifier)?.ToString() ?? string.Empty
+       await _userManager.FindByIdAsync(
+            principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty
         );
 
+
+    // TODO: refactor
     private async Task<User> ValidateUser(UserAuthModel userDto)
     {
         var user = await _userManager.FindByNameAsync(userDto.UserName);
@@ -123,15 +143,23 @@ public class IdentityService(
         return user;
     }
 
-    private RefreshCookieParameter CreateRefreshCookieParameter(string refreshToken) =>
+    // TODO: refactor
+    private RefreshCookieParameter CreateRefreshCookieParameter(
+        string refreshToken, string? refreshCookiePath) =>
         new(
             refreshToken,
-            new()
-            {
-                HttpOnly = _tConfig.Refresh.HttpOnly,
-                SameSite = _tConfig.Refresh.SameSite,
-                Secure = _tConfig.Refresh.Secure,
-                Expires = DateTime.UtcNow.AddMinutes(_tConfig.Refresh.ExpirationInMinutes),
-            }
+            RefreshCookieBaseOptions(refreshCookiePath)
         );
+
+    public CookieOptions RefreshCookieBaseOptions (string? refreshCookiePath)
+    {
+        return new CookieOptions
+        {
+            HttpOnly = _tConfig.Refresh.HttpOnly,
+            SameSite = _tConfig.Refresh.SameSite,
+            Secure = _tConfig.Refresh.Secure,
+            Expires = DateTime.UtcNow.AddMinutes(_tConfig.Refresh.ExpirationInMinutes),
+            Path = refreshCookiePath
+        };
+    }
 }

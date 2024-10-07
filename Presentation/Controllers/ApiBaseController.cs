@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
-public class ApiBaseController : ControllerBase
+public abstract class ApiBaseController : ControllerBase
 {
     /// <summary>
     /// A reusable validation method that can be used to validate
@@ -37,5 +37,23 @@ public class ApiBaseController : ControllerBase
         }
 
         return true;
+    }
+
+    protected string? GetControllerPath()
+    {
+        string? path = Url.Action();
+
+        if (string.IsNullOrEmpty(path))
+        {
+            return null;
+        }
+
+        int lastSlashIndex = path.LastIndexOf('/');
+        if (lastSlashIndex > 0)
+        {
+            path = path.Substring(0, lastSlashIndex);
+        }
+        return path;
+
     }
 }

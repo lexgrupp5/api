@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Reflection;
 using Infrastructure.Interfaces;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
@@ -7,42 +6,69 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public abstract class RepositoryBase<T>(AppDbContext context) : IRepositoryBase<T>
+public abstract class RepositoryBase<T> : IRepositoryBase<T>
     where T : class
 {
-    protected AppDbContext _db = context;
+    protected AppDbContext _db;
+
+    public RepositoryBase(AppDbContext context)
+    {
+        _db = context;
+    }
+
+    public DbContext Context => _db;
 
     /*
      *
      ****/
     public IQueryable<T> GetQuery(
         IEnumerable<Expression<Func<T, bool>>>? filters = null,
-        ICollection<SortParams>? sorting = null,
-        PageParams? paging = null,
-        IEnumerable<Expression<Func<T, object>>>? includes = null
+        IEnumerable<SortParams>? sorting = null,
+        PageParams? paging = null
     )
     {
-        var query = _db.Set<T>().AsQueryable();
+        return _db.Set<T>()
+            .AsQueryable()
+            .ApplyFilters(filters)
+            .ApplySorting(sorting)
+            .ApplyPagination(paging);
+    }
 
-        if (filters != null)
-            query = ApplyFilters(query, filters);
+    public (IQueryable<T>, int) GetQueryWithTotalItemCount(
+        IEnumerable<Expression<Func<T, bool>>>? filters = null,
+        IEnumerable<SortParams>? sorting = null,
+        PageParams? paging = null
+    )
+    {
+        var dbQuery = _db.Set<T>()
+            .AsQueryable()
+            .ApplyFilters(filters)
+            .ApplySorting(sorting);
+        
+        var totalItemCount = dbQuery.Count();
 
-        if (includes != null)
-            query = ApplyIncludes(query, includes);
+        var paginatedQuery = dbQuery.ApplyPagination(paging);
 
-        if (sorting != null)
-            query = ApplySorting(query, sorting);
-
-        if (paging != null)
-            query = ApplyPagination(query, paging);
-
-        return query;
+        return (paginatedQuery, totalItemCount);
     }
 
     /*
      *
      ****/
-    public IEnumerable<T> GetAll() => [.. _db.Set<T>()];
+    public IQueryable<T> GetQueryById(params object?[]? keyValues) =>
+        _db.Set<T>().AsQueryable().Where(FindByIdFilter(keyValues));
+
+    /*
+     *
+     ****/
+    public async Task<T?> FindAsync(params object?[]? keyValues) =>
+        await _db.Set<T>().FindAsync(keyValues);
+
+    /*
+     *
+     ****/
+    public async Task<bool> ExistsAsync(params object?[]? keyValues) =>
+        await _db.Set<T>().AnyAsync(FindByIdFilter(keyValues));
 
     /*
      *
@@ -58,7 +84,7 @@ public abstract class RepositoryBase<T>(AppDbContext context) : IRepositoryBase<
     /*
      *
      ****/
-    public async Task<EntityEntry<T>> CreateAsync(T entity) => await _db.Set<T>().AddAsync(entity);
+    public async Task<EntityEntry<T>> AddAsync(T entity) => await _db.Set<T>().AddAsync(entity);
 
     /*
      *
@@ -73,65 +99,39 @@ public abstract class RepositoryBase<T>(AppDbContext context) : IRepositoryBase<
     /*
      *
      ****/
-    protected IQueryable<T> ApplyFilters(
+    protected IQueryable<T> BuildQuery(
         IQueryable<T> query,
-        IEnumerable<Expression<Func<T, bool>>>? filters
-    ) => filters?.Aggregate(query, (cur, filter) => cur.Where(filter)) ?? query;
-
-    /*
-     *
-     ****/
-    protected IQueryable<T> ApplyIncludes(
-        IQueryable<T> query,
-        IEnumerable<Expression<Func<T, object>>>? includes
-    ) => includes?.Aggregate(query, (cur, include) => cur.Include(include)) ?? query;
-
-    /*
-     *
-     ****/
-    protected IQueryable<T> ApplySorting(
-        IQueryable<T> query,
-        ICollection<SortParams>? sortingOptions
+        IEnumerable<Expression<Func<T, bool>>>? filters = null,
+        IEnumerable<SortParams>? sorting = null,
+        PageParams? paging = null
     )
     {
-        if (sortingOptions is null || sortingOptions.Count == 0)
-            return query;
-
-        foreach (var sort in sortingOptions)
-        {
-            var propInfo = typeof(T).GetProperty(
-                sort.Field,
-                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
-            );
-            if (propInfo == null)
-                continue;
-
-            var parameter = Expression.Parameter(typeof(T), propInfo.Name);
-            var propertyAccess = Expression.MakeMemberAccess(parameter, propInfo);
-            var lambda =
-                (Expression<Func<T, object>>)
-                    Expression.Lambda(
-                        typeof(Func<,>).MakeGenericType(typeof(T), typeof(object)),
-                        propertyAccess,
-                        parameter
-                    );
-            query = query.SmartOrderBy(lambda, sort.Descending);
-        }
-
-        return query;
+        return query.ApplyFilters(filters).ApplySorting(sorting).ApplyPagination(paging);
     }
 
-    /*
-     *
-     ****/
-    protected IQueryable<T> ApplyPagination(IQueryable<T> query, PageParams? pagination)
+    protected Expression<Func<T, bool>> FindByIdFilter(params object?[]? keyValues)
     {
-        if (pagination == null)
-            return query;
+        ArgumentNullException.ThrowIfNull(keyValues);
 
-        pagination.Page = Math.Max(pagination.Page, 1);
-        pagination.Size = pagination.Size > 0 ? pagination.Size : 10;
+        var entityType = _db.Model.FindEntityType(typeof(T));
+        var primaryKeys = entityType?.FindPrimaryKey();
 
-        return query.Skip((pagination.Page - 1) * pagination.Size).Take(pagination.Size);
+        ArgumentNullException.ThrowIfNull(primaryKeys);
+
+        if (primaryKeys.Properties.Count != keyValues.Length)
+            throw new ArgumentException("keyValues count does not match primaryKeys");
+
+        var parameter = Expression.Parameter(typeof(T), nameof(T));
+        var body = primaryKeys
+            .Properties.Select(
+                (p, i) =>
+                    Expression.Equal(
+                        Expression.Property(parameter, p.Name),
+                        Expression.Constant(keyValues[i])
+                    )
+            )
+            .Aggregate(Expression.AndAlso);
+
+        return Expression.Lambda<Func<T, bool>>(body, parameter);
     }
 }

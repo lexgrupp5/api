@@ -1,130 +1,93 @@
-using System.Linq.Expressions;
 using Application.Interfaces;
 using Application.Models;
 using AutoMapper;
-using Domain.Configuration;
 using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Interfaces;
-using Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class UserService : ServiceBase<User>, IUserService
+public class UserService : ServiceBase<User, UserDto>, IUserService
 {
-    private readonly IDataCoordinator _dataCoordinator;
-    private readonly IMapper _mapper;
-    private readonly UserManager<User> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly TokenConfig _tokenOptions;
-    private readonly ITokenService _tokenService;
+    public UserService(IDataCoordinator dataCoordinator, IMapper mapper)
+        : base(dataCoordinator, mapper) { }
 
-    public UserService(
-        UserManager<User> userManager,
-        RoleManager<IdentityRole> roleManager,
-        ITokenService tokenService,
-        TokenConfig tokenOptions,
-        IDataCoordinator dataCoordinator,
-        IMapper mapper
-    )
+    public async Task<IEnumerable<UserDto>?> GetUsersAsync()
     {
-        _dataCoordinator = dataCoordinator;
-        _mapper = mapper;
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _tokenOptions = tokenOptions;
-        _tokenService = tokenService;
+        var users = await _data.Users.GetAllAsync();
+        return _mapper.Map<IEnumerable<UserDto>>(users);
     }
 
-    public async Task<IEnumerable<UserDto?>> GetUsersOfCourseByIdAsync(int courseId)
+    public async Task<UserDto?> UpdateAsync(UserUpdateDto dto)
     {
-        var users = await _dataCoordinator.Users.GetUsersFromCourseByIdAsync(courseId);
-        var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
+        var currentUser = await _data.Users.FindAsync(dto.Id);
+        if (currentUser == null)
+            NotFound();
 
-        return userDtos;
+        _mapper.Map(dto, currentUser);
+        await _data.CompleteAsync();
+        return _mapper.Map<UserDto>(currentUser);
     }
+    public async Task<T?> FindUserAsync<T>(string username) =>
+        await _mapper
+            .ProjectTo<T>(_data.Users.GetQuery([u => u.UserName == username]))
+            .FirstOrDefaultAsync();
 
-    public async Task<User?> GetUserByUsername(string name) =>
-        await _userManager.FindByNameAsync(name);
+    /* PRIVATE HELPERS
+     **********************************************************************/
+
+    private async Task<User?> FindUserAsync(string username) => await FindUserAsync<User>(username);
+
+
+    /* DEPRECATED
+     **********************************************************************/
 
     public async Task<UserDto?> PatchUser(
         string username,
-        JsonPatchDocument<UserForUpdateDto> patchDocument
+        JsonPatchDocument<UserUpdateDto> patchDocument
     )
     {
-        var userToBeUpdated = await GetUserByUsername(username);
-        if (userToBeUpdated == null)
+        var currentUser = await _data
+            .Users.GetQuery([u => u.UserName == username])
+            .FirstOrDefaultAsync();
+        if (currentUser == null)
         {
             return null;
         }
 
-        var userToPatch = _mapper.Map<UserForUpdateDto>(userToBeUpdated);
+        var userToPatch = _mapper.Map<UserUpdateDto>(currentUser);
         patchDocument.ApplyTo(userToPatch);
 
-        userToBeUpdated.Name = userToPatch.Name;
-        userToBeUpdated.Email = userToPatch.Email;
-        userToBeUpdated.UserName = userToPatch.Username;
-        userToBeUpdated.Course = userToPatch.Course;
-        await _dataCoordinator.CompleteAsync();
+        currentUser.Name = userToPatch.Name;
+        currentUser.Email = userToPatch.Email;
+        currentUser.UserName = userToPatch.Username;
+        await _data.CompleteAsync();
 
-        var updatedUser = _mapper.Map<UserDto>(userToBeUpdated);
+        var updatedUser = _mapper.Map<UserDto>(currentUser);
         return updatedUser;
     }
 
-    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
-    {
-        var users = await _dataCoordinator.Users.GetAllAsync();
-        return _mapper.Map<IEnumerable<UserDto>>(users);
-    }
-
-    public async Task<IEnumerable<UserDto>> TestUserQuery()
-    {
-        // Setup filters i/e where clauses
-        List<Expression<Func<User, bool>>> filters =
-        [
-            u => u.UserName!.ToLower().Contains("test".ToLower())
-        ];
-
-        // Setup property/column sorting, order matters
-        List<SortParams> sorting = [new() { Field = "Name", Descending = false }];
-
-        // Pagination offset and size of set.
-        PageParams pagination = new() { Page = 1, Size = 10 };
-
-        // Get the queryable with filters, sorting and pagination
-        var query = _dataCoordinator.Users.GetQuery(filters, sorting, pagination);
-
-        // Use automapper for projection and eager loading
-        return await _mapper.ProjectTo<UserDto>(query).ToListAsync();
-    }
-
     public async Task<UserDto?> CreateNewUserAsync(
-        UserForCreationDto newUser,
+        UserCreateDto newUser,
         UserManager<User> userManager,
         IIdentityService identityService
     )
     {
-        UserCreateModel userCreateModel = new UserCreateModel(
-            newUser.Name,
-            newUser.Username,
-            newUser.Email,
-            "Qwerty1234"
-        );
-
-        var user = _mapper.Map<User>(userCreateModel);
+        var user = _mapper.Map<User>(newUser);
         var result = await userManager.CreateAsync(user);
 
         if (!result.Succeeded)
         {
             throw new Exception(string.Join("\n", result.Errors));
         }
-        var createdUser = await _dataCoordinator
+
+        var createdUser = await _data
             .Users.GetByConditionAsync(u => u.Name == newUser.Name)
             .FirstAsync();
-        var finalUser = await _dataCoordinator.Users.CreateNewUserAsync(createdUser);
+        var finalUser = await _data.Users.CreateNewUserAsync(createdUser);
         var finalDto = _mapper.Map<UserDto>(finalUser);
         return finalDto;
     }

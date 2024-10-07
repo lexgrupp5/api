@@ -1,16 +1,18 @@
 using AutoMapper;
-using Domain.DTOs;
 using Domain.Entities;
 using Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class ModuleRepository(AppDbContext context, IMapper mapper)
-    : RepositoryBase<Module>(context),
-        IModuleRepository
+public class ModuleRepository : RepositoryBase<Module>, IModuleRepository
 {
-    private readonly IMapper _mapper = mapper;
+    public ModuleRepository(AppDbContext context)
+        : base(context) { }
+
+    /* DEPRECATED
+     **********************************************************************/
+
+    /*
 
     public async Task<Module?> GetModuleByIdWithActivitiesAsync(int id) =>
         await GetByConditionAsync(m => m.Id.Equals(id))
@@ -19,7 +21,9 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
 
     public async Task<Module> GetModule(int id)
     {
-        var result = await GetByConditionAsync(m => m.Id.Equals(id)).Include(m => m.Activities).FirstOrDefaultAsync();
+        var result = await GetByConditionAsync(m => m.Id.Equals(id))
+            .Include(m => m.Activities)
+            .FirstOrDefaultAsync();
         return result;
     }
 
@@ -48,6 +52,8 @@ public class ModuleRepository(AppDbContext context, IMapper mapper)
         var activity = await _db.Activities.FirstOrDefaultAsync(x => x.Id == id);
         return activity;
     }
-    
+
     public IQueryable<Module> QueryModuleById(int id) => _db.Modules.Where(x => x.Id == id);
+
+    */
 }

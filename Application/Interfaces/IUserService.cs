@@ -7,14 +7,15 @@ namespace Application.Interfaces;
 
 public interface IUserService
 {
-    Task<IEnumerable<UserDto?>> GetUsersOfCourseByIdAsync(int courseId);
-    Task<UserDto?> PatchUser(string username, JsonPatchDocument<UserForUpdateDto> patchDocument);
-    Task<User?> GetUserByUsername(string name);
+    Task<IEnumerable<UserDto>?> GetUsersAsync();
+
+    /* DEPRECATED
+     **********************************************************************/
+    Task<T?> FindUserAsync<T>(string username);
+    Task<UserDto?> PatchUser(string username, JsonPatchDocument<UserUpdateDto> patchDocument);
     Task<UserDto?> CreateNewUserAsync(
-        UserForCreationDto newUser,
+        UserCreateDto newUser,
         UserManager<User> userManager,
         IIdentityService identityService
     );
-    Task<IEnumerable<UserDto>> TestUserQuery();
-    Task<IEnumerable<UserDto>> GetAllUsersAsync();
 }

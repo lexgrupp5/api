@@ -35,7 +35,7 @@ public static class SeedData
         await context.AddRangeAsync(activityTypes);
         await context.SaveChangesAsync();
 
-        var courses = GenerateCourses(40, activityTypes);
+        var courses = GenerateCourses(200, activityTypes);
         await context.AddRangeAsync(courses);
         await context.SaveChangesAsync();
 
@@ -44,7 +44,7 @@ public static class SeedData
             await GenerateRolesAsync([StudentRole, TeacherRole]);
             await context.SaveChangesAsync();
 
-            await GenerateUsersAsync(50, courses);
+            await GenerateUsersAsync(210, courses);
             await context.SaveChangesAsync();
 
             var testUsers = GenerateTestUsers(courses);

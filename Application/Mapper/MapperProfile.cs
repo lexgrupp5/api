@@ -1,4 +1,3 @@
-using Application.Models;
 using AutoMapper;
 using Domain.DTOs;
 using Domain.Entities;
@@ -9,53 +8,54 @@ public class MapperProfile : Profile
 {
     public MapperProfile()
     {
-        // Course -> CourseDTO
-        CreateMap<Course, CourseDto>()
-            // .ForMember(dest => dest.ModuleNames, opt => opt.MapFrom(src => src.Modules.Select(m => m.Name).ToArray()))
-            .ConstructUsing(src => new CourseDto(
-                src.Id,
-                src.Name,
-                src.Description,
-                src.StartDate,
-                src.EndDate
-                // src.Modules.Select(m => m.Name).ToArray()
-                ))
+        /*
+         * COURSE
+         ***********/
+        CreateMap<Course, Course>();
+        CreateMap<Course, CourseDto>().ReverseMap();
+        CreateMap<Course, CourseCompleteDto>()
+            .ForMember(dest => dest.Modules, opt => opt.MapFrom(src => src.Modules))
+            .ForMember(dest => dest.Students, opt => opt.MapFrom(src => src.Users))
             .ReverseMap();
 
-        //Activity -> ActivityDTO
-        CreateMap<Activity, ActivityDto>()
-            .ForMember(dest => dest.ActivityTypeName, opt => opt.MapFrom(src => src.ActivityType.Name))
-            .ForMember(dest => dest.ActivityTypeDescription, opt => opt.MapFrom(src => src.ActivityType.Description))
-            .ReverseMap();
+        CreateMap<CourseCreateDto, Course>();
+        CreateMap<CourseUpdateDto, Course>();
 
-        //Module -> ModuleDTO
+        /*
+         * MODULE
+         ***********/
+        CreateMap<Module, Module>();
         CreateMap<Module, ModuleDto>()
             .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.Activities))
             .ReverseMap();
 
-        CreateMap<ModuleCreateModel, Module>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Course, opt => opt.Ignore())
-            .ForMember(dest => dest.Activities, opt => opt.Ignore())
-            .ForMember(dest => dest.Documents, opt => opt.Ignore());
-        CreateMap<Module, ModuleForCreationDto>().ReverseMap();
-        CreateMap<ModuleCreateModel, ModuleForCreationDto>();
+        CreateMap<ModuleCreateDto, Module>();
+        CreateMap<ModuleUpdateDto, Module>();
 
-        CreateMap<UserCreateModel, UserForCreationDto>().ReverseMap();
-        CreateMap<User, UserForUpdateDto>().ReverseMap();
+        /*
+         * ACTIVITY
+         ***********/
+        CreateMap<Activity, Activity>();
+        CreateMap<Activity, ActivityDto>().ReverseMap();
+
+        CreateMap<ActivityCreateDto, Activity>();
+        CreateMap<ActivityUpdateDto, Activity>()
+            .ForMember(dest => dest.StartDate, opt => opt.Condition(src => src.StartDate.HasValue))
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+            .ForMember(dest => dest.EndDate, opt => opt.Condition(src => src.EndDate.HasValue))
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate));
+        //.ForMember(dest => dest.StartDate, opt => opt.MapFrom((src, dest) => src == null ? dest.StartDate : src.StartDate));
+        /* .ForMember(dest => dest.StartDate, opt => opt.Condition(src => src.StartDate != default(DateTime)))
+        .ForMember(dest => dest.EndDate, opt => opt.Condition(src => src.EndDate != null))
+        .ForAllMembers(opt => opt.Condition((src, dest, member) => member != null)); */
+
+        /*
+         * USER
+         ***********/
+        CreateMap<User, User>();
         CreateMap<User, UserDto>().ReverseMap();
-        CreateMap<Course, CourseCreateDto>().ReverseMap();
 
-        CreateMap<ActivityCreateModel, Activity>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Module, opt => opt.Ignore())
-            .ForMember(dest => dest.ActivityType, opt => opt.Ignore());
-        CreateMap<ActivityCreateModel, ActivityForCreationDto>().ReverseMap();
-        CreateMap<ActivityForCreationDto, Activity>().ReverseMap();
-
-        CreateMap<Module, ModuleToPatchDto>().ReverseMap();
-
-        CreateMap<Module, ModuleDto>()
-            .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.Activities));
+        CreateMap<UserCreateDto, User>();
+        CreateMap<UserUpdateDto, User>();
     }
 }

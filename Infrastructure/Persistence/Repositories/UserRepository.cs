@@ -1,5 +1,8 @@
+using System.Linq.Expressions;
+using Domain.Constants;
 using Domain.Entities;
 using Infrastructure.Interfaces;
+using Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -9,10 +12,7 @@ namespace Infrastructure.Persistence.Repositories;
 public class UserRepository : RepositoryBase<User>, IUserRepository
 {
     public UserRepository(AppDbContext context)
-        : base(context)
-    {
-        _db = context;
-    }
+        : base(context) { }
 
     public async Task<IEnumerable<User>?> GetUsersFromCourseByIdAsync(int courseId)
     {
@@ -38,6 +38,18 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
     public async Task<bool> CheckUsernameExistsAsync(User user)
     {
         return await _db.Users.AnyAsync(u => u.Name == user.Name);
+    }
+
+    public IQueryable<User> GetQueryUsersInRole(
+        string roleName,
+        IEnumerable<Expression<Func<User, bool>>> filters,
+        IEnumerable<SortParams>? sorting = null,
+        PageParams? paging = null
+    )
+    {
+        var query = BuildQuery(_db.Users.AsQueryable(), filters, sorting, paging);
+        var roleId = _db.Roles.Where(r => r.Name == roleName).Select(r => r.Id).SingleOrDefault();
+        return query.Where(u => _db.UserRoles.Any(ur => ur.RoleId == roleId));
     }
 
     // UserSession
@@ -78,4 +90,7 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
      ****/
     public EntityEntry<UserSession> RemoveUserSession(UserSession session) =>
         _db.UserSession.Remove(session);
+
+    /* DEPRECATED
+     **********************************************************************/
 }
